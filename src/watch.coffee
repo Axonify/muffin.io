@@ -115,20 +115,10 @@ watchDir = (dir) ->
   # Live reload
   startLiveReloadServer()
 
-getNetworkIP = ->
-  ips = []
-  interfaces = os.networkInterfaces()
-  for en, addrs of interfaces
-    for addr in addrs
-      if addr.family is 'IPv4' and not addr.internal
-        ips.push(addr.address)
-  ips[0]
-
 startLiveReloadServer = ->
   connections = []
   port = settings.liveReload?.port ? 9485
-  host = getNetworkIP()
-  server = new WebSocketServer {host: "#{host}", port}
+  server = new WebSocketServer {host: 'localhost', port}
   server.on 'connection', (connection) =>
     connections.push connection
     connection.on 'close', ->
