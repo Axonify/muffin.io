@@ -1,0 +1,10 @@
+.tweet
+  .tweet-content
+    .tweet-header
+      a(href!="#users/<%= creator.username %>")
+        img.avatar(src!="<%- creator.profileImageUrl || 'images/default_avatar.jpeg' %>", alt!="<%- creator.name || '' %>")
+        strong.tweet-author-full-name <%- creator.name || '' %>
+        .tweet-author-username @<%- creator.username || '' %>
+    p.tweet-text <%- tweet.text %>
+    .tweet-footer
+      .tweet-created-at <%- (new Date(tweet.created_at)).toLocaleDateString() %>

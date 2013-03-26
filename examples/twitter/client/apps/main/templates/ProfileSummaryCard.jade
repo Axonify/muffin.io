@@ -1,0 +1,28 @@
+.account-summary-container
+  .account-summary
+    img.account-summary-avatar.avatar.size32(src!="<%- user.profileImageUrl || 'images/default_avatar.jpeg' %>", alt!="<%- user.name %>")
+    .account-summary-content
+      strong.account-summary-full-name <%- user.name || 'Unknown User' %>
+      small.account-summary-metadata
+        a(href='#me') View my profile page
+
+.stats-container
+  ul.stats
+    li.stat-tweets
+      strong <%- user.tweetsCount || 0 %>
+      | tweets
+    li.stat-following
+      strong <%- user.friendsCount || 0 %>
+      | following
+    li.stat-followers
+      strong <%- user.followersCount || 0 %>
+      | followers
+
+<% if (isCurrentUser()) { %>
+.status-container
+  .status
+    textarea.status-text(placeholder="What's happening?")
+    .status-info
+      span.status-character-count 140
+      button.btn.btn-primary.tweet-button(disabled) Tweet
+<% } %>

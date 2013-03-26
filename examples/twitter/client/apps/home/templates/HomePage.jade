@@ -1,0 +1,22 @@
+.caption.span6
+  h1 Welcome to Twitter.
+  p Find out what's happening, right now, with the people and organizations you care about.
+.span5
+  .signin-form
+    form.form
+      fieldset
+        input#username(type='text', name='username', placeholder='Username or email', data-field='username')
+        input#password(type='password', name='password', placeholder='Password', data-field='password')
+        .action-container
+          a(href='#reset-password').forgot-password-link.pull-left Forgot password?
+          button.btn.btn-primary.signin-btn.pull-right Sign in
+  .signup-form
+    h2
+      strong New to Twitter?
+      |  Sign up
+    form.form
+      fieldset
+        input#name(type='text', name='name', placeholder='Full name', data-field='name')
+        input#email(type='text', name='email', placeholder='Email', data-field='email')
+        input#password(type='password', name='password', placeholder='Password', data-field='password')
+        button.btn.signup-btn.pull-right Sign up for Twitter

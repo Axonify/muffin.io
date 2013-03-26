@@ -1,0 +1,36 @@
+#grid {
+  position: relative;
+  text-align: center;
+  width: 480px;
+  margin: 16px auto;
+  padding: 32px 0;
+  border: 2px solid #555;
+  font-size: 64px;
+  font-family: Monaco, "DejaVu Sans Mono", "Lucida Console", monospace;
+}
+
+#message {
+  position: relative;
+  text-align: center;
+  margin: 32px;
+  font-size: 24px;
+}
+
+.notice {
+  position: relative;
+  text-align: center;
+  width: 486px;
+  margin: 0 auto;
+  padding: 16px 0;
+  background: #eb4;
+  font-size: 18px;
+}
+
+#scores {
+  position: relative;
+  text-align: center;
+  width: 484px;
+  margin: 16px auto;
+  border: 1px solid #555;
+  font-size: 24px;
+}

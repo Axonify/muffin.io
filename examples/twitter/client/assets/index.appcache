@@ -1,0 +1,10 @@
+CACHE MANIFEST
+# <?= (new Date()).toString() ?>
+
+CACHE:
+index.html
+javascripts/apps/main/start.js
+stylesheets/main.css
+
+NETWORK:
+*

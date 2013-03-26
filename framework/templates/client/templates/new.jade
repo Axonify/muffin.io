@@ -1,0 +1,21 @@
+h1 New <$- classified $>
+form.form-horizontal
+  legend <$- classified $>
+  <$ _(attrs).each(function(value, key, list)  { if (value === 'String') { $>
+  .control-group
+    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
+    .controls
+      input(type='text', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  <$ } else if (value === 'Number') { $>
+  .control-group
+    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
+    .controls
+      input(type='number', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  <$ } else if (value === 'Boolean') { $>
+  .control-group
+    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
+      input(type='checkbox', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  <$ }}); $>
+  .form-actions
+    button.btn.btn-primary(type='submit') Submit
+    button.btn.cancel Cancel

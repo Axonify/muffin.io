@@ -1,0 +1,362 @@
+@import "client/assets/stylesheets/prefixer";
+
+@black: #000;
+@lightblack: #333;
+@gray: #999;
+@white: #fff;
+@lightgray: #AAA;
+
+body {
+  padding-top: 40px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  background-color: #E89C7C;
+}
+
+// General
+.card, .page {
+  margin-bottom: 10px;
+  line-height: 16px;
+  border: 1px solid rgba(0, 0, 0, .1);
+  .border-radius(8px);
+  background-color: @white;
+  background-clip: padding-box;
+  min-height: 46px;
+}
+
+.avatar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 48px;
+  height: 48px;
+  .border-radius(5px);
+}
+
+.size32 {
+  width: 32px;
+  height: 32px;
+}
+
+.btn.tweet-button {
+  background-color: #293FE8;
+}
+
+// Header
+.container, .navbar-fixed-top .container, .navbar-fixed-bottom .container {
+  width: 885px;
+}
+
+.nav {
+  .nav-item {
+    .nav-item-link {
+      font-weight: bolder;
+      font-weight: padding-box;
+    }
+    
+    .nav-item-title {
+      margin-left: 26px;
+      font-size: 12px;
+    }
+    
+    .nav-item-icon-container {
+      top: 8px;
+    }
+    
+    .nav-item-icon {
+      position: absolute;
+      display: inline-block;
+      width: 21px;
+      height: 22px;
+      background-image: url('../images/twitter_web_sprite_icons.png');
+      background-position: 0 0;
+      background-repeat: no-repeat;
+      
+      &.homeIcon {
+        background-position: 0px -50px;
+      }
+      
+      &.userIcon {
+        background-position: -120px -50px;
+      }
+    }
+    
+    &.active .nav-item-icon {
+      &.homeIcon {
+        background-position: 0px -110px;
+      }
+      &.userIcon {
+        background-position: -120px -110px;
+      }
+    }
+  }
+}
+
+// Content Area
+.outer-container {
+  padding: 15px;
+  background: #FFEF97;
+}
+
+#content-container {
+  margin-left: 15px;
+  padding: 5px 0;
+  min-height: 640px;
+}
+
+// Sidebar
+#sidebar-container {
+  .card {
+    .account-summary-container {
+      padding: 12px;
+      
+      .account-summary {
+        position: relative;
+        padding-bottom: 0;
+        
+        .account-summary-avatar {
+          top: 0;
+          left: 0;
+        }
+        
+        .account-summary-content {
+          margin-left: 42px;
+        }
+        
+        .account-summary-full-name {
+          display: block;
+          font-size: 14px;
+        }
+        
+        .account-summary-metadata {
+          font-size: 11px;
+          color: @gray;
+        }
+      }
+    }
+    
+    .stats {
+      margin: 0;
+      padding: 0 12px;
+      overflow: hidden;
+      list-style: none;
+      border: solid #e8e8e8;
+      border-width: 1px 0 1px 0;
+      
+      > li {
+        float: left;
+        padding: 7px 12px;
+        font-size: 10px;
+        line-height: 16px;
+        text-transform: uppercase;
+        color: @gray;
+        border: solid #e8e8e8;
+        border-width: 0 1px 0 0;
+        
+        &:first-child {
+          padding-left: 0;
+        }
+        &:last-child {
+          border-right: 0;
+        }
+        strong {
+          display: block;
+          font-size: 14px;
+          color: @lightblack;
+        }
+      }
+    }
+    
+    .status {
+      padding: 12px;
+      .border-radius(6px);
+      background: #f8f8f8;
+      
+      textarea {
+        width: 250px;
+        height: 100px;
+      }
+      
+      .status-info {
+        text-align: right;
+      }
+      
+      .status-text {
+        padding: 10px;
+      }
+      
+      .status-character-count {
+        color: @gray;
+        &.invalid {
+          color: #b83535;
+        }
+      }
+    }
+  }
+}
+
+.card.profile-nav {
+  border: 0;
+}
+
+.card {
+  .recommended-header {
+    padding: 0 1em;
+    
+    h3 {
+      font-weight: normal;
+      font-size: 14px;
+      line-height: 1;
+      margin: 1em 0 0.2em 0;
+    }
+  }
+  
+  // Users to follow
+  .user-to-follow {
+    position: relative;
+    min-height: 75px;
+    padding: 9px 12px 9px;
+
+    .user-to-follow-content {
+      margin-left: 58px;
+
+      .user-to-follow-header {
+        .user-full-name {
+          color: @lightblack;
+        }
+        .user-username {
+          color: @lightgray;
+        }
+      }
+
+      .user-to-follow-actions {
+        margin-top: 1em;
+        a {
+          color: purple;
+        }
+      }
+    }
+  }
+}
+
+// Tweets
+.tweets-header {
+  padding: 0 0 6px 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.tweet {
+  position: relative;
+  min-height: 75px;
+  padding: 9px 12px 9px;
+  border-bottom: 1px solid #e8e8e8;
+  
+  .tweet-content {
+    margin-left: 58px;
+    
+    .tweet-header {
+      .tweet-author-full-name {
+        color: @lightblack;
+      }
+      
+      .tweet-author-username {
+        display: inline;
+        color: @lightgray;
+      }
+    }
+    
+    .tweet-text {
+      margin: 0.6em 0 0.6em 0;
+      word-wrap: break-word;
+    }
+    
+    .tweet-footer {
+      overflow: hidden;
+      color: @gray;
+      
+      .tweet-created-at {
+        color: @gray;
+      }
+    }
+  }
+}
+
+// User
+.users-header {
+  padding: 0 0 6px 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.user {
+  position: relative;
+  min-height: 54px;
+  padding: 9px 12px 9px;
+  border-bottom: 1px solid #e8e8e8;
+  
+  .user-content {
+    margin-left: 64px;
+    margin-top: 5px;
+    
+    .user-header {
+      .user-full-name {
+        color: @lightblack;
+      }
+      .user-username {
+        color: @lightgray;
+        margin-top: 6px;
+      }
+    }
+    
+    .user-actions {
+      position: absolute;
+      top: 21px;
+      right: 12px;
+      a {
+        color: purple;
+      }
+    }
+  }
+}
+
+// Edit Profile Page
+.edit-profile-page {
+  margin: 20px 20px 20px 36px;
+  padding: 2em;
+  border: 1px solid rgba(0, 0, 0, .1);
+  .border-radius(8px);
+  background-color: @white;
+  
+  .edit-profile-header {
+    padding: 0 0 6px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    
+    h3 {
+      font-weight: normal;
+      font-size: 22px;
+      line-height: 1;
+      margin: 1em 0 0.2em 0;
+    }
+  }
+  
+  .edit-profile-content {
+    margin: 20px;
+    
+    form {
+      .control-label {
+        width: 200px;
+        margin-right: 50px;
+      }
+      
+      input[type="file"] {
+        line-height: 20px;
+        height: 20px;
+        position: relative;
+        top: 5px;
+      }
+      
+      .save-button {
+        margin-left: 10em;
+        float: left;
+      }
+    }
+  }
+}

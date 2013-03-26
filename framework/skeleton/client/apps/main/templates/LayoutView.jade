@@ -1,0 +1,25 @@
+#flash
+
+.navbar.navbar-fixed-top.navbar-inverse
+  .navbar-inner
+    .container
+      ul.nav
+        li.nav-item.active(data-tab='Home')
+          a.nav-item-link(href='#')
+            .nav-item-icon-container
+              span.nav-item-icon.homeIcon
+            span.nav-item-title Home
+        li.nav-item(data-tab='Me')
+          a.nav-item-link(href='#me')
+            .nav-item-icon-container
+              span.nav-item-icon.userIcon
+            span.nav-item-title Me
+      ul.nav.pull-right
+        li.nav-item(data-tab='Logout')
+          a.nav-item-link.logout-btn(href='#')
+            span.nav-item-title Logout
+
+.container.outer-container
+  #page-container.row
+    #sidebar-container.span4
+    #content-container.page.span7

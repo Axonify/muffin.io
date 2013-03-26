@@ -1,0 +1,12 @@
+CACHE MANIFEST
+# HASHXXXXXX
+
+CACHE:
+home.html
+javascripts/apps/home/start.js
+javascripts/libs/livereload.js
+stylesheets/home.css
+vendor/bootstrap/css/bootstrap.min.css
+
+NETWORK:
+*

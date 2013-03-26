@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var src = path.join(__dirname, '../src');
+
+require('coffee-script');
+require(path.join(src, 'command')).run()

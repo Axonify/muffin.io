@@ -1,0 +1,46 @@
+doctype 5
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(http-equiv="X-UA-Compatible", content="IE=edge,chrome=1")
+    
+    // Title
+    title Pecan
+    
+    // Mobile viewport optimization (http://mobileboilerplate.com)
+    meta(name="description", content="An awesome web app")
+    meta(name="HandheldFriendly", content="True")
+    meta(name="MobileOptimized", content="320")
+    meta(name="viewport", content='width=device-width, target-densitydpi=160, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no')
+    meta(http-equiv="cleartype", content="on")
+    meta(name="format-detection", content="telephone=no, email=no")
+    meta(name="apple-mobile-web-app-capable", content="no")
+    meta(name="apple-mobile-web-app-status-bar-style", content="black")
+    
+    // The fav and touch icons
+    <?= link_tag("images/favicon.ico", {"rel": "shortcut icon"}) ?>
+    <?= link_tag("images/apple-touch-icon.png", {"rel": "apple-touch-icon"}) ?>
+    <?= link_tag("images/apple-touch-icon-72x72.png", {"rel": "apple-touch-icon", "sizes": "72x72"}) ?>
+    <?= link_tag("images/apple-touch-icon-114x114.png", {"rel": "apple-touch-icon", "sizes": "114x114"}) ?>
+    <?= link_tag("images/apple-touch-icon-144x144.png", {"rel": "apple-touch-icon", "sizes": "144x144"}) ?>
+    
+    // Stylesheets
+    <?= stylesheet_link_tag("vendor/bootstrap/css/bootstrap.min.css") ?>
+    <?= stylesheet_link_tag("stylesheets/main.css") ?>
+  
+  body
+    <? if (settings.env === 'production') { ?>
+    <?= inline_script('javascripts/libs/Loader.js') ?>
+    <?= inline_script('javascripts/libs/detectOS.js') ?>
+    <? } else { ?>
+    script(src='javascripts/libs/Loader.js')
+    script(src='javascripts/libs/detectOS.js')
+    <? } ?>
+    
+    script
+      require(['javascripts/config/config'], function(config) {
+        require.config(config);
+        require(['javascripts/apps/main/start'], function(start) {
+          $(start);
+        });
+      });

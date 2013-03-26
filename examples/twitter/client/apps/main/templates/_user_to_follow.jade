@@ -1,0 +1,11 @@
+.user-to-follow(data-id!="<%- user._id %>")
+  .user-to-follow-content
+    .dismiss
+      i.close
+    .user-to-follow-header
+      a(href!="#users/<%- user.username %>")
+        img.avatar(src!="<%- user.profileImageUrl || 'images/default_avatar.jpeg' %>", alt!="<%- user.name || '' %>")
+        strong.user-full-name <%- user.name || '' %>
+        .user-username @<%- user.username || '' %>
+    .user-to-follow-actions
+      a.follow-link(href="#") Follow

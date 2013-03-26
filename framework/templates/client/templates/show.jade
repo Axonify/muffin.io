@@ -1,0 +1,6 @@
+h1 Show <$- classified $>
+dl.dl-horizontal
+  <% _(model).each(function(value, key, list) { %>
+  dt <%= key %>
+  dd <%= value %>
+  <% }); %>

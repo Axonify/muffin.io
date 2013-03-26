@@ -1,0 +1,12 @@
+<% _(<$- underscored_plural $>).each(function(model, index) { %>
+tr
+  td <%= index+1 %>
+  <% _(fields).each(function(field) { %>
+  td <%= model[field] %>
+  <% }); %>
+  td
+    .btn-group
+      a.btn(href!="#<$- underscored_plural $>/<%= model._id %>") Show
+      a.btn(href!="#<$- underscored_plural $>/<%= model._id %>/edit") Edit
+      a.btn.delete(href="#") Delete
+<% }); %>

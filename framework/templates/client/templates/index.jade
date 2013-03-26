@@ -1,0 +1,11 @@
+h1 Listing <$- _.humanize(_.pluralize(model)) $>
+table.table.table-hover
+  thead
+    tr
+      th #
+      <$ _(attrs).each(function(value, key, list) { $>
+      th(data-field="<$- key $>") <$- _.humanize(key) $>
+      <$ }); $>
+  tbody
+p
+  a.btn(href="#<$- underscored_plural $>/new") Add New <$- _.humanize(model) $>
