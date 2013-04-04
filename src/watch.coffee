@@ -53,7 +53,8 @@ setEnv = (env) ->
         _.extend settings, value
     else
       settings[key] = value
-  assetHost = settings.assetHost ? ''
+  if settings.assetHost
+    assetHost = settings.assetHost
 
 setCDN = (s) ->
   assetHost = s
