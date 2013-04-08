@@ -44,8 +44,7 @@ connections = []
 
 # Update settings
 settings = {}
-assetHost = ''
-setEnv = (env) ->
+setEnv = (env, opts) ->
   settings = {env}
   for key, value of config?.clientSettings
     if key in ['development', 'production', 'test']
@@ -53,11 +52,8 @@ setEnv = (env) ->
         _.extend settings, value
     else
       settings[key] = value
-  if settings.assetHost
-    assetHost = settings.assetHost
-
-setCDN = (s) ->
-  assetHost = s
+  settings.assetHost = opts.cdn ? ''
+  settings.version = opts.hash ? '1.0.0'
 
 # Helpers
 cacheBuster = (force) ->
@@ -68,13 +64,13 @@ cacheBuster = (force) ->
 
 htmlHelpers =
   link_tag: (link, attrs={}) ->
-    "<link href='#{assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+    "<link href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
   stylesheet_link_tag: (link, attrs={}) ->
-    "<link rel='stylesheet' type='text/css' href='#{assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+    "<link rel='stylesheet' type='text/css' href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
   script_tag: (src, attrs={}) ->
-    "<script src='#{assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
+    "<script src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
   image_tag: (src, attrs={}) ->
-    "<img src='#{assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+    "<img src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
   inline_script: (src) ->
     "<?= _inline_script('#{src}') ?>"
   _inline_script: (src) ->
@@ -82,13 +78,13 @@ htmlHelpers =
 
 jadeHelpers =
   link_tag: (link, attrs={}) ->
-    "link(href='#{assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
+    "link(href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   stylesheet_link_tag: (link, attrs={}) ->
-    "link(rel='stylesheet', type='text/css', href='#{assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
+    "link(rel='stylesheet', type='text/css', href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   script_tag: (src, attrs={}) ->
-    "script(src='#{assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
+    "script(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   image_tag: (src, attrs={}) ->
-    "img(src='#{assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
+    "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   inline_script: (src) ->
     "<?= _inline_script('#{src}') ?>"
 
@@ -383,4 +379,4 @@ parseDeps = (content) ->
     .replace(cjsRequireRegex, (match, dep) -> deps.push(dep))
   deps
 
-module.exports = {setEnv, setCDN, compileDir, watchDir, startAndWatchServer, inlineScriptsInDir}
+module.exports = {setEnv, compileDir, watchDir, startAndWatchServer, inlineScriptsInDir}

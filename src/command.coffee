@@ -66,6 +66,7 @@ SWITCHES = [
   ['-e', '--env',             'set environment (development|production)']
   ['-a', '--app',             'set the app (default to main)']
   ['--cdn',                   'set CDN prefix']
+  ['--hash',                  'set a hash as the client version']
 ]
 
 # Top-level objects shared by all the functions.
@@ -117,7 +118,9 @@ exports.run = ->
   
   if '--cdn' in opts.arguments
     opts.cdn = opts.arguments[opts.arguments.indexOf('--cdn') + 1]
-    watch.setCDN opts.cdn
+  
+  if '--hash' in opts.arguments
+    opts.hash = opts.arguments[opts.arguments.indexOf('--hash') + 1]
   
   for len in [1..2]
     name = opts.arguments[0...len].join(' ')
@@ -302,7 +305,7 @@ task 'install', 'install reusable apps or widgets', ->
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
   logging.info "Watching project..."
-  watch.setEnv (opts.env ? 'development')
+  watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
   
   async.series [
@@ -321,27 +324,30 @@ task 'watch', 'watch files and compile as needed', ->
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info "Building project..."
-  watch.setEnv (opts.env ? 'development')
+  watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
   watch.compileDir clientDir
 
 # Task - optimize js/css files (internal use only)
 task 'optimize', 'optimize js/css files', ->
-  watch.setEnv (opts.env ? 'development')
+  watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync buildDir
   optimizer.optimizeDir publicDir, buildDir
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info "Preparing project files for production..."
-  watch.setEnv (opts.env ? 'production')
+  watch.setEnv (opts.env ? 'production'), opts
   async.series [
     # Rebuild
     (done) ->
-      if opts.cdn? and opts.cdn isnt ''
-        p = spawn "#{__dirname}/../bin/muffin", ['build', '-e', 'production', '--cdn', opts.cdn]
-      else
-        p = spawn "#{__dirname}/../bin/muffin", ['build', '-e', 'production']
+      args = ['build', '-e', 'production']
+      if opts.cdn
+        args = args.concat ['--cdn', opts.cdn]
+      if opts.hash
+        args = args.concat ['--hash', opts.hash]
+      
+      p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
       p.on 'exit', done
@@ -379,7 +385,7 @@ task 'clean', 'remove the public/ directory', ->
 
 # Task - run tests
 task 'test', 'run tests', ->
-  watch.setEnv (opts.env ? 'test')
+  watch.setEnv (opts.env ? 'test'), opts
   mocha = new Mocha
   mocha
     .reporter('spec')
@@ -396,7 +402,7 @@ task 'doc', 'generate documentation', ->
 
 # Task - start the server and watch files
 task 'server', 'start a webserver', ->
-  watch.setEnv (opts.env ? 'development')
+  watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
   
   async.series [
