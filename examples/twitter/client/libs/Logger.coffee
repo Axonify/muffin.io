@@ -10,6 +10,9 @@ methods = [
 # Logger class
 class Logger
   
+  constructor: ->
+    @history = []
+  
   levels:
     TRACE:  {value: 0, name: 'TRACE'}
     DEBUG:  {value: 1, name: 'DEBUG'}
@@ -21,12 +24,6 @@ class Logger
   consoleWriter:
     write: (msg) ->
       console.log(msg)
-      
-      # Save to log history
-      logMaxEntries = <?- settings.logMaxEntries ?> ? 20
-      @history ?= []
-      @history.unshift msg
-      @history.pop() while @history.length > logMaxEntries
   
   localStorageWriter:
     write: (msg) ->
@@ -51,10 +48,15 @@ class Logger
     logLevel = @levels['<?- settings.logLevel ?>' ? 'ERROR']
     logWriter = @['<?- settings.logWriter ?>' ? 'consoleWriter']
     logFormatter = @['<?- settings.logFormatter ?>' ? 'simpleFormatter']
+    logMaxEntries = <?- settings.logMaxEntries ?> ? 20
     datetime = new Date
     
     if level.value >= logLevel.value
       logWriter.write logFormatter.format(msg, datetime, level)
+      
+      # Save to log history
+      @history.unshift msg
+      @history.pop() while @history.length > logMaxEntries
   
   info: (msg) ->
     @log @levels.INFO, msg
