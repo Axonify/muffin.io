@@ -66,6 +66,15 @@ htmlHelpers =
     "<script src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
   image_tag: (src, attrs={}) ->
     "<img src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+  include_module_loader: ->
+    loaderSrc = CoffeeScript.compile(fs.readFileSync('./module_loader.coffee').toString())
+    buildConfig =
+      paths: config.clientSettings.paths
+      shim: config.clientSettings.shim
+    """
+    <script>#{loaderSrc}</script>
+    <script>require.config(JSON.parse(#{JSON.stringify(buildConfig)}))</script>
+    """
 
 jadeHelpers =
   link_tag: (link, attrs={}) ->
@@ -77,13 +86,13 @@ jadeHelpers =
   image_tag: (src, attrs={}) ->
     "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   include_module_loader: ->
-    loader_coffee = fs.readFileSync('./module_loader.coffee').toString()
-    loader_js = CoffeeScript.compile(loader_coffee)
-    require_config_coffee = fs.readFileSync(sysPath.join(publicDir, src)).toString()
-
+    loaderSrc = CoffeeScript.compile(fs.readFileSync('./module_loader.coffee').toString())
+    buildConfig =
+      paths: config.clientSettings.paths
+      shim: config.clientSettings.shim
     """
-    script #{loader_js}
-    script require.config(JSON.parse(#{JSON.stringify({paths: } config.clientSettings.)}))
+    script #{loaderSrc}
+    script require.config(JSON.parse(#{JSON.stringify(buildConfig)}))
     """
 
 injectLiveReloadJS = (data) ->
