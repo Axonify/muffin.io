@@ -194,22 +194,16 @@ compileFile = (source, abortOnError=no) ->
           sourceData = _.template(fs.readFileSync(source).toString(), {settings})
           filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
           path = sysPath.join destDir, filename
-          
-          if sourceData.split('\n')[0].match('NO_AMD_PREFIX')
-            js = CoffeeScript.compile(sourceData)
-            fs.writeFileSync path, js
-            logging.info "compiled #{source}"
-            reload(path)
-          else
-            # Wrap the file into AMD module format
-            js = CoffeeScript.compile(sourceData, {bare: true})
-            modulePath = sysPath.relative(publicDir, path)[...-3]
-            deps = parseDeps(js)
-            js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
-            fs.writeFileSync path, js
-            logging.info "compiled #{source}"
-            reload(path)
-        
+
+          # Wrap the file into AMD module format
+          js = CoffeeScript.compile(sourceData, {bare: true})
+          modulePath = sysPath.relative(publicDir, path)[...-3]
+          deps = parseDeps(js)
+          js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
+          fs.writeFileSync path, js
+          logging.info "compiled #{source}"
+          reload(path)
+
         when '.jade'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, jadeHelpers))
