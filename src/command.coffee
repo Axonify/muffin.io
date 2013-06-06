@@ -7,7 +7,7 @@ Mocha = require 'mocha'
 watch = require './watch'
 logging = require './logging'
 optimizer = require './optimizer'
-_ = require './_inflection'
+_ = require '../lib/_inflection'
 
 try config = require sysPath.join(process.cwd(), 'config')
 try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')
