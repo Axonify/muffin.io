@@ -108,7 +108,7 @@ watchDir = (dir) ->
   watcher.on 'unlink', removeFile
   watcher.on 'error', (error) ->
     logging.error "Error occurred while watching files: #{error}"
-  
+
   # Live reload
   startLiveReloadServer()
 
@@ -156,7 +156,7 @@ compileDir = (source) ->
 destDirForFile = (source) ->
   inAssetsDir = !!~ source.indexOf clientAssetsDir
   inVendorDir = !!~ source.indexOf clientVendorDir
-  
+
   if inAssetsDir
     relativePath = sysPath.relative(clientAssetsDir, source)
     dest = sysPath.join(publicDir, relativePath)
@@ -185,7 +185,7 @@ compileFile = (source, abortOnError=no) ->
   fs.exists destDir, (exists) ->
     fs.mkdirSync destDir unless exists
     _compile()
-  
+
   _compile = ->
     try
       switch sysPath.extname(source)
@@ -215,25 +215,25 @@ compileFile = (source, abortOnError=no) ->
           sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, jadeHelpers))
           filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
           path = sysPath.join destDir, filename
-          
+
           fn = jade.compile sourceData, { filename: source, compileDebug: false, pretty: true }
           html = fn()
           html = injectLiveReloadJS(html)
           fs.writeFileSync path, html
           logging.info "compiled #{source}"
           reload(path)
-        
+
         when '.less'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), {settings})
           filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
           path = sysPath.join destDir, filename
-          
+
           less.render sourceData, (err, data) ->
             fs.writeFileSync path, data
             logging.info "compiled #{source}"
             reload(path)
-        
+
         when '.html', '.htm', '.css'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, htmlHelpers))
@@ -243,33 +243,33 @@ compileFile = (source, abortOnError=no) ->
           fs.writeFileSync path, sourceData
           logging.info "copied #{source}"
           reload(path)
-        
+
         when '.appcache'
           sourceData = _.template(fs.readFileSync(source).toString(), {settings})
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
           fs.writeFileSync path, sourceData
           logging.info "copied #{source}"
-        
+
         when '.js'
           js = fs.readFileSync(source).toString()
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
-          
+
           modulePath = sysPath.relative(publicDir, path)
           deps = shim[modulePath]?.deps ? []
           if deps.length > 0
             # Only wrap if dependencies are set in shim
             js = "define('#{modulePath}', #{JSON.stringify(deps)}, function() {#{js}});"
-          
+
           fs.writeFileSync path, js
           logging.info "copied #{source}"
           reload(path)
-        
+
         else
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
-          
+
           fs.copy source, path, (err) ->
             logging.info "copied #{source}"
             reload(path)
@@ -337,24 +337,24 @@ startServer = ->
     child = exports.child = spawn "node", ["server/server.js"],
       cwd: process.cwd()
     child.shouldRestart = false
-    
+
     child.stdout.on 'data', (data) ->
       console.log data.toString()
       reload() if /Quit the server with CONTROL-C/.test(data.toString())
-    
+
     child.stderr.on 'data', (data) ->
       if data.toString().length > 1
         logging.error data
-    
+
     child.on 'exit', (code) ->
       exports.child = null
       if child.shouldRestart
         # Restart the server when files change
         process.nextTick(startServer)
-    
+
     child.on 'uncaughtException', (err) ->
       logging.error err.message
-    
+
     # Pass kill signals through to child
     for signal in ['SIGTERM', 'SIGINT', 'SIGHUP', 'SIGQUIT']
       process.on signal, ->
@@ -372,7 +372,7 @@ parseDeps = (content) ->
   commentRegex = /(\/\*([\s\S]*?)\*\/|([^:]|^)\/\/(.*)$)/mg
   cjsRequireRegex = /[^.]\s*require\s*\(\s*["']([^'"\s]+)["']\s*\)/g
   deps = []
-  
+
   # Find all the require calls and push them into dependencies.
   content
     .replace(commentRegex, '') # remove comments

@@ -9,20 +9,20 @@ colors =
   DEBUG: 'blue'
 
 class Logger
-  
+
   error: (msg) ->
     growl msg, {title: 'muffin error', image: path.join(__dirname, '../muffin.png')}
     @log 'ERROR', msg
-  
+
   warn: (msg) ->
     @log 'WARN', msg
-  
+
   info: (msg) ->
     @log 'INFO', msg
-  
+
   debug: (msg) ->
     @log 'DEBUG', msg
-  
+
   log: (level, msg) =>
     if level is 'ERROR' or level is 'WARN'
       info = color.set "#{(new Date).toLocaleTimeString()} [#{level}]: #{msg}", colors[level]
