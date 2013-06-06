@@ -71,10 +71,6 @@ htmlHelpers =
     "<script src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
   image_tag: (src, attrs={}) ->
     "<img src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
-  inline_script: (src) ->
-    "<?= _inline_script('#{src}') ?>"
-  _inline_script: (src) ->
-    "<script>" + fs.readFileSync(sysPath.join(publicDir, src)).toString() + "</script>"
 
 jadeHelpers =
   link_tag: (link, attrs={}) ->
@@ -85,8 +81,6 @@ jadeHelpers =
     "script(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   image_tag: (src, attrs={}) ->
     "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
-  inline_script: (src) ->
-    "<?= _inline_script('#{src}') ?>"
 
 injectLiveReloadJS = (data) ->
   # Inject livereload.js
@@ -287,22 +281,6 @@ removeFile = (source) ->
         return if err
         logging.info "removed #{source}"
 
-# Inline scripts
-inlineScriptsInDir = (source) ->
-  fs.stat source, (err, stats) ->
-    throw err if err and err.code isnt 'ENOENT'
-    return if err?.code is 'ENOENT'
-    if stats.isDirectory()
-      fs.readdir source, (err, files) ->
-        throw err if err and err.code isnt 'ENOENT'
-        return if err?.code is 'ENOENT'
-        files = files.filter (file) -> not ignored(file)
-        inlineScriptsInDir sysPath.join(source, file) for file in files
-    else if stats.isFile() and sysPath.extname(source) is '.html'
-      # Run the source file through template engine once more to inline the scripts
-      sourceData = _.template(fs.readFileSync(source).toString(), htmlHelpers)
-      fs.writeFileSync source, sourceData
-
 # Start the server
 startAndWatchServer = ->
   # Watch .coffee and .js files and restart the server when they change
@@ -373,4 +351,4 @@ parseDeps = (content) ->
     .replace(cjsRequireRegex, (match, dep) -> deps.push(dep))
   deps
 
-module.exports = {setEnv, compileDir, watchDir, startAndWatchServer, inlineScriptsInDir}
+module.exports = {setEnv, compileDir, watchDir, startAndWatchServer}

@@ -371,11 +371,6 @@ task 'minify', 'minify and concatenate js/css files for production', ->
         logging.info "Concatenating module dependencies: #{path}"
         optimizer.concatDeps(path, buildConfig.paths)
       done(null)
-
-    # Inline scripts
-    (done) ->
-      watch.inlineScriptsInDir publicDir
-      done(null)
   ]
 
 # Task - remove the `public/` directory
