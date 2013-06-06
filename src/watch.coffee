@@ -11,19 +11,6 @@ less = require 'less'
 WebSocketServer = require('ws').Server
 md5 = require 'MD5'
 
-try config = require sysPath.join(process.cwd(), 'config')
-try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')
-
-# Parse build config
-shim = {}
-parseBuildConfig = ->
-  mapping = buildConfig.paths
-  for name, value of buildConfig.shim
-    path = mapping[name] ? name
-    deps = ((mapping[dep] ? dep) for dep in value.deps)
-    shim[path] = {deps}
-parseBuildConfig() if buildConfig?
-
 # Underscore template settings
 _.templateSettings =
   evaluate    : /<\?([\s\S]+?)\?>/g,
@@ -39,11 +26,10 @@ publicDir = sysPath.join(cwd, 'public')
 jsDir = sysPath.join(cwd, 'public/javascripts')
 serverDir = sysPath.join(cwd, 'server')
 
-# Variables
-connections = []
-
-# Update settings
+# Client settings
+try config = require sysPath.join(cwd, 'config')
 settings = {}
+
 setEnv = (env, opts) ->
   settings = {env}
   for key, value of config?.clientSettings
@@ -54,6 +40,15 @@ setEnv = (env, opts) ->
       settings[key] = value
   settings.assetHost = opts.cdn ? ''
   settings.version = opts.hash ? '1.0.0'
+
+# Build config
+jsShimMap = {}
+if config?
+  paths = config.clientSettings.paths
+  for name, value of config.clientSettings.shim
+    path = paths[name] ? name
+    deps = ((paths[dep] ? dep) for dep in value.deps)
+    jsShimMap[path] = {deps}
 
 # Helpers
 cacheBuster = (force) ->
@@ -81,6 +76,15 @@ jadeHelpers =
     "script(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   image_tag: (src, attrs={}) ->
     "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
+  include_module_loader: ->
+    loader_coffee = fs.readFileSync('./module_loader.coffee').toString()
+    loader_js = CoffeeScript.compile(loader_coffee)
+    require_config_coffee = fs.readFileSync(sysPath.join(publicDir, src)).toString()
+
+    """
+    script #{loader_js}
+    script require.config(JSON.parse(#{JSON.stringify({paths: } config.clientSettings.)}))
+    """
 
 injectLiveReloadJS = (data) ->
   # Inject livereload.js
@@ -94,18 +98,8 @@ injectLiveReloadJS = (data) ->
 ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file)
 
-# Watch a directory
-watchDir = (dir) ->
-  watcher = chokidar.watch dir, {ignored: ignored, persistent: true, ignoreInitial: true}
-  watcher.on 'add', compileFile
-  watcher.on 'change', compileFile
-  watcher.on 'unlink', removeFile
-  watcher.on 'error', (error) ->
-    logging.error "Error occurred while watching files: #{error}"
-
-  # Live reload
-  startLiveReloadServer()
-
+# Set up live reload
+connections = []
 startLiveReloadServer = ->
   connections = []
   port = settings.liveReload?.port ? 9485
@@ -132,6 +126,18 @@ reload = (path) ->
   else
     message = {reload: 'hard'}
   sendMessageToClients(message)
+
+# Watch a directory
+watchDir = (dir) ->
+  watcher = chokidar.watch dir, {ignored: ignored, persistent: true, ignoreInitial: true}
+  watcher.on 'add', compileFile
+  watcher.on 'change', compileFile
+  watcher.on 'unlink', removeFile
+  watcher.on 'error', (error) ->
+    logging.error "Error occurred while watching files: #{error}"
+
+  # Live reload
+  startLiveReloadServer()
 
 # Recursively compile all files in a directory and its subdirectories
 compileDir = (source) ->
@@ -245,7 +251,7 @@ compileFile = (source, abortOnError=no) ->
           path = sysPath.join destDir, filename
 
           modulePath = sysPath.relative(publicDir, path)
-          deps = shim[modulePath]?.deps ? []
+          deps = jsShimMap[modulePath]?.deps ? []
           if deps.length > 0
             # Only wrap if dependencies are set in shim
             js = "define('#{modulePath}', #{JSON.stringify(deps)}, function() {#{js}});"
