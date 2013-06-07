@@ -45,7 +45,9 @@ setEnv = (env, opts) ->
 jsShimMap = {}
 if config?
   paths = config.clientSettings.paths
-  for name, value of config.clientSettings.shim
+  shim = config.clientSettings.shim
+  buildConfig = {paths, shim}
+  for name, value of shim
     path = paths[name] ? name
     deps = ((paths[dep] ? dep) for dep in value.deps)
     jsShimMap[path] = {deps}
@@ -57,6 +59,15 @@ cacheBuster = (force) ->
   else
     ''
 
+# Module loader source
+moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
+moduleLoaderSrc = _.template(moduleLoaderSrc, {settings})
+moduleLoaderSrc = CoffeeScript.compile(moduleLoaderSrc)
+
+liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'live_reload.coffee')).toString()
+liveReloadSrc = _.template(liveReloadSrc, {settings})
+liveReloadSrc = CoffeeScript.compile(liveReloadSrc)
+
 htmlHelpers =
   link_tag: (link, attrs={}) ->
     "<link href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
@@ -67,43 +78,11 @@ htmlHelpers =
   image_tag: (src, attrs={}) ->
     "<img src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
   include_module_loader: ->
-    loaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
-    loaderJS = CoffeeScript.compile(loaderSrc)
-    buildConfig =
-      paths: config.clientSettings.paths
-      shim: config.clientSettings.shim
     """
-    <script>#{loaderJS}</script>
-    <script>require.config(JSON.parse(#{JSON.stringify(buildConfig)}))</script>
+    <script>#{moduleLoaderSrc}</script>
+    <script>require.config(#{JSON.stringify(buildConfig)})</script>
+    <script>#{liveReloadSrc}</script>
     """
-
-jadeHelpers =
-  link_tag: (link, attrs={}) ->
-    "link(href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
-  stylesheet_link_tag: (link, attrs={}) ->
-    "link(rel='stylesheet', type='text/css', href='#{settings.assetHost}#{link}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
-  script_tag: (src, attrs={}) ->
-    "script(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
-  image_tag: (src, attrs={}) ->
-    "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
-  include_module_loader: ->
-    loaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
-    loaderJS = CoffeeScript.compile(loaderSrc)
-    buildConfig =
-      paths: config.clientSettings.paths
-      shim: config.clientSettings.shim
-    """
-    script #{loaderJS}
-    script require.config(JSON.parse(#{JSON.stringify(buildConfig)}))
-    """
-
-injectLiveReloadJS = (data) ->
-  # Inject livereload.js
-  if settings.liveReload
-    i = data.indexOf('</head>')
-    if i isnt -1
-      data = data[0...i] + "<script src='#{settings.liveReload.src}'></script>\n" + data[i..]
-  return data
 
 # Files to ignore
 ignored = (file) ->
@@ -198,6 +177,7 @@ compileFile = (source, abortOnError=no) ->
     _compile()
 
   _compile = ->
+    logging.info "processing #{source}"
     try
       switch sysPath.extname(source)
         when '.coffee'
@@ -216,14 +196,15 @@ compileFile = (source, abortOnError=no) ->
           reload(path)
 
         when '.jade'
-          # Run the source file through template engine
-          sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, jadeHelpers))
+          # Compile Jade into html
+          sourceData = fs.readFileSync(source).toString()
           filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
           path = sysPath.join destDir, filename
-
-          fn = jade.compile sourceData, { filename: source, compileDebug: false, pretty: true }
+          fn = jade.compile sourceData, {filename: source, compileDebug: false, pretty: true}
           html = fn()
-          html = injectLiveReloadJS(html)
+
+          # Run through the template engine and write to the output file
+          html = _.template(html, _.extend({}, {settings}, htmlHelpers))
           fs.writeFileSync path, html
           logging.info "compiled #{source}"
           reload(path)
@@ -242,7 +223,6 @@ compileFile = (source, abortOnError=no) ->
         when '.html', '.htm', '.css'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, htmlHelpers))
-          sourceData = injectLiveReloadJS(sourceData)
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
           fs.writeFileSync path, sourceData
