@@ -177,7 +177,6 @@ compileFile = (source, abortOnError=no) ->
     _compile()
 
   _compile = ->
-    logging.info "processing #{source}"
     try
       switch sysPath.extname(source)
         when '.coffee'
