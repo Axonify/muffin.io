@@ -42,15 +42,19 @@ setEnv = (env, opts) ->
   settings.version = opts.hash ? '1.0.0'
 
 # Build config
-jsShimMap = {}
-if config?
+shimMap = {}
+buildConfig = {}
+
+loadShimMap = ->
   paths = config.clientSettings.paths
   shim = config.clientSettings.shim
   buildConfig = {paths, shim}
   for name, value of shim
     path = paths[name] ? name
     deps = ((paths[dep] ? dep) for dep in value.deps)
-    jsShimMap[path] = {deps}
+    shimMap[path] = {deps}
+
+loadShimMap() if config?
 
 # Helpers
 cacheBuster = (force) ->
@@ -241,7 +245,7 @@ compileFile = (source, abortOnError=no) ->
           path = sysPath.join destDir, filename
 
           modulePath = sysPath.relative(publicDir, path)
-          deps = jsShimMap[modulePath]?.deps ? []
+          deps = shimMap[modulePath]?.deps ? []
           if deps.length > 0
             # Only wrap if dependencies are set in shim
             js = "define('#{modulePath}', #{JSON.stringify(deps)}, function() {#{js}});"
