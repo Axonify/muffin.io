@@ -67,12 +67,13 @@ htmlHelpers =
   image_tag: (src, attrs={}) ->
     "<img src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
   include_module_loader: ->
-    loaderSrc = CoffeeScript.compile(fs.readFileSync('./module_loader.coffee').toString())
+    loaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
+    loaderJS = CoffeeScript.compile(loaderSrc)
     buildConfig =
       paths: config.clientSettings.paths
       shim: config.clientSettings.shim
     """
-    <script>#{loaderSrc}</script>
+    <script>#{loaderJS}</script>
     <script>require.config(JSON.parse(#{JSON.stringify(buildConfig)}))</script>
     """
 
@@ -86,12 +87,13 @@ jadeHelpers =
   image_tag: (src, attrs={}) ->
     "img(src='#{settings.assetHost}#{src}#{cacheBuster(attrs.forceCacheBuster)}', #{("#{k}='#{v}'" for k, v of attrs).join(',')})"
   include_module_loader: ->
-    loaderSrc = CoffeeScript.compile(fs.readFileSync('./module_loader.coffee').toString())
+    loaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
+    loaderJS = CoffeeScript.compile(loaderSrc)
     buildConfig =
       paths: config.clientSettings.paths
       shim: config.clientSettings.shim
     """
-    script #{loaderSrc}
+    script #{loaderJS}
     script require.config(JSON.parse(#{JSON.stringify(buildConfig)}))
     """
 

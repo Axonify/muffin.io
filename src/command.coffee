@@ -311,10 +311,8 @@ task 'watch', 'watch files and compile as needed', ->
   async.series [
     # Build
     (done) ->
-      p = spawn "#{__dirname}/../bin/muffin", ['build']
-      p.stdout.on 'data', (data) -> logging.info data
-      p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p = spawn "#{__dirname}/../bin/muffin", ['build'], {stdio: 'inherit'}
+      p.on 'close', done
 
     # Watch client dir
     (done) ->
@@ -347,17 +345,13 @@ task 'minify', 'minify and concatenate js/css files for production', ->
       if opts.hash
         args = args.concat ['--hash', opts.hash]
 
-      p = spawn "#{__dirname}/../bin/muffin", args
-      p.stdout.on 'data', (data) -> logging.info data
-      p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p = spawn "#{__dirname}/../bin/muffin", args, {stdio: 'inherit'}
+      p.on 'close', done
 
     # Minify
     (done) ->
-      p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production']
-      p.stdout.on 'data', (data) -> logging.info data
-      p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production'], {stdio: 'inherit'}
+      p.on 'close', done
 
     # Remove temp directories
     (done) ->
@@ -403,10 +397,8 @@ task 'server', 'start a webserver', ->
   async.series [
     # Build
     (done) ->
-      p = spawn "#{__dirname}/../bin/muffin", ['build']
-      p.stdout.on 'data', (data) -> logging.info data
-      p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p = spawn "#{__dirname}/../bin/muffin", ['build'], {stdio: 'inherit'}
+      p.on 'close', done
 
     # Dump versions.json, watch client dir, start server.
     (done) ->
@@ -424,25 +416,6 @@ task 'deploy', 'deploy the app', ->
   platforms = ['heroku', 'amazon', 'nodejitsu']
   unless dest and dest.toLowerCase() in platforms
     fatalError "Must choose a platform from the following: heroku, amazon, nodejitsu"
-
-  switch dest.toLowerCase()
-    when 'heroku'
-      script =
-      '''
-        git checkout -b temp_branch_for_deployment
-        cp -f .deploy-gitignore .gitignore
-        muffin build
-        git add .
-        git commit -m"Commit for deployment"
-        git push heroku temp_branch_for_deployment:master
-        git checkout master
-        git branch -D temp_branch_for_deployment
-        heroku open
-      '''
-      script = script.replace /\n/g, '; '
-      exec script, (err, stdout, stderr) ->
-        logging.info stdout
-        logging.error stderr
 
 # Find file in directory
 findFileIn = (dir) ->
