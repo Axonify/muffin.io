@@ -1,0 +1,6 @@
+- source map support
+- fix 20% cpu usage when idle
+- muffin test
+- a better way to manage reusable apps
+- build more reusable apps: flatpages, admin, geo
+- muffin.io website (show off interactive features, promotional video, good documentation, prezi, host on Nodejitsu)
