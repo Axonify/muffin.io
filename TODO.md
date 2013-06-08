@@ -1,7 +1,18 @@
+Ideas:
+- package management via Bower
 - source map support
+- ioSync support
+- a JavaScript error log service
+- an admin console like the one for Google App Engine
 - fix 20% cpu usage when idle
 - muffin test
 - a better way to manage reusable apps
 - build more reusable apps: flatpages, admin, geo
+- Jeckyll style static site generator using JSON files
+- Generate the admin site similar to WordPress or Django
+- Easily apply themes to the site, similar to WordPress
 - muffin.io website (show off interactive features, promotional video, good documentation, prezi, host on Nodejitsu)
 - Sublime Text 2 plugin
+- A web interface as an alternative to using commands that supports creating a new project, choose project type (mobile, static, desktop), and change themes.
+- Eventually, the web interface might trump the command line interface. At that point we can do all the work in the browser, from creating a project, to coding, to deployment. Muffin will become a cloud service to easily create interactive webapps. (Imagine saving code in one browser window, and the other browser window auto reloads the page.)
+- Integrate with iPython. Supports advanced scientific computing functionalities.

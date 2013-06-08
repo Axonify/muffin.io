@@ -29,9 +29,8 @@ BANNER = '''
       * muffin destroy view UserListView
       * muffin destroy scaffold user --app auth
 
-    Install reusable apps or widgets:
+    Install reusable apps:
       * muffin install app auth
-      * muffin install widget ProgressBar
 
     muffin watch
       - watch the current project and recompile as needed
@@ -270,8 +269,8 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   ]
   removeFiles(files)
 
-# Task - install reusable apps or widgets
-task 'install', 'install reusable apps or widgets', ->
+# Task - install reusable apps
+task 'install', 'install reusable apps', ->
   installApp = (app) ->
     fs.copy sysPath.join(muffinDir, "framework/apps/#{app}/client"), sysPath.join(clientDir, "apps/#{app}"), -> {}
     fs.copy sysPath.join(muffinDir, "framework/apps/#{app}/server"), sysPath.join(serverDir, "apps/#{app}"), -> {}
@@ -279,28 +278,17 @@ task 'install', 'install reusable apps or widgets', ->
     if fs.existsSync(readme)
       logging.info '\n' + fs.readFileSync(readme).toString()
 
-  installWidget = (widget) ->
-    fs.copy sysPath.join(muffinDir, "framework/widgets/#{widget}"), sysPath.join(clientDir, "widgets/#{widget}"), -> {}
-    readme = sysPath.join(muffinDir, "framework/widgets/#{widget}/README.md")
-    if fs.existsSync(readme)
-      logging.info '\n' + fs.readFileSync(readme).toString()
-
   if opts.arguments.length is 1
-    # Install all the apps and widgets specified in config.coffee
+    # Install all the apps as specified in config.coffee
     installApp(app) for app in config.installed_apps
-    installWidget(widget) for widget in config.installed_widgets
   else
     switch opts.arguments[1]
       when 'app'
         app = opts.arguments[2]
         fatalError "Must specify the app to install" unless app
         installApp(app)
-      when 'widget'
-        widget = opts.arguments[2]
-        fatalError "Must specify the widget to install" unless widget
-        installWidget(widget)
       else
-        fatalError "Unknown type. Supported types are: app, widget."
+        fatalError "Unknown type"
 
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
