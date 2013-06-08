@@ -1,14 +1,13 @@
-
-Ideas:
+## TODO
 - **package management** via Bower
 - **Muffin extensions**: Widgets, Apps, Themes (all served from muffin.io backend server)
-- build more reusable apps: flatpages, admin, geo
-- Easily apply themes to the site, similar to WordPress
 - apps/flatpages: Jeckyll style **static site generator** using JSON files
-- apps/admin/#dashboard - monitor server/stats (Ganglia integration?)
-- an admin console like the one for Google App Engine
-- a JavaScript error log service
-- Generate the admin site similar to WordPress or Django
+- apps/admin
+  * Generate the admin site similar to WordPress or Django
+  * apps/admin/#dashboard - monitor server/stats (Ganglia integration?)
+  * an admin console like the one for Google App Engine
+  * a JavaScript error log service
+- themes: easily apply themes to the site, similar to WordPress
 - **ioSync support**, real-time pushes on both NodeJS and GAE (via Channel API)
 - source map support
 - fix 20% cpu usage when idle
