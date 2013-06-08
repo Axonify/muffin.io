@@ -4,3 +4,4 @@
 - a better way to manage reusable apps
 - build more reusable apps: flatpages, admin, geo
 - muffin.io website (show off interactive features, promotional video, good documentation, prezi, host on Nodejitsu)
+- Sublime Text 2 plugin
