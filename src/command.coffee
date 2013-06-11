@@ -29,8 +29,11 @@ BANNER = '''
       * muffin destroy view UserListView
       * muffin destroy scaffold user --app auth
 
-    Install reusable apps:
-      * muffin install app auth
+    Package management:
+      * muffin install <package-name>
+      * muffin install (installs all the frontend dependencies specified in package.json)
+      * muffin update <package-name>
+      * muffin update (updates all the frontend dependencies)
 
     muffin watch
       - watch the current project and recompile as needed
@@ -269,26 +272,11 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   ]
   removeFiles(files)
 
-# Task - install reusable apps
-task 'install', 'install reusable apps', ->
-  installApp = (app) ->
-    fs.copy sysPath.join(muffinDir, "framework/apps/#{app}/client"), sysPath.join(clientDir, "apps/#{app}"), -> {}
-    fs.copy sysPath.join(muffinDir, "framework/apps/#{app}/server"), sysPath.join(serverDir, "apps/#{app}"), -> {}
-    readme = sysPath.join(muffinDir, "framework/apps/#{app}/README.md")
-    if fs.existsSync(readme)
-      logging.info '\n' + fs.readFileSync(readme).toString()
+# Task - install packages
+task 'install', 'install packages', ->
 
-  if opts.arguments.length is 1
-    # Install all the apps as specified in config.coffee
-    installApp(app) for app in config.installed_apps
-  else
-    switch opts.arguments[1]
-      when 'app'
-        app = opts.arguments[2]
-        fatalError "Must specify the app to install" unless app
-        installApp(app)
-      else
-        fatalError "Unknown type"
+# Task - update packages
+task 'update', 'update packages', ->
 
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
