@@ -1,4 +1,4 @@
-# muffin.io ![muffin image](https://secure.gravatar.com/avatar/e422d31c03da8d8db685dde4a350eb3d?s=60)
+# ![muffin image](https://secure.gravatar.com/avatar/e422d31c03da8d8db685dde4a350eb3d?s=60) muffin.io
 
 **muffin.io** strives to take the bitterness out of modern webapp development by focusing on a small set of remarkable open-source tools such as CoffeeScript, Backbone.js, Node.js and MongoDB, integrating them into a seamless development workflow.
 
