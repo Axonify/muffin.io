@@ -1,6 +1,6 @@
-# ![muffin image](https://secure.gravatar.com/avatar/e422d31c03da8d8db685dde4a350eb3d?s=60) muffin.io
+# muffin.io
 
-**muffin.io** strives to take the bitterness out of modern webapp development by focusing on a small set of remarkable open-source tools such as CoffeeScript, Backbone.js, Node.js and MongoDB, integrating them into a seamless development workflow.
+![muffin image](https://secure.gravatar.com/avatar/e422d31c03da8d8db685dde4a350eb3d?s=60) **muffin.io** strives to take the bitterness out of modern webapp development by focusing on a small set of remarkable open-source tools such as CoffeeScript, Backbone.js, Node.js and MongoDB, integrating them into a seamless development workflow.
 
 Like a well-written recipe, **muffin.io** provides simple procedures and sensible conventions to assist the web developer in every step of the development process, from project setup to production deployment. It offers Rails-style generators, a build system that supports live reload and compressing files for production, as well as a set of best practices extracted from real-world Backbone webapps.
 
