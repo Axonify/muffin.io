@@ -251,7 +251,7 @@ normalize = (path, base=null) ->
   parts = path.split('/')
   alias = mapping[parts[0]]
 
-  if path.slice(0, 1) is '.' and base
+  if path.charAt(0) is '.' and base
     baseParts = base.split('/')
     switch parts[0]
       when '.'
