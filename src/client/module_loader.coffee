@@ -1,5 +1,3 @@
-# NO_AMD_PREFIX
-
 #
 # Variables
 #

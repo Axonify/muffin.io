@@ -1,5 +1,3 @@
-# NO_AMD_PREFIX
-
 #
 # Variables
 #
@@ -31,21 +29,21 @@ window.require = (deps, callback) ->
 
 window.define = (path, deps, factory) ->
   module = inProgressModules[path] ? {path}
-  
+
   # Set module dependencies and factory function
   base = baseOfPath(path)
   module.deps = (normalize(p, base) for p in deps)
   module.factory = factory
   inProgressModules[path] = module
-  
+
   if /\.(html|htm|json|css)$/.test(path)
     # If it's a text file wrapper, evaluate right away.
     module.exports = factory()
     delete module.factory
-    
+
     # Inject CSS right away
     if /\.css$/.test(path) then injectCSS(module.exports, path)
-  
+
   # Load dependencies after all other modules in the file are defined.
   # Some dependencies might be among those modules.
   justDefinedModules[path] = module
@@ -79,7 +77,7 @@ fetchJS = (path, callback) ->
 <? } else if (settings.env === 'production') { ?>
   tag.src = tag.src + "?_" + "<?- (new Date()).getTime() ?>"
 <? } ?>
-  
+
   done = false
   tag.onload = tag.onreadystatechange = (e) ->
     readyState = tag.readyState
@@ -125,16 +123,16 @@ load = (path, callback) ->
   if modules[path]
     callback(modules[path])
     return
-  
+
   # Skip if the module is being loaded
   if inProgressModules[path]
     inProgressModules[path].callbacks ?= []
     inProgressModules[path].callbacks.push callback
     return
-  
+
   # Otherwise, fetch the module from its path
   inProgressModules[path] = {path, callbacks: [callback]}
-  
+
   if /\.(html|htm|json|css)$/.test(path)
     fetchText path, (text) ->
       module = inProgressModules[path]
@@ -148,7 +146,7 @@ load = (path, callback) ->
       if /\.js$/.test(path) and module and not module.deps
         didLoadModule(module)
         return
-      
+
       for p, module of justDefinedModules
         # Get around the stupid JavaScript scoping issue using blocks.
         # Note that if we use "loadAll module.deps -> didLoadModules(module)",
@@ -172,20 +170,20 @@ loadAll = (deps, callback) ->
 
 didLoadModule = (module) ->
   path = module.path
-  
+
   # If it's a wrapped non-AMD script, evaluate it here.
   if /\.js$/.test(path) and module.deps
     module.factory.call(window)
     delete module.factory
     module.exports = window[shim[path]?.exports]
-  
+
   # Save the module in memory
   modules[path] = module
-  
+
   # Fire all the callbacks
   unless module.callbacks
     console.error "Failed to load module #{module.path}"
-  
+
   cbk(module) for cbk in module.callbacks
   delete module.callbacks
   delete inProgressModules[path]
@@ -196,7 +194,7 @@ evaluate = (module) ->
     module.exports = {}
     path = module.path
     base = baseOfPath(path)
-    
+
     # Handle relative paths with a local require function
     localRequire = (deps, callback) ->
       if isArray(deps)
@@ -213,10 +211,10 @@ evaluate = (module) ->
         else
           console.log "module #{path} not found"
           return null
-    
+
     for own prop, value of require
       localRequire[prop] = value
-    
+
     module.factory(localRequire, module.exports, module)
     delete module.factory
   return module.exports
@@ -235,7 +233,7 @@ baseOfPath = (path) ->
 normalize = (path, base=null) ->
   parts = path.split('/')
   alias = mapping[parts[0]]
-  
+
   if path.slice(0, 1) is '.' and base
     baseParts = base.split('/')
     switch parts[0]

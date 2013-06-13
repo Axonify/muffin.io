@@ -1,4 +1,3 @@
-# NO_AMD_PREFIX
 WebSocket = window.WebSocket ? window.MozWebSocket
 return unless WebSocket
 
