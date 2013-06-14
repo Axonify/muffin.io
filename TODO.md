@@ -1,20 +1,18 @@
 ## TODO
 - Muffin package manager:
+  * require: `require, define` should be compatible with AMD, remove require configs, `require('package-name')`, e.g., `UIKit = require 'UIKit'`
   * `muffin install <package-name>`
   * `muffin update <package-name>`
   * `muffin search <query>`
-  * `require, define` should be compatible with AMD
-  * remove require configs
-  * `require('package-name')`, e.g., `UIKit = require 'UIKit'`
-- speed up the build process; fix 20% cpu usage when idle
-- **muffin.apps.flatpages**: Jeckyll style **static site generator** using JSON files
 - **muffin.apps.admin**
   * Generate the admin site similar to WordPress or Django
   * apps/admin/#dashboard - monitor server/stats (Ganglia integration?)
   * an admin console like the one for Google App Engine
   * a JavaScript error log service
+- **muffin.apps.flatpages**: Jeckyll style **static site generator** using JSON files
 - **themes**: easily apply themes to the site, similar to WordPress
 - **ioSync support**, real-time pushes on both NodeJS and GAE (via Channel API)
+- speed up the build process; fix 20% cpu usage when idle
 - source map support
 - **muffin test**: unit testing with Mocha, and headless testing with Zombie.js or Selenium. Phantom.js, Bunyip. Load testing (https://github.com/gamechanger/nodeload)
 - muffin.io website (show off interactive features, video demo, good documentation, prezi, host on Nodejitsu)
