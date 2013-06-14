@@ -1,7 +1,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 {execFile} = require 'child_process'
-logging = require '../lib/logging'
+logging = require './logging'
 uglify = require 'uglify-js'
 
 cwd = process.cwd()

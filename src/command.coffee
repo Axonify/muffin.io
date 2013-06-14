@@ -6,9 +6,9 @@ Mocha = require 'mocha'
 {spawn, exec} = require 'child_process'
 watch = require './watch'
 pkgmgr = require './pkgmgr'
-logging = require '../lib/logging'
+logging = require './logging'
 optimizer = require './optimizer'
-_ = require '../lib/_inflection'
+_ = require './_inflection'
 
 try config = require sysPath.join(process.cwd(), 'config')
 try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')

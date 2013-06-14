@@ -1,6 +1,6 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
-logging = require '../lib/logging'
+logging = require './logging'
 
 install = (name, version='master') ->
   if version is '*'
