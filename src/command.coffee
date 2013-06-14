@@ -265,13 +265,22 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
 
 # Task - install packages
 task 'install', 'install packages', ->
+  logging.info 'Installing packages...'
+  pkgs = opts.arguments[2..]
+  if pkgs.length > 0
+    # install the packages
+    pkgmgr.install pkg for pkg in pkgs
+  else
+    # install all dependencies listed in component.json
+    config = require('component.json')
+    pkgmgr.install pkg for pkg, version of config.dependencies
 
 # Task - update packages
 task 'update', 'update packages', ->
 
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
-  logging.info "Watching project..."
+  logging.info 'Watching project...'
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
 
@@ -288,7 +297,7 @@ task 'watch', 'watch files and compile as needed', ->
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
-  logging.info "Building project..."
+  logging.info 'Building project...'
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
   watch.compileDir clientDir
@@ -301,7 +310,7 @@ task 'optimize', 'optimize js/css files', ->
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
-  logging.info "Preparing project files for production..."
+  logging.info 'Preparing project files for production...'
   watch.setEnv (opts.env ? 'production'), opts
   async.series [
     # Rebuild
@@ -337,7 +346,7 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 # Task - remove the `public/` directory
 task 'clean', 'remove the public/ directory', ->
   fs.removeSync publicDir
-  logging.warn "Removed the public/ directory."
+  logging.warn 'Removed the public/ directory.'
 
 # Task - run tests
 task 'test', 'run tests', ->
