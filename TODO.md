@@ -6,7 +6,6 @@
   * `require, define` should be compatible with AMD
   * remove require configs
   * `require('package-name')`, e.g., `UIKit = require 'UIKit'`
-  * support subpackages, e.g., `View = require 'UIKit/View'`
 - speed up the build process; fix 20% cpu usage when idle
 - **muffin.apps.flatpages**: Jeckyll style **static site generator** using JSON files
 - **muffin.apps.admin**
