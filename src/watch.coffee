@@ -64,11 +64,11 @@ cacheBuster = (force) ->
     ''
 
 # Module loader source
-moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, 'module_loader.coffee')).toString()
+moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, '../src-client/module_loader.coffee')).toString()
 moduleLoaderSrc = _.template(moduleLoaderSrc, {settings})
 moduleLoaderSrc = CoffeeScript.compile(moduleLoaderSrc)
 
-liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'live_reload.coffee')).toString()
+liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, '../src-client/live_reload.coffee')).toString()
 liveReloadSrc = _.template(liveReloadSrc, {settings})
 liveReloadSrc = CoffeeScript.compile(liveReloadSrc)
 

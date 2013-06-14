@@ -265,14 +265,13 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
 
 # Task - install packages
 task 'install', 'install packages', ->
-  logging.info 'Installing packages...'
   pkgs = opts.arguments[2..]
   if pkgs.length > 0
     # install the packages
     pkgmgr.install pkg for pkg in pkgs
   else
     # install all dependencies listed in component.json
-    config = require('component.json')
+    config = require sysPath.join(process.cwd(), 'component.json')
     pkgmgr.install pkg for pkg, version of config.dependencies
 
 # Task - update packages
