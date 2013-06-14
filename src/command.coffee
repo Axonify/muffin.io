@@ -268,11 +268,14 @@ task 'install', 'install packages', ->
   pkgs = opts.arguments[2..]
   if pkgs.length > 0
     # install the packages
-    pkgmgr.install pkg for pkg in pkgs
+    for pkg in pkgs
+      [name, version] = pkg.split('@')
+      pkgmgr.install name, version
   else
     # install all dependencies listed in component.json
     config = require sysPath.join(process.cwd(), 'component.json')
-    pkgmgr.install pkg for pkg, version of config.dependencies
+    for name, version of config.dependencies
+      pkgmgr.install name, version
 
 # Task - update packages
 task 'update', 'update packages', ->
