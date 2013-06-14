@@ -135,21 +135,11 @@ task 'new', 'create a new project', ->
   projectDir = sysPath.join cwd, projectName
   fatalError "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
-  async.series [
-    # Copy skeleton files
-    (done) ->
-      skeletonPath = sysPath.join muffinDir, 'framework/skeleton'
-      fs.copy skeletonPath, projectDir, done
-
-    # Set up .gitignore
-    (done) ->
-      fs.copy sysPath.join(projectDir, '.npmignore'), sysPath.join(projectDir, '.gitignore'), done
-
-    # Print logs
-    (done) ->
-      logging.info "The application '#{projectName}' has been created."
-      logging.info "You need to run `npm install` inside the project directory to install dependencies."
-  ]
+  # Copy skeleton files
+  skeletonPath = sysPath.join muffinDir, 'framework/skeleton'
+  fs.copy skeletonPath, projectDir, ->
+    logging.info "The application '#{projectName}' has been created."
+    logging.info "You need to run `npm install` inside the project directory to install dependencies."
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->
