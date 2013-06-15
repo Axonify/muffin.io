@@ -270,18 +270,28 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
 
 # Task - install packages
 task 'install', 'install packages', ->
-  pkgs = opts.arguments[2..]
+  pkgs = opts.arguments[1..]
   if pkgs.length > 0
     # install the packages
     for pkg in pkgs
       [name, version] = pkg.split('@')
       pkgmgr.install name, version
+
+    # save to ./component.json
+    if fs.existsSync('component.json')
+      path = sysPath.resolve('component.json')
+      config = require(path)
+      config.dependencies ?= {}
+      for pkg in pkgs
+        [name, version] = pkg.split('@')
+        config.dependencies[name] = version ? '*'
+      fs.writeFileSync(path, JSON.stringify(config, null, 2))
   else
     if not fs.existsSync('component.json')
       utils.fatal 'Missing component.json'
 
     # install all dependencies listed in component.json
-    config = require sysPath.join(process.cwd(), 'component.json')
+    config = require(sysPath.resolve('component.json'))
     for name, version of config.dependencies
       pkgmgr.install name, version
 

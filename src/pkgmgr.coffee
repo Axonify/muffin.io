@@ -129,6 +129,8 @@ class Package extends Emitter
       pkg.on 'exists', done
       pkg.install()
 
+  # Check if the component exists already,
+  # othewise install it for real.
   install: ->
     @getLocalJSON (err, json) =>
       if err?.code is 'ENOENT'
