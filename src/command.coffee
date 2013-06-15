@@ -1,3 +1,7 @@
+#
+# command.coffee
+#
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 optparse = require 'coffee-script/lib/coffee-script/optparse'
@@ -9,6 +13,7 @@ pkgmgr = require './pkgmgr'
 logging = require './logging'
 optimizer = require './optimizer'
 _ = require './_inflection'
+utils = require './utils'
 
 try config = require sysPath.join(process.cwd(), 'config')
 try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')
@@ -102,7 +107,7 @@ exports.run = ->
   try
     opts = optionParser.parse process.argv[2..]
   catch e
-    fatalError e
+    utils.fatal e
 
   return usage() if process.argv.length <= 2 or opts.help
   return version() if opts.version
@@ -132,9 +137,9 @@ exports.run = ->
 # Task - create a new project
 task 'new', 'create a new project', ->
   projectName = opts.arguments[1]
-  fatalError "Must supply a name for the new project" unless projectName
+  utils.fatal "Must supply a name for the new project" unless projectName
   projectDir = sysPath.join cwd, projectName
-  fatalError "The application #{projectName} already exists." if fs.existsSync(projectDir)
+  utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
   skeletonPath = sysPath.join muffinDir, 'framework/skeleton'
@@ -145,7 +150,7 @@ task 'new', 'create a new project', ->
 # Task - create a new model
 task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
-  fatalError "Must supply a name for the model" unless model
+  utils.fatal "Must supply a name for the model" unless model
 
   app = opts.app ? 'main'
   classified = _.classify(model)
@@ -162,7 +167,7 @@ task 'generate model', 'create a new model', ->
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
-  fatalError "Must supply a name for the model" unless model
+  utils.fatal "Must supply a name for the model" unless model
 
   app = opts.app ? 'main'
   classified = _.classify(model)
@@ -177,7 +182,7 @@ task 'destroy model', 'remove a generated model', ->
 # Task - create a new view
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
-  fatalError "Must supply a name for the view" unless view
+  utils.fatal "Must supply a name for the view" unless view
 
   app = opts.app ? 'main'
   copyTemplate {view, _},
@@ -187,7 +192,7 @@ task 'generate view', 'create a new view', ->
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
-  fatalError "Must supply a name for the view" unless view
+  utils.fatal "Must supply a name for the view" unless view
 
   app = opts.app ? 'main'
   files = [
@@ -199,7 +204,7 @@ task 'destroy view', 'remove a generated view', ->
 # Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
 task 'generate scaffold', 'create scaffold for a resource', ->
   model = opts.arguments[2]
-  fatalError "Must supply a name for the model" unless model
+  utils.fatal "Must supply a name for the model" unless model
 
   app = opts.app ? 'main'
   classified = _.classify(model)
@@ -242,7 +247,7 @@ task 'generate scaffold', 'create scaffold for a resource', ->
 # Task - remove generated scaffold for a resource
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   model = opts.arguments[2]
-  fatalError "Must supply a name for the model" unless model
+  utils.fatal "Must supply a name for the model" unless model
 
   app = opts.app ? 'main'
   classified = _.classify(model)
@@ -272,6 +277,9 @@ task 'install', 'install packages', ->
       [name, version] = pkg.split('@')
       pkgmgr.install name, version
   else
+    if not fs.existsSync('component.json')
+      utils.fatal 'Missing component.json'
+
     # install all dependencies listed in component.json
     config = require sysPath.join(process.cwd(), 'component.json')
     for name, version of config.dependencies
@@ -393,7 +401,7 @@ task 'deploy', 'deploy the app', ->
   dest = opts.arguments[1]
   platforms = ['heroku', 'amazon', 'nodejitsu']
   unless dest and dest.toLowerCase() in platforms
-    fatalError "Must choose a platform from the following: heroku, amazon, nodejitsu"
+    utils.fatal "Must choose a platform from the following: heroku, amazon, nodejitsu"
 
 # Find file in directory
 findFileIn = (dir) ->
@@ -443,14 +451,6 @@ removeFiles = (files) ->
     fs.unlink file, (err) ->
       logging.info " * Removed #{file}" unless err
 
-# Convenience for cleaner setTimeouts.
-wait = (milliseconds, func) -> setTimeout func, milliseconds
-
-# Print an error and exit.
-fatalError = (message) ->
-  logging.error message + '\n'
-  process.exit 1
-
 # Retrieve the model attributes
 parseAttrs = (args) ->
   attrs = {}
@@ -458,7 +458,7 @@ parseAttrs = (args) ->
   for attr in args
     [key, value] = attr.split(':')
     if value then value = _(validTypes).find (type) -> type.toLowerCase() is value.toLowerCase()
-    fatalError "Must supply a valid schema type for the attribute '#{key}'.\nValid types are: #{validTypes.join(', ')}." unless value?
+    utils.fatal "Must supply a valid schema type for the attribute '#{key}'.\nValid types are: #{validTypes.join(', ')}." unless value?
     attrs[key] = value
   return attrs
 

@@ -1,29 +1,34 @@
+#
+# pkgmgr.coffee
+#
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 logging = require './logging'
 Emitter = require('events').EventEmitter
 netrc = require 'netrc'
+utils = require './utils'
+request = require 'superagent'
 
 # In-flight requests.
 inFlight = {}
 
 # Package class
-class Package
+class Package extends Emitter
   constructor: (@name, @version, options) ->
     options ?= {}
-    version = 'master' if version is '*'
-    logging.info "Installing #{name}@#{version}..."
+    @version = 'master' if @version is '*'
+    logging.info "Installing #{@name}@#{@version}..."
 
     @slug = "#{name}@#{version}"
     @dest = options.dest ? 'components'
     @remotes = options.remotes ? ['https://raw.github.com']
     @auth = options.auth
     @netrc = netrc(options.netrc)
-    @force = options.force
 
-    if inFlight[@slug]
-      @install = @emit.bind(@, 'end')
-    inFlight[@slug] = true
+    # if inFlight[@slug]
+    #   @install = @emit.bind(@, 'end')
+    # inFlight[@slug] = true
 
   dirname: ->
     sysPath.join @dest, @name
@@ -32,14 +37,15 @@ class Package
     sysPath.join @dirname(), path
 
   url: (file) ->
-    remote = if @remote then @remote.href else @remotes[0]
+    remote = @remotes[0]
     "#{remote}/#{@name}/#{@version}/#{file}"
 
-  mkdir: (dir, fn) ->
+  mkdir: (dir, callback) ->
     @dirs ?= {}
-    if @dirs[dir] then return fn()
-    fs.mkdir(dir, fn)
+    if @dirs[dir] then return callback()
+    fs.mkdirSync(dir, callback)
 
+  # Get local json if the component is installed
   getLocalJSON: (callback) ->
     path = @join('component.json')
     fs.readFile path, 'utf8', (err, json) ->
@@ -56,22 +62,23 @@ class Package
     url = @url('component.json')
 
     req = request.get(url)
-    req.set('Accept-Encoding', 'gzip')
+    req.set 'Accept-Encoding', 'gzip'
+    logging.info "fetching #{url}"
 
-    # authorize call
-    netrc = @netrc[parse(url).hostname]
-    if netrc
-      req.auth(netrc.login, netrc.password)
+    # # authorize call
+    # netrc = @netrc[parse(url).hostname]
+    # if netrc
+    #   req.auth(netrc.login, netrc.password)
 
     req.end (res) ->
       if res.error
-        return callback(error(res, url))
+        return callback(res.error)
       try
         json = JSON.parse(res.text)
       catch err
         err.message += " in #{url}"
-        return fn(err)
-      fn(null, json)
+        return callback(err)
+      callback(null, json)
 
     req.on 'error', (err) ->
       if err.syscall is 'getaddrinfo'
@@ -123,7 +130,7 @@ class Package
       pkg.install()
 
   install: ->
-    @getLocalJSON (err, json) ->
+    @getLocalJSON (err, json) =>
       if err?.code is 'ENOENT'
         @reallyInstall()
       else if err
@@ -134,10 +141,11 @@ class Package
         @reallyInstall()
 
   reallyInstall: ->
-    @getJSON (err, json) ->
+    @getJSON (err, json) =>
       if err
-        err.fatal = (err.status is 404) ? last
-        return @emit('error', err)
+        return
+        # err.fatal = (err.status is 404) ? last
+        # return @emit('error', err)
 
       files = []
       if json.scripts then files = files.concat(json.scripts)
@@ -146,26 +154,23 @@ class Package
       if json.files then files = files.concat(json.files)
       if json.images then files = files.concat(json.images)
       if json.fonts then files = files.concat(json.fonts)
-      json.repo ?= "#{@remote.href}/#{@name}"
 
-      if json.dependencies
-        @getDependencies(json.dependencies, done)
+      # json.repo ?= "#{@remote.href}/#{@name}"
 
-      @mkdir @dirname(), (err) ->
-        @mkdir @dirname(), (err) ->
-          json = JSON.stringify(json, null, 2)
-          @writeFile 'component.json', json, done
+      # if json.dependencies
+      #   @getDependencies(json.dependencies, done)
 
-      @mkdir @dirname(), (err) ->
-        @getFiles(files, done)
+      # @mkdir @dirname(), (err) ->
+      #   @mkdir @dirname(), (err) ->
+      #     json = JSON.stringify(json, null, 2)
+      #     @writeFile 'component.json', json, done
+
+      # @mkdir @dirname(), (err) ->
+      #   @getFiles(files, done)
 
 
 install = (name, version='master') ->
-  pkg = new Package(name, version, {
-      dest: @out
-      force: @force
-      remotes: conf.remotes
-    })
+  pkg = new Package(name, version)
   pkg.install()
 
 module.exports = {install}

@@ -1,3 +1,7 @@
+#
+# logging.coffee
+#
+
 color = require 'ansi-color'
 growl = require 'growl'
 path = require 'path'

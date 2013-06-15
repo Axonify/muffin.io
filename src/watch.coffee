@@ -1,3 +1,7 @@
+#
+# watch.coffee
+#
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 os = require 'os'

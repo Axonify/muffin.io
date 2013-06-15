@@ -1,3 +1,7 @@
+#
+# optimizer.coffee
+#
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 {execFile} = require 'child_process'
