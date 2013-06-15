@@ -31,7 +31,8 @@
     "chokidar": "~0.5.0",
     "express": "3.x",
     "MD5": "~1.0.3",
-    "uglify-js": "~2.2.3"
+    "uglify-js": "~2.2.3",
+    "netrc": "~0.1.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
