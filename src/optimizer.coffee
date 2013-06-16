@@ -13,7 +13,7 @@ try config = require sysPath.resolve('client/config')
 
 # Directories
 if config?
-  publicDir = sysPath.resolve('client/config', config.build.buildDir)
+  publicDir = sysPath.resolve('client', config.build.buildDir)
 else
   publicDir = sysPath.resolve('public')
 

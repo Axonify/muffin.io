@@ -30,7 +30,7 @@ clientAssetsDir = sysPath.join(clientDir, 'assets')
 clientVendorDir = sysPath.join(clientDir, 'vendor')
 
 if config?
-  publicDir = sysPath.resolve('client/config', config.build.buildDir)
+  publicDir = sysPath.resolve('client', config.build.buildDir)
 else
   publicDir = sysPath.resolve('public')
 

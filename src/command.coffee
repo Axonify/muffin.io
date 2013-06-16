@@ -89,7 +89,7 @@ clientDir = sysPath.resolve('client')
 serverDir = sysPath.resolve('server')
 
 if config?
-  publicDir = sysPath.resolve('client/config', config.build.buildDir)
+  publicDir = sysPath.resolve('client', config.build.buildDir)
 else
   publicDir = sysPath.resolve('public')
 
