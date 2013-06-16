@@ -486,4 +486,4 @@ usage = ->
 # Print the `--version` message and exit.
 version = ->
   json = JSON.parse(fs.readFileSync("#{__dirname}/../package.json"))
-  console.log "Muffin version #{json.version}"
+  console.log "muffin.io - version #{json.version}"
