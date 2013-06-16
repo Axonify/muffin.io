@@ -4,6 +4,7 @@
   * `muffin install <package-name>`
   * `muffin update <package-name>`
   * `muffin search <query>`
+- convert other Backbone UI components/widgets to TJ components
 - **muffin.apps.admin**
   * Generate the admin site similar to WordPress or Django
   * apps/admin/#dashboard - monitor server/stats (Ganglia integration?)

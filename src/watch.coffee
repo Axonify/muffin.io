@@ -21,22 +21,28 @@ _.templateSettings =
   interpolate : /<\?=([\s\S]+?)\?>/g,
   escape      : /<\?-([\s\S]+?)\?>/g
 
-# Directory conventions
-cwd = process.cwd()
-clientDir = sysPath.join(cwd, 'client')
-clientAssetsDir = sysPath.join(cwd, 'client/assets')
-clientVendorDir = sysPath.join(cwd, 'client/vendor')
-publicDir = sysPath.join(cwd, 'public')
-jsDir = sysPath.join(cwd, 'public/javascripts')
-serverDir = sysPath.join(cwd, 'server')
+# Load config
+try config = require sysPath.resolve('client/config')
+
+# Directories
+clientDir = sysPath.resolve('client')
+clientAssetsDir = sysPath.join(clientDir, 'assets')
+clientVendorDir = sysPath.join(clientDir, 'vendor')
+
+if config?
+  publicDir = sysPath.resolve('client/config', config.build.buildDir)
+else
+  publicDir = sysPath.resolve('public')
+
+jsDir = sysPath.join(publicDir, 'javascripts')
+serverDir = sysPath.resolve('server')
 
 # Client settings
-try config = require sysPath.join(cwd, 'config')
 settings = {}
 
 setEnv = (env, opts) ->
   settings = {env}
-  for key, value of config?.clientSettings
+  for key, value of config
     if key in ['development', 'production', 'test']
       if key is env
         _.extend settings, value
@@ -50,8 +56,8 @@ shimMap = {}
 buildConfig = {}
 
 loadShimMap = ->
-  paths = config.clientSettings.paths
-  shim = config.clientSettings.shim
+  paths = config.build.paths
+  shim = config.build.shim
   buildConfig = {paths, shim}
   for name, value of shim
     path = paths[name] ? name

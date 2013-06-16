@@ -15,9 +15,6 @@ optimizer = require './optimizer'
 _ = require './_inflection'
 utils = require './utils'
 
-try config = require sysPath.join(process.cwd(), 'config')
-try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')
-
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
   Usage:
@@ -81,15 +78,23 @@ SWITCHES = [
 tasks = {}
 opts = {}
 optionParser = null
-cwd = process.cwd()
+
+# Load config
+try config = require sysPath.resolve('client/config')
+
+# Directories
 muffinDir = sysPath.join(__dirname, '../')
 templatesDir = sysPath.join(muffinDir, 'framework/templates')
-cwd = process.cwd()
-clientDir = sysPath.join(cwd, 'client')
-serverDir = sysPath.join(cwd, 'server')
-publicDir = sysPath.join(cwd, 'public')
-buildDir = sysPath.join(cwd, 'build')
-jsDir = sysPath.join(cwd, 'public/javascripts')
+clientDir = sysPath.resolve('client')
+serverDir = sysPath.resolve('server')
+
+if config?
+  publicDir = sysPath.resolve('client/config', config.build.buildDir)
+else
+  publicDir = sysPath.resolve('public')
+
+buildDir = sysPath.resolve('build')
+jsDir = sysPath.join(publicDir, 'javascripts')
 
 # Define a task with a short name, an optional description, and the function to run.
 task = (name, description, action) ->
@@ -357,9 +362,10 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
     # Concatenate modules
     (done) ->
-      for path in buildConfig.build
+      config = require sysPath.resolve('client/config')
+      for path in config.build.buildDir
         logging.info "Concatenating module dependencies: #{path}"
-        optimizer.concatDeps(path, buildConfig.paths)
+        optimizer.concatDeps(path, config.build.paths)
       done(null)
   ]
 
