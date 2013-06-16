@@ -19,7 +19,7 @@ utils = require './utils'
 BANNER = '''
   Usage:
 
-    muffin new PROJECT_NAME
+    muffin new <project-name>
       - create a new project
 
     Code generators:
@@ -48,7 +48,7 @@ BANNER = '''
       - minify and concatenate js/css files, optimize png/jpeg images, build for production
 
     muffin clean
-      - remove all files inside `public/` directory
+      - remove the build directory
 
     muffin test
       - run tests written in Mocha or Zombie.js

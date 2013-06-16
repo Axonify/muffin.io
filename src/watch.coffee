@@ -28,6 +28,7 @@ try config = require sysPath.resolve('client/config')
 clientDir = sysPath.resolve('client')
 clientAssetsDir = sysPath.join(clientDir, 'assets')
 clientVendorDir = sysPath.join(clientDir, 'vendor')
+clientComponentsDir = sysPath.join(clientDir, 'components')
 
 if config?
   publicDir = sysPath.resolve('client', config.build.buildDir)
@@ -160,11 +161,12 @@ compileDir = (source) ->
 destDirForFile = (source) ->
   inAssetsDir = !!~ source.indexOf clientAssetsDir
   inVendorDir = !!~ source.indexOf clientVendorDir
+  inComponentsDir = !!~ source.indexOf clientComponentsDir
 
   if inAssetsDir
     relativePath = sysPath.relative(clientAssetsDir, source)
     dest = sysPath.join(publicDir, relativePath)
-  else if inVendorDir
+  else if inVendorDir or inComponentsDir
     relativePath = sysPath.relative(clientDir, source)
     dest = sysPath.join(publicDir, relativePath)
   else
