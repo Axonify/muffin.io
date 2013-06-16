@@ -23,7 +23,7 @@
     "underscore.string": "2.x",
     "ansi-color": "~0.2.1",
     "growl": "1.5.1",
-    "async": "~0.1.22",
+    "async": "0.2.x",
     "mocha": "1.x",
     "docco": "~0.3.0",
     "ws": "~0.4.21",

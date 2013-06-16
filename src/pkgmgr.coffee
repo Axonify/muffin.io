@@ -9,6 +9,8 @@ Emitter = require('events').EventEmitter
 netrc = require 'netrc'
 utils = require './utils'
 request = require 'superagent'
+{parse} = require 'url'
+async = require 'async'
 
 # In-flight requests.
 inFlight = {}
@@ -22,13 +24,13 @@ class Package extends Emitter
 
     @slug = "#{name}@#{version}"
     @dest = options.dest ? 'components'
-    @remotes = options.remotes ? ['https://raw.github.com']
+    @remote = options.remote ? 'https://raw.github.com'
     @auth = options.auth
     @netrc = netrc(options.netrc)
 
-    # if inFlight[@slug]
-    #   @install = @emit.bind(@, 'end')
-    # inFlight[@slug] = true
+    if inFlight[@slug]
+      @install = @emit.bind(@, 'end')
+    inFlight[@slug] = true
 
   dirname: ->
     sysPath.join @dest, @name
@@ -37,19 +39,14 @@ class Package extends Emitter
     sysPath.join @dirname(), path
 
   url: (file) ->
-    remote = @remotes[0]
-    "#{remote}/#{@name}/#{@version}/#{file}"
-
-  mkdir: (dir, callback) ->
-    @dirs ?= {}
-    if @dirs[dir] then return callback()
-    fs.mkdirSync(dir, callback)
+    "#{@remote}/#{@name}/#{@version}/#{file}"
 
   # Get local json if the component is installed
   getLocalJSON: (callback) ->
     path = @join('component.json')
     fs.readFile path, 'utf8', (err, json) ->
-      if err then return callback(err)
+      if err
+        return callback(err)
       try
         json = JSON.parse(json)
       catch err
@@ -65,7 +62,7 @@ class Package extends Emitter
     req.set 'Accept-Encoding', 'gzip'
     logging.info "fetching #{url}"
 
-    # # authorize call
+    # authorize call
     # netrc = @netrc[parse(url).hostname]
     # if netrc
     #   req.auth(netrc.login, netrc.password)
@@ -85,69 +82,69 @@ class Package extends Emitter
         err.message = 'dns lookup failed'
       callback(err)
 
-  # Fetch `files` and write them to disk then fire callback.
-  getFiles: (files, callback) ->
-    for file in files
-      url = @url(file)
-      @emit 'file', file, url
-      dst = @join(file)
+  # Fetch a single file, write to disk then call the callback.
+  getFile: (file, done) =>
+    url = @url(file)
+    logging.info "fetching #{url}"
 
-      # mkdir
-      @mkdir sysPath.dirname(dst), (err) ->
-        if err then return done(err)
+    @emit 'file', file, url
+    dst = @join(file)
+    fs.mkdirSync sysPath.dirname(dst)
 
-        # pipe file
-        req = request.get(url)
-        req.set('Accept-Encoding', 'gzip')
-        req.buffer(false)
+    # pipe file
+    req = request.get(url)
+    req.set('Accept-Encoding', 'gzip')
+    req.buffer(false)
 
-        # authorize call
-        netrc = @netrc[@remote.host]
-        if netrc then req.auth(netrc.login, netrc.password)
-        if @auth then req.auth(@auth.user, @auth.pass)
+    # authorize call
+    # netrc = @netrc[@remote.host]
+    # if netrc then req.auth(netrc.login, netrc.password)
+    # if @auth then req.auth(@auth.user, @auth.pass)
 
-        req.end (res) ->
-          if res.error then return done(error(res, url))
-          res.pipe fs.createWriteStream(dst)
-          res.on 'error', done
-          res.on 'end', done
+    req.end (res) ->
+      if res.error then return done(res.error)
+      res.pipe fs.createWriteStream(dst)
+      res.on 'error', done
+      res.on 'end', done
 
   writeFile: (file, str, callback) ->
     file = @join(file)
+    logging.info "writing file #{file}"
     fs.writeFile file, str, callback
 
   # Install dependencies
   getDependencies: (deps, callback) ->
+    pkgs = []
     for name, version of deps
-      pkg = new Package(name, version, {
-          dest: @dest
-          force: @force
-          remotes: @remotes
-        })
+      pkg = new Package(name, version)
+      pkgs.push pkg
+
+    getPkg = (pkg, done) =>
       @emit 'dep', pkg
       pkg.on 'end', done
       pkg.on 'exists', done
       pkg.install()
 
+    async.each pkgs, getPkg, callback
+
   # Check if the component exists already,
   # othewise install it for real.
   install: ->
+    if @name.indexOf('/') < 0
+      @emit 'error', new Error("invalid component name '#{@name}'")
+
     @getLocalJSON (err, json) =>
       if err?.code is 'ENOENT'
         @reallyInstall()
       else if err
         @emit 'error', err
-      else if not @force
-        @emit 'exists', @
       else
         @reallyInstall()
 
   reallyInstall: ->
     @getJSON (err, json) =>
       if err
-        return
-        # err.fatal = (err.status is 404) ? last
-        # return @emit('error', err)
+        return @emit('error', err)
 
       files = []
       if json.scripts then files = files.concat(json.scripts)
@@ -157,18 +154,29 @@ class Package extends Emitter
       if json.images then files = files.concat(json.images)
       if json.fonts then files = files.concat(json.fonts)
 
-      # json.repo ?= "#{@remote.href}/#{@name}"
+      async.parallel [
+        # get dependencies
+        (done) =>
+          if json.dependencies
+            @getDependencies json.dependencies, done
+          else
+            done(null)
 
-      # if json.dependencies
-      #   @getDependencies(json.dependencies, done)
+        # download the files
+        (done) =>
+          async.each files, @getFile, done
 
-      # @mkdir @dirname(), (err) ->
-      #   @mkdir @dirname(), (err) ->
-      #     json = JSON.stringify(json, null, 2)
-      #     @writeFile 'component.json', json, done
+        # save component.json
+        (done) =>
+          fs.mkdirSync @dirname()
+          json = JSON.stringify(json, null, 2)
+          @writeFile 'component.json', json, done
 
-      # @mkdir @dirname(), (err) ->
-      #   @getFiles(files, done)
+      ], (err, results) =>
+        if err
+          @emit 'error', err
+        else
+          @emit 'end'
 
 
 install = (name, version='master') ->
