@@ -143,7 +143,7 @@ exports.run = ->
 task 'new', 'create a new project', ->
   projectName = opts.arguments[1]
   utils.fatal "Must supply a name for the new project" unless projectName
-  projectDir = sysPath.join cwd, projectName
+  projectDir = sysPath.join process.cwd(), projectName
   utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
@@ -370,9 +370,10 @@ task 'minify', 'minify and concatenate js/css files for production', ->
   ]
 
 # Task - remove the `public/` directory
-task 'clean', 'remove the public/ directory', ->
+task 'clean', 'remove the build directory', ->
   fs.removeSync publicDir
-  logging.warn 'Removed the public/ directory.'
+  relativePath = sysPath.relative(process.cwd(), publicDir)
+  logging.warn "Removed the build directory at #{relativePath}."
 
 # Task - run tests
 task 'test', 'run tests', ->
