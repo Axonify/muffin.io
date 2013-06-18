@@ -27,7 +27,6 @@ try config = require sysPath.resolve('client/config')
 # Directories
 clientDir = sysPath.resolve('client')
 clientAssetsDir = sysPath.join(clientDir, 'assets')
-clientVendorDir = sysPath.join(clientDir, 'vendor')
 clientComponentsDir = sysPath.join(clientDir, 'components')
 
 if config?
@@ -57,7 +56,7 @@ shimMap = {}
 buildConfig = {}
 
 loadShimMap = ->
-  paths = config.build.paths
+  paths = config.build.aliases
   shim = config.build.shim
   buildConfig = {paths, shim}
   for name, value of shim
@@ -160,13 +159,12 @@ compileDir = (source) ->
 
 destDirForFile = (source) ->
   inAssetsDir = !!~ source.indexOf clientAssetsDir
-  inVendorDir = !!~ source.indexOf clientVendorDir
   inComponentsDir = !!~ source.indexOf clientComponentsDir
 
   if inAssetsDir
     relativePath = sysPath.relative(clientAssetsDir, source)
     dest = sysPath.join(publicDir, relativePath)
-  else if inVendorDir or inComponentsDir
+  else if inComponentsDir
     relativePath = sysPath.relative(clientDir, source)
     dest = sysPath.join(publicDir, relativePath)
   else
