@@ -6,8 +6,7 @@ loader = @
 modules = {}
 inProgressModules = {}
 justDefinedModules = {}
-mapping = {}
-shim = {}
+aliases = {}
 head = document.getElementsByTagName('head')[0]
 
 
@@ -49,13 +48,8 @@ window.define = (path, deps, factory) ->
   justDefinedModules[path] = module
 
 # Load configurations
-require.config = (config) ->
-  mapping = config.paths
-  for name, value of config.shim
-    path = mapping[name] ? name
-    deps = ((mapping[dep] ? dep) for dep in value.deps)
-    exports = value.exports ? null
-    shim[path] = {deps, exports}
+require.aliases = (als) ->
+  aliases = als
 
 # Undefine a module
 require.undef = (path) ->
@@ -189,10 +183,10 @@ didLoadModule = (module) ->
   path = module.path
 
   # If it's a wrapped non-AMD script, evaluate it here.
-  if /\.js$/.test(path) and module.deps
-    module.factory.call(window)
-    delete module.factory
-    module.exports = window[shim[path]?.exports]
+  # if /\.js$/.test(path) and module.deps
+  #   module.factory.call(window)
+  #   delete module.factory
+  #   module.exports = window[shim[path]?.exports]
 
   # Save the module in memory
   modules[path] = module
@@ -249,7 +243,7 @@ baseOfPath = (path) ->
 # Convert relative path to full path
 normalize = (path, base=null) ->
   parts = path.split('/')
-  alias = mapping[parts[0]]
+  alias = aliases[parts[0]]
 
   if path.charAt(0) is '.' and base
     baseParts = base.split('/')

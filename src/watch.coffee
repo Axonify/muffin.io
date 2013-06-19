@@ -51,20 +51,29 @@ setEnv = (env, opts) ->
   settings.assetHost = opts.cdn ? ''
   settings.version = opts.hash ? '1.0.0'
 
-# Build config
-shimMap = {}
-buildConfig = {}
+# Module dependencies
+aliases = {}
 
-loadShimMap = ->
-  paths = config.build.aliases
-  shim = config.build.shim
-  buildConfig = {paths, shim}
-  for name, value of shim
-    path = paths[name] ? name
-    deps = ((paths[dep] ? dep) for dep in value.deps)
-    shimMap[path] = {deps}
+isDirectory = (path) ->
+  stats = fs.statSync(path)
+  stats.isDirectory()
 
-loadShimMap() if config?
+buildAliases = ->
+  aliases = config.build.aliases if config?
+
+  # iterate over the components dir and get module deps
+  users = fs.readdirSync(clientComponentsDir)
+  for user in users
+    userDir = sysPath.join(clientComponentsDir, user)
+    if isDirectory(userDir)
+      aliases[user] = "components/#{user}"
+      repos = fs.readdirSync(userDir)
+      for repo in repos
+        repoDir = sysPath.join(userDir, repo)
+        if isDirectory(repoDir)
+          aliases["#{user}/#{repo}"] = "components/#{user}/#{repo}"
+
+buildAliases()
 
 # Helpers
 cacheBuster = (force) ->
@@ -94,7 +103,7 @@ htmlHelpers =
   include_module_loader: ->
     """
     <script>#{moduleLoaderSrc}</script>
-    <script>require.config(#{JSON.stringify(buildConfig)})</script>
+    <script>require.aliases(#{JSON.stringify(aliases)})</script>
     <script>#{liveReloadSrc}</script>
     """
 
@@ -253,13 +262,10 @@ compileFile = (source, abortOnError=no) ->
           js = fs.readFileSync(source).toString()
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
-
           modulePath = sysPath.relative(publicDir, path)
-          deps = shimMap[modulePath]?.deps ? []
-          if deps.length > 0
-            # Only wrap if dependencies are set in shim
-            js = "define('#{modulePath}', #{JSON.stringify(deps)}, function() {#{js}});"
 
+          deps = parseDeps(js)
+          js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js
           logging.info "copied #{source}"
           reload(path)

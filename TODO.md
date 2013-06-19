@@ -1,9 +1,7 @@
 ## TODO
-- Muffin package manager:
-  * require: `require, define` should be compatible with AMD, remove require configs, `require('package-name')`, e.g., `UIKit = require 'UIKit'`
-  * `muffin install <package-name>`
-  * `muffin update <package-name>`
-  * `muffin search <query>`
+- require: `require, define` should be compatible with AMD, remove require configs, `require('package-name')`, e.g., `UIKit = require 'UIKit'`
+- fix `muffin new`, `muffin generate`, `muffin minify`
+- implement `muffin update`, `muffin search`
 - convert other Backbone UI components/widgets to TJ components
 - **muffin.apps.admin**
   * Generate the admin site similar to WordPress or Django

@@ -365,7 +365,7 @@ task 'minify', 'minify and concatenate js/css files for production', ->
       config = require sysPath.resolve('client/config')
       for path in config.build.buildDir
         logging.info "Concatenating module dependencies: #{path}"
-        optimizer.concatDeps(path, config.build.paths)
+        optimizer.concatDeps(path, config.build.aliases)
       done(null)
   ]
 
