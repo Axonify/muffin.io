@@ -51,8 +51,9 @@ setEnv = (env, opts) ->
   settings.assetHost = opts.cdn ? ''
   settings.version = opts.hash ? '1.0.0'
 
-# Module dependencies
+# Path aliases and package dependencies
 aliases = {}
+packageDeps = {}
 
 isDirectory = (path) ->
   stats = fs.statSync(path)
@@ -71,6 +72,12 @@ buildAliases = ->
         repoDir = sysPath.join(userDir, repo)
         if isDirectory(repoDir)
           aliases[repo] = aliases["#{user}/#{repo}"] = "components/#{user}/#{repo}/index"
+
+          # extract package deps from component.json
+          json = fs.readFileSync(sysPath.join(repoDir, 'component.json'))
+          json = JSON.parse(json)
+          if json.dependencies
+            packageDeps["#{user}/#{repo}"] = Object.keys(json.dependencies)
 
 buildAliases()
 
@@ -211,6 +218,14 @@ compileFile = (source, abortOnError=no) ->
           js = CoffeeScript.compile(sourceData, {bare: true})
           modulePath = sysPath.relative(publicDir, path)[...-3]
           deps = parseDeps(js)
+
+          # Concat package deps
+          match = modulePath.match(/^components\/(.*)\/(.*)\//)
+          if match
+            extraDeps = packageDeps["#{match[1]}/#{match[2]}"]
+            if extraDeps?.length > 0
+              deps = deps.concat(extraDeps)
+
           js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js
           logging.info "compiled #{source}"
@@ -264,6 +279,14 @@ compileFile = (source, abortOnError=no) ->
 
           modulePath = sysPath.relative(publicDir, path)[...-3]
           deps = parseDeps(js)
+
+          # Concat package deps
+          match = modulePath.match(/^components\/(.*)\/(.*)\//)
+          if match
+            extraDeps = packageDeps["#{match[1]}/#{match[2]}"]
+            if extraDeps?.length > 0
+              deps = deps.concat(extraDeps)
+
           js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js
           logging.info "copied #{source}"
@@ -363,7 +386,7 @@ parseDeps = (content) ->
   # Find all the require calls and push them into dependencies.
   content
     .replace(commentRegex, '') # remove comments
-    .replace(cjsRequireRegex, (match, dep) -> deps.push(dep))
+    .replace(cjsRequireRegex, (match, dep) -> deps.push(dep) if dep not in deps)
   deps
 
 module.exports = {setEnv, compileDir, watchDir, startAndWatchServer}
