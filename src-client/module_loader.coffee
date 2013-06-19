@@ -243,8 +243,6 @@ baseOfPath = (path) ->
 # Convert relative path to full path
 normalize = (path, base=null) ->
   parts = path.split('/')
-  alias = aliases[parts[0]]
-
   if path.charAt(0) is '.' and base
     baseParts = base.split('/')
     switch parts[0]
@@ -252,7 +250,10 @@ normalize = (path, base=null) ->
         path = baseParts.concat(parts[1..]).join('/')
       when '..'
         path = baseParts[0...-1].concat(parts[1..]).join('/')
-  else if alias
+  else if aliases[path]
+    path = aliases[path]
+  else if aliases[parts[0]]
+    alias = aliases[parts[0]]
     path = [alias].concat(parts[1..]).join('/')
   return path
 

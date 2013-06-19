@@ -66,12 +66,11 @@ buildAliases = ->
   for user in users
     userDir = sysPath.join(clientComponentsDir, user)
     if isDirectory(userDir)
-      aliases[user] = "components/#{user}"
       repos = fs.readdirSync(userDir)
       for repo in repos
         repoDir = sysPath.join(userDir, repo)
         if isDirectory(repoDir)
-          aliases["#{user}/#{repo}"] = "components/#{user}/#{repo}"
+          aliases[repo] = aliases["#{user}/#{repo}"] = "components/#{user}/#{repo}/index"
 
 buildAliases()
 
