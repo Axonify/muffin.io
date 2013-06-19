@@ -220,7 +220,7 @@ evaluate = (module) ->
     for own prop, value of require
       localRequire[prop] = value
 
-    module.factory(localRequire, module.exports, module)
+    module.factory.call(window, localRequire, module.exports, module)
     delete module.factory
   return module.exports
 
