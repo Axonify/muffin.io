@@ -261,8 +261,8 @@ compileFile = (source, abortOnError=no) ->
           js = fs.readFileSync(source).toString()
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
-          modulePath = sysPath.relative(publicDir, path)
 
+          modulePath = sysPath.relative(publicDir, path)[...-3]
           deps = parseDeps(js)
           js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js

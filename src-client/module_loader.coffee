@@ -152,12 +152,6 @@ load = (path, callback) ->
       didLoadModule(module)
   else
     fetchJS path, ->
-      # If the js file is not wrapped, call didLoadModule right away.
-      module = inProgressModules[path]
-      if /\.js$/.test(path) and module and not module.deps
-        didLoadModule(module)
-        return
-
       for p, module of justDefinedModules
         # Get around the stupid JavaScript scoping issue using blocks.
         # Note that if we use "loadAll module.deps -> didLoadModules(module)",
