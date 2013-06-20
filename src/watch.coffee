@@ -79,8 +79,6 @@ buildAliases = ->
           if json.dependencies
             packageDeps["#{user}/#{repo}"] = Object.keys(json.dependencies)
 
-buildAliases()
-
 # Helpers
 cacheBuster = (force) ->
   if settings.cacheBuster or force
@@ -389,4 +387,4 @@ parseDeps = (content) ->
     .replace(cjsRequireRegex, (match, dep) -> deps.push(dep) if dep not in deps)
   deps
 
-module.exports = {setEnv, compileDir, watchDir, startAndWatchServer}
+module.exports = {setEnv, buildAliases, compileDir, watchDir, startAndWatchServer}

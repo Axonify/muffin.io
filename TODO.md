@@ -1,5 +1,5 @@
 ## TODO
-- speed up the build process; fix 20% cpu usage when idle
+- review muffin code once more (compile files synchronously?); add back startDummyServer; speed up the build process; fix 20% cpu usage when idle;
 - fix `muffin new`, `muffin generate`, `muffin minify`
 - implement `muffin update`, `muffin search`
 - convert other Backbone UI components/widgets to TJ components

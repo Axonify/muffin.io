@@ -325,6 +325,7 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
+  watch.buildAliases()
   watch.compileDir clientDir
 
 # Task - optimize js/css files (internal use only)
@@ -405,6 +406,7 @@ task 'server', 'start a webserver', ->
 
     # Dump versions.json, watch client dir, start server.
     (done) ->
+      watch.buildAliases()
       watch.watchDir clientDir
 
       if fs.existsSync(serverDir)
