@@ -12,12 +12,18 @@
     "name": "Yaogang Lian",
     "email": "yaogang.lian@gmail.com"
   },
+  "contributors": [
+    {
+      "name": "Ned Kahvo",
+      "email": "nkahvo@axonify.com"
+    }
+  ],
   "bin": {
     "muffin": "./bin/muffin"
   },
   "dependencies": {
-    "coffee-script": "1.5.x",
-    "jade": "*",
+    "coffee-script": "1.6.3",
+    "jade": "~0.31.2",
     "less": "~1.3.0",
     "underscore": "1.x",
     "underscore.string": "2.x",
