@@ -116,7 +116,7 @@ ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file)
 
 serverIgnored = (file) ->
-  /^\.|~$/.test(file) or /\.swp/.test(file) or /^public/.test(file)
+  /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(publicDir)
 
 # Set up live reload
 connections = []
