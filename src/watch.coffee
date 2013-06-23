@@ -115,6 +115,9 @@ htmlHelpers =
 ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file)
 
+serverIgnored = (file) ->
+  /^\.|~$/.test(file) or /\.swp/.test(file) or /^public/.test(file)
+
 # Set up live reload
 connections = []
 startLiveReloadServer = ->
@@ -320,7 +323,7 @@ removeFile = (source) ->
 # Start the server
 startAndWatchServer = ->
   # Watch .coffee and .js files and restart the server when they change
-  watcher = chokidar.watch serverDir, {ignored: ignored, persistent: true, ignoreInitial: true}
+  watcher = chokidar.watch serverDir, {ignored: serverIgnored, persistent: true, ignoreInitial: true}
   startServer()
   watcher.on 'add', (source) ->
     logging.info "added #{source}"
