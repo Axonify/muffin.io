@@ -308,7 +308,7 @@ compileFile = (source, abortOnError=no) ->
             reload(path)
     catch err
       if abortOnError
-        fatalError err.message
+        fatalError "#{err.message} (#{source})"
       else
         logging.error "#{err.message} (#{source})"
 
