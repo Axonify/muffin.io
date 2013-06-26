@@ -350,14 +350,22 @@ task 'minify', 'minify and concatenate js/css files for production', ->
       p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p.on 'exit', (code) ->
+        if code isnt 0
+          process.exit(code)
+        else
+          done(null)
     
     # Minify
     (done) ->
       p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production']
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
-      p.on 'exit', done
+      p.on 'exit', (code) ->
+        if code isnt 0
+          process.exit(code)
+        else
+          done(null)
     
     # Remove temp directories
     (done) ->
