@@ -1,4 +1,5 @@
 ## TODO
+- partial object graph, local storage, support conditional GET and batch operations in REST APIs
 - review muffin code once more (compile files synchronously?); add back startDummyServer; speed up the build process; fix 20% cpu usage when idle;
 - fix `muffin new`, `muffin generate`, `muffin minify`
 - implement `muffin update`, `muffin search`
@@ -11,7 +12,6 @@
 - **muffin.apps.flatpages**: Jeckyll style **static site generator** using JSON files
 - **themes**: easily apply themes to the site, similar to WordPress
 - **ioSync support**, real-time pushes on both NodeJS and GAE (via Channel API)
-- source map support
 - **muffin test**: unit testing with Mocha, and headless testing with Zombie.js or Selenium. Phantom.js, Bunyip. Load testing (https://github.com/gamechanger/nodeload)
 - muffin.io website (show off interactive features, video demo, good documentation, prezi, host on Nodejitsu)
 - Sublime Text 2 plugin
