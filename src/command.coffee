@@ -285,19 +285,19 @@ task 'install', 'install packages', ->
     # save to ./component.json
     if fs.existsSync('component.json')
       path = sysPath.resolve('component.json')
-      config = require(path)
-      config.dependencies ?= {}
+      component = require(path)
+      component.dependencies ?= {}
       for pkg in pkgs
         [name, version] = pkg.split('@')
-        config.dependencies[name] = version ? '*'
-      fs.writeFileSync(path, JSON.stringify(config, null, 2))
+        component.dependencies[name] = version ? '*'
+      fs.writeFileSync(path, JSON.stringify(component, null, 2))
   else
     if not fs.existsSync('component.json')
       utils.fatal 'Missing component.json'
 
     # install all dependencies listed in component.json
-    config = require(sysPath.resolve('component.json'))
-    for name, version of config.dependencies
+    component = require(sysPath.resolve('component.json'))
+    for name, version of component.dependencies
       pkgmgr.install name, version
 
 # Task - update packages
@@ -363,10 +363,10 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
     # Concatenate modules
     (done) ->
-      config = require sysPath.resolve('client/config')
-      for path in config.build.buildDir
+      for path in config.build.concat
         logging.info "Concatenating module dependencies: #{path}"
-        optimizer.concatDeps(path, config.build.aliases)
+        aliases = watch.buildAliases()
+        optimizer.concatDeps(path, aliases)
       done(null)
   ]
 

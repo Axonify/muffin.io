@@ -20,7 +20,6 @@
 - Integrate with iPython. Supports advanced scientific computing functionalities.
 - Use Muffin to build interactive ebooks!
 - Use Muffin to create interactive online courses
-- Data syncing: partial object graph, local storage, support conditional GET and batch operations in REST APIs.
 - Deployment: Amazon EC2. multi-core (clustering) support for Node.js deployment, as done in Geddy.  Integrate with Google Analytics. Integrate with {errorception}. (Spar). Ganglia integration?
 - Learn from Yeoman, Mimosa, mojito
 - Revisit Brunch, capt, backnode, bones, bbb, Brewer.js, Tower.js, singool

@@ -50,7 +50,7 @@ optimizeFile = (source, dest) ->
           logging.info "copied #{source}"
 
 # Concatenate all the module dependencies
-concatDeps = (path, mapping) ->
+concatDeps = (path, aliases) ->
   content = ''
   modules = {}
 
@@ -65,16 +65,17 @@ concatDeps = (path, mapping) ->
   # Convert relative path to full path
   normalize = (path, base=null) ->
     parts = path.split('/')
-    alias = mapping[parts[0]]
-
-    if path[0] is '.' and base
+    if path.charAt(0) is '.' and base
       baseParts = base.split('/')
       switch parts[0]
         when '.'
           path = baseParts.concat(parts[1..]).join('/')
         when '..'
           path = baseParts[0...-1].concat(parts[1..]).join('/')
-    else if alias
+    else if aliases[path]
+      path = aliases[path]
+    else if aliases[parts[0]]
+      alias = aliases[parts[0]]
       path = [alias].concat(parts[1..]).join('/')
     return path
 

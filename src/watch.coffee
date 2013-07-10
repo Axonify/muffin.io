@@ -51,13 +51,13 @@ setEnv = (env, opts) ->
   settings.assetHost = opts.cdn ? ''
   settings.version = opts.hash ? '1.0.0'
 
-# Path aliases and package dependencies
-aliases = {}
-packageDeps = {}
-
 isDirectory = (path) ->
   stats = fs.statSync(path)
   stats.isDirectory()
+
+# Build path aliases and package dependencies
+aliases = {}
+packageDeps = {}
 
 buildAliases = ->
   aliases = config.build.aliases if config?
@@ -78,6 +78,7 @@ buildAliases = ->
           json = JSON.parse(json)
           if json.dependencies
             packageDeps["#{user}/#{repo}"] = Object.keys(json.dependencies)
+  return aliases
 
 # Helpers
 cacheBuster = (force) ->
