@@ -22,8 +22,8 @@ window.require = (deps, callback) ->
   loadAll deps, ->
     args = []
     for path in deps
-      if /\.js$/.test(path) then path = path[...-3]
-      exports = evaluate(modules[path])
+      [path, format] = moduleFormatFromPath(path)
+      exports = evaluate(modules[path], format)
       args.push exports
     callback.apply(loader, args)
 
@@ -36,7 +36,7 @@ window.define = (path, deps, factory) ->
   module.factory = factory
   inProgressModules[path] = module
 
-  if module.format is 'text'
+  if /\.(html|htm|json|css)$/.test(path)
     # If it's a text file wrapper, evaluate right away.
     module.exports = factory()
     delete module.factory
@@ -131,14 +131,7 @@ injectCSS = (css, path) ->
 
 # Load a module
 load = (path, callback) ->
-  if /\.(html|htm|json|css)$/.test(path)
-    format = 'text'
-  else if /\.js$/.test(path)
-    # If path ends with '.js', it's considered as a traditional script; otherwise a module.
-    format = 'script'
-    path = path[...-3]
-  else
-    format = 'module'
+  [path, format] = moduleFormatFromPath(path)
 
   # Skip if the module is already loaded
   if modules[path]
@@ -154,7 +147,7 @@ load = (path, callback) ->
   # Otherwise, fetch the module from its path
   inProgressModules[path] = {path, format, callbacks: [callback]}
 
-  if format is 'text'
+  if /\.(html|htm|json|css)$/.test(path)
     fetchText path, (text) ->
       module = inProgressModules[path]
       module.exports = text
@@ -198,7 +191,7 @@ didLoadModule = (module) ->
   delete inProgressModules[path]
 
 # Evaluate a module by running its factory function
-evaluate = (module) ->
+evaluate = (module, format) ->
   if module.factory?
     module.exports = {}
     path = module.path
@@ -214,10 +207,10 @@ evaluate = (module) ->
         # Synchronous require:
         # module = require 'module/path'
         p = normalize(deps, base)
-        if /\.js$/.test(p) then p = p[...-3]
+        [p, fmt] = moduleFormatFromPath(p)
         m = modules[p]
         if m
-          return evaluate(m)
+          return evaluate(m, fmt)
         else
           console.log "module #{p} not found"
           return null
@@ -225,7 +218,7 @@ evaluate = (module) ->
     for own prop, value of require
       localRequire[prop] = value
 
-    if module.format is 'module'
+    if format is 'module'
       module.factory.call(window, localRequire, module.exports, module)
     else
       module.factory.call(window)
@@ -258,6 +251,18 @@ normalize = (path, base=null) ->
     alias = aliases[parts[0]]
     path = [alias].concat(parts[1..]).join('/')
   return path
+
+# Get module format
+moduleFormatFromPath = (path) ->
+  if /\.(html|htm|json|css)$/.test(path)
+    format = 'text'
+  else if /\.js$/.test(path)
+    # If path ends with '.js', it's considered as a traditional script; otherwise a module.
+    path = path[...-3]
+    format = 'script'
+  else
+    format = 'module'
+  return [path, format]
 
 # Get any one element by a certain attribute value
 getElementByAttributeValue = (attribute, value) ->

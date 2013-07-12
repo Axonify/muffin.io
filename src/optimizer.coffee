@@ -86,6 +86,8 @@ concatDeps = (path, aliases) ->
     concat(path) for path in deps
 
   concat = (path) ->
+    if /\.js$/.test(path) then path = path[...-3]
+
     # Skip the module if already included
     return if modules[path]
 
@@ -99,15 +101,9 @@ concatDeps = (path, aliases) ->
       content += js
       modules[path] = {path}
     else
-      if /^define/.test(text)
-        content += text
-        modules[path] = {path}
-        eval(text)
-      else
-        # Wrap the js file into a js module.
-        js = "define('#{path}', [], function() {#{text}});"
-        content += js
-        modules[path] = {path}
+      content += text
+      modules[path] = {path}
+      eval(text)
 
   # Concatenate all module dependencies
   concat(path)
