@@ -22,6 +22,7 @@ window.require = (deps, callback) ->
   loadAll deps, ->
     args = []
     for path in deps
+      if /\.js$/.test(path) then path = path[...-3]
       exports = evaluate(modules[path])
       args.push exports
     callback.apply(loader, args)
@@ -213,11 +214,12 @@ evaluate = (module) ->
         # Synchronous require:
         # module = require 'module/path'
         p = normalize(deps, base)
+        if /\.js$/.test(p) then p = p[...-3]
         m = modules[p]
         if m
           return evaluate(m)
         else
-          console.log "module #{path} not found"
+          console.log "module #{p} not found"
           return null
 
     for own prop, value of require
