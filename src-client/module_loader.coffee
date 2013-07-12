@@ -35,7 +35,7 @@ window.define = (path, deps, factory) ->
   module.factory = factory
   inProgressModules[path] = module
 
-  if /\.(html|htm|json|css)$/.test(path)
+  if module.format is 'text'
     # If it's a text file wrapper, evaluate right away.
     module.exports = factory()
     delete module.factory
@@ -130,6 +130,15 @@ injectCSS = (css, path) ->
 
 # Load a module
 load = (path, callback) ->
+  if /\.(html|htm|json|css)$/.test(path)
+    format = 'text'
+  else if /\.js$/.test(path)
+    # If path ends with '.js', it's considered as a traditional script; otherwise a module.
+    format = 'script'
+    path = path[...-3]
+  else
+    format = 'module'
+
   # Skip if the module is already loaded
   if modules[path]
     callback(modules[path])
@@ -142,9 +151,9 @@ load = (path, callback) ->
     return
 
   # Otherwise, fetch the module from its path
-  inProgressModules[path] = {path, callbacks: [callback]}
+  inProgressModules[path] = {path, format, callbacks: [callback]}
 
-  if /\.(html|htm|json|css)$/.test(path)
+  if format is 'text'
     fetchText path, (text) ->
       module = inProgressModules[path]
       module.exports = text
@@ -175,12 +184,6 @@ loadAll = (deps, callback) ->
 
 didLoadModule = (module) ->
   path = module.path
-
-  # If it's a wrapped non-AMD script, evaluate it here.
-  # if /\.js$/.test(path) and module.deps
-  #   module.factory.call(window)
-  #   delete module.factory
-  #   module.exports = window[shim[path]?.exports]
 
   # Save the module in memory
   modules[path] = module
@@ -220,7 +223,10 @@ evaluate = (module) ->
     for own prop, value of require
       localRequire[prop] = value
 
-    module.factory.call(window, localRequire, module.exports, module)
+    if module.format is 'module'
+      module.factory.call(window, localRequire, module.exports, module)
+    else
+      module.factory.call(window)
     delete module.factory
   return module.exports
 
