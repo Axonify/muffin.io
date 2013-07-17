@@ -80,19 +80,14 @@ opts = {}
 optionParser = null
 
 # Load config
-try config = require sysPath.resolve('client/config')
+try config = require sysPath.resolve('config')
 
 # Directories
 muffinDir = sysPath.join(__dirname, '../')
 templatesDir = sysPath.join(muffinDir, 'framework/templates')
-clientDir = sysPath.resolve('client')
-serverDir = sysPath.resolve('server')
-
-if config?
-  publicDir = sysPath.resolve('client', config.build.buildDir)
-else
-  publicDir = sysPath.resolve('public')
-
+clientDir = sysPath.resolve(config?.clientDir ? 'client')
+serverDir = sysPath.resolve(config?.serverDir ? 'server')
+publicDir = sysPath.resolve(config?.publicDir ? 'public')
 buildDir = sysPath.resolve('build')
 jsDir = sysPath.join(publicDir, 'javascripts')
 
@@ -363,7 +358,7 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
     # Concatenate modules
     (done) ->
-      for path in config.build.concat
+      for path in config.client.concat
         logging.info "Concatenating module dependencies: #{path}"
         aliases = watch.buildAliases()
         optimizer.concatDeps(path, aliases)
@@ -387,11 +382,6 @@ task 'test', 'run tests', ->
   mocha.addFile './test/spec'
   mocha.run (failures) ->
     process.exit (if failures > 0 then 1 else 0)
-
-# Task - generate documentation
-task 'doc', 'generate documentation', ->
-  found = findFileIn(clientDir)
-  spawn "#{__dirname}/../node_modules/docco/bin/docco", found, {stdio: 'inherit'}
 
 # Task - start the server and watch files
 task 'server', 'start a webserver', ->

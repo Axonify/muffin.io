@@ -1,8 +1,8 @@
 ## TODO
-- partial object graph, local storage, support conditional GET and batch operations in REST APIs
 - review muffin code once more (compile files synchronously?); add back startDummyServer; speed up the build process; fix 20% cpu usage when idle;
 - fix `muffin new`, `muffin generate`, `muffin minify`
 - implement `muffin update`, `muffin search`
+- partial object graph, local storage, support conditional GET and batch operations in REST APIs
 - convert other Backbone UI components/widgets to TJ components
 - **muffin.apps.admin**
   * Generate the admin site similar to WordPress or Django

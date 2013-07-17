@@ -13,7 +13,6 @@ CoffeeScript = require 'coffee-script'
 jade = require 'jade'
 less = require 'less'
 WebSocketServer = require('ws').Server
-md5 = require 'MD5'
 
 # Underscore template settings
 _.templateSettings =
@@ -22,20 +21,15 @@ _.templateSettings =
   escape      : /<\?-([\s\S]+?)\?>/g
 
 # Load config
-try config = require sysPath.resolve('client/config')
+try config = require sysPath.resolve('config')
 
 # Directories
-clientDir = sysPath.resolve('client')
+clientDir = sysPath.resolve(config?.clientDir ? 'client')
+serverDir = sysPath.resolve(config?.serverDir ? 'server')
 clientAssetsDir = sysPath.join(clientDir, 'assets')
 clientComponentsDir = sysPath.join(clientDir, 'components')
-
-if config?
-  publicDir = sysPath.resolve('client', config.build.buildDir)
-else
-  publicDir = sysPath.resolve('public')
-
+publicDir = sysPath.resolve(config?.publicDir ? 'public')
 jsDir = sysPath.join(publicDir, 'javascripts')
-serverDir = sysPath.resolve('server')
 
 # Client settings
 settings = {}
@@ -60,7 +54,7 @@ aliases = {}
 packageDeps = {}
 
 buildAliases = ->
-  aliases = config.build.aliases if config?
+  aliases = config.client.aliases if config?
 
   # iterate over the components dir and get module deps
   users = fs.readdirSync(clientComponentsDir)
@@ -258,7 +252,7 @@ compileFile = (source, abortOnError=no) ->
             logging.info "compiled #{source}"
             reload(path)
 
-        when '.html', '.htm', '.css'
+        when '.html', '.htm'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings}, htmlHelpers))
           filename = sysPath.basename(source)
@@ -302,10 +296,8 @@ compileFile = (source, abortOnError=no) ->
             logging.info "copied #{source}"
             reload(path)
     catch err
-      if abortOnError
-        fatalError err.message
-      else
-        logging.error "#{err.message} (#{source})"
+      logging.error "#{err.message} (#{source})"
+      process.exit(1) if abortOnError
 
 # Remove a file
 removeFile = (source) ->

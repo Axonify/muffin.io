@@ -9,13 +9,10 @@ logging = require './logging'
 uglify = require 'uglify-js'
 
 # Load config
-try config = require sysPath.resolve('client/config')
+try config = require sysPath.resolve('config')
 
 # Directories
-if config?
-  publicDir = sysPath.resolve('client', config.build.buildDir)
-else
-  publicDir = sysPath.resolve('public')
+publicDir = sysPath.resolve(config?.publicDir ? 'public')
 
 # Recursively optimize all the files in a directory and its subdirectories
 optimizeDir = (fromDir, toDir) ->
