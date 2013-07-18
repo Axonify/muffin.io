@@ -36,7 +36,7 @@ settings = {}
 
 setEnv = (env, opts) ->
   settings = {env}
-  for key, value of config
+  for key, value of config.client
     if key in ['development', 'production', 'test']
       if key is env
         _.extend settings, value
@@ -242,13 +242,14 @@ compileFile = (source, abortOnError=no) ->
           reload(path)
 
         when '.less'
-          # Run the source file through template engine
-          sourceData = _.template(fs.readFileSync(source).toString(), {settings})
+          sourceData = fs.readFileSync(source).toString()
           filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
           path = sysPath.join destDir, filename
 
-          less.render sourceData, (err, data) ->
-            fs.writeFileSync path, data
+          parser = new (less.Parser)
+            paths: [sysPath.dirname(source)]
+          parser.parse sourceData, (err, tree) ->
+            fs.writeFileSync path, tree.toCSS()
             logging.info "compiled #{source}"
             reload(path)
 
