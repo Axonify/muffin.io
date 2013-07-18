@@ -87,9 +87,8 @@ muffinDir = sysPath.join(__dirname, '../')
 templatesDir = sysPath.join(muffinDir, 'framework/templates')
 clientDir = sysPath.resolve(config?.clientDir ? 'client')
 serverDir = sysPath.resolve(config?.serverDir ? 'server')
-publicDir = sysPath.resolve(config?.publicDir ? 'public')
-buildDir = sysPath.resolve('build')
-jsDir = sysPath.join(publicDir, 'javascripts')
+buildDir = sysPath.resolve(config?.buildDir ? 'public')
+jsDir = sysPath.join(buildDir, 'javascripts')
 
 # Define a task with a short name, an optional description, and the function to run.
 task = (name, description, action) ->
@@ -302,7 +301,7 @@ task 'update', 'update packages', ->
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync publicDir
+  fs.removeSync buildDir
 
   async.series [
     # Build
@@ -319,7 +318,7 @@ task 'watch', 'watch files and compile as needed', ->
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync publicDir
+  fs.removeSync buildDir
   watch.buildAliases()
   watch.compileDir clientDir
 
@@ -327,7 +326,8 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
 task 'optimize', 'optimize js/css files', ->
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync buildDir
-  optimizer.optimizeDir publicDir, buildDir
+  tempBuildDir = sysPath.resolve('.tmp-build')
+  optimizer.optimizeDir buildDir, tempBuildDir
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
@@ -352,8 +352,8 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
     # Remove temp directories
     (done) ->
-      fs.removeSync publicDir
-      fs.renameSync 'build', publicDir
+      fs.removeSync buildDir
+      fs.renameSync '.tmp-build', buildDir
       done(null)
 
     # Concatenate modules
@@ -365,10 +365,10 @@ task 'minify', 'minify and concatenate js/css files for production', ->
       done(null)
   ]
 
-# Task - remove the `public/` directory
+# Task - remove the build directory
 task 'clean', 'remove the build directory', ->
-  fs.removeSync publicDir
-  relativePath = sysPath.relative(process.cwd(), publicDir)
+  fs.removeSync buildDir
+  relativePath = sysPath.relative(process.cwd(), buildDir)
   logging.warn "Removed the build directory at #{relativePath}."
 
 # Task - run tests
@@ -386,7 +386,7 @@ task 'test', 'run tests', ->
 # Task - start the server and watch files
 task 'server', 'start a webserver', ->
   watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync publicDir
+  fs.removeSync buildDir
 
   async.series [
     # Build

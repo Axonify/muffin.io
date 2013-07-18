@@ -28,8 +28,8 @@ clientDir = sysPath.resolve(config?.clientDir ? 'client')
 serverDir = sysPath.resolve(config?.serverDir ? 'server')
 clientAssetsDir = sysPath.join(clientDir, 'assets')
 clientComponentsDir = sysPath.join(clientDir, 'components')
-publicDir = sysPath.resolve(config?.publicDir ? 'public')
-jsDir = sysPath.join(publicDir, 'javascripts')
+buildDir = sysPath.resolve(config?.buildDir ? 'public')
+jsDir = sysPath.join(buildDir, 'javascripts')
 
 # Client settings
 settings = {}
@@ -111,7 +111,7 @@ ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file)
 
 serverIgnored = (file) ->
-  /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(publicDir)
+  /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(buildDir)
 
 # Set up live reload
 connections = []
@@ -174,10 +174,10 @@ destDirForFile = (source) ->
 
   if inAssetsDir
     relativePath = sysPath.relative(clientAssetsDir, source)
-    dest = sysPath.join(publicDir, relativePath)
+    dest = sysPath.join(buildDir, relativePath)
   else if inComponentsDir
     relativePath = sysPath.relative(clientDir, source)
-    dest = sysPath.join(publicDir, relativePath)
+    dest = sysPath.join(buildDir, relativePath)
   else
     relativePath = sysPath.relative(clientDir, source)
     dest = sysPath.join(jsDir, relativePath)
@@ -212,7 +212,7 @@ compileFile = (source, abortOnError=no) ->
 
           # Wrap the file into AMD module format
           js = CoffeeScript.compile(sourceData, {bare: true})
-          modulePath = sysPath.relative(publicDir, path)[...-3]
+          modulePath = sysPath.relative(buildDir, path)[...-3]
           deps = parseDeps(js)
 
           # Concat package deps
@@ -273,7 +273,7 @@ compileFile = (source, abortOnError=no) ->
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
 
-          modulePath = sysPath.relative(publicDir, path)[...-3]
+          modulePath = sysPath.relative(buildDir, path)[...-3]
           deps = parseDeps(js)
 
           # Concat package deps

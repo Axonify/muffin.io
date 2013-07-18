@@ -12,7 +12,7 @@ uglify = require 'uglify-js'
 try config = require sysPath.resolve('config')
 
 # Directories
-publicDir = sysPath.resolve(config?.publicDir ? 'public')
+buildDir = sysPath.resolve(config?.buildDir ? 'public')
 
 # Recursively optimize all the files in a directory and its subdirectories
 optimizeDir = (fromDir, toDir) ->
@@ -55,7 +55,7 @@ concatDeps = (path, aliases) ->
     path.split('/')[0...-1].join('/')
 
   filePathOf = (path) ->
-    fp = sysPath.join(publicDir, path)
+    fp = sysPath.join(buildDir, path)
     fp += '.js' if sysPath.extname(path) not in ['.js', '.css', '.html', '.htm', '.json']
     fp
 
