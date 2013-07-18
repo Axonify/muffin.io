@@ -89,6 +89,7 @@ clientDir = sysPath.resolve(config?.clientDir ? 'client')
 serverDir = sysPath.resolve(config?.serverDir ? 'server')
 buildDir = sysPath.resolve(config?.buildDir ? 'public')
 jsDir = sysPath.join(buildDir, 'javascripts')
+tempBuildDir = sysPath.resolve('.tmp-build')
 
 # Define a task with a short name, an optional description, and the function to run.
 task = (name, description, action) ->
@@ -325,8 +326,7 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
 # Task - optimize js/css files (internal use only)
 task 'optimize', 'optimize js/css files', ->
   watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync buildDir
-  tempBuildDir = sysPath.resolve('.tmp-build')
+  fs.removeSync tempBuildDir
   optimizer.optimizeDir buildDir, tempBuildDir
 
 # Task - minify and concatenate js/css files for production
@@ -353,7 +353,7 @@ task 'minify', 'minify and concatenate js/css files for production', ->
     # Remove temp directories
     (done) ->
       fs.removeSync buildDir
-      fs.renameSync '.tmp-build', buildDir
+      fs.renameSync tempBuildDir, buildDir
       done(null)
 
     # Concatenate modules
