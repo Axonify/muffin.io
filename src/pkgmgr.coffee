@@ -11,18 +11,25 @@ utils = require './utils'
 request = require 'superagent'
 {parse} = require 'url'
 async = require 'async'
+_ = require 'underscore'
 
-# In-flight requests.
+# In-flight requests
 inFlight = {}
 
 # Package class
 class Package extends Emitter
-  constructor: (@name, @version, options) ->
+  constructor: (@name, version, options) ->
+    if _.isObject(version)
+      @pkgInfo = version
+      @version = @pkgInfo.version
+    else
+      @version = version
+
     options ?= {}
     @version = 'master' if @version is '*'
     logging.info "Installing #{@name}@#{@version}..."
 
-    @slug = "#{name}@#{version}"
+    @slug = "#{@name}@#{@version}"
     @dest = options.dest ? 'components'
     @remote = options.remote ? 'https://raw.github.com'
     @auth = options.auth
@@ -81,6 +88,11 @@ class Package extends Emitter
       if err.syscall is 'getaddrinfo'
         err.message = 'dns lookup failed'
       callback(err)
+
+  # Create a local component.json from pkgInfo
+  writeJSON: (callback) ->
+    json = @pkgInfo
+    callback(null, json)
 
   # Fetch a single file, write to disk then call the callback.
   getFile: (file, done) =>
@@ -142,41 +154,50 @@ class Package extends Emitter
         @reallyInstall()
 
   reallyInstall: ->
-    @getJSON (err, json) =>
-      if err
-        return @emit('error', err)
+    if @pkgInfo
+      @writeJSON @processJSON
+    else
+      @getJSON @processJSON
 
-      files = []
-      if json.scripts then files = files.concat(json.scripts)
-      if json.styles then files = files.concat(json.styles)
-      if json.templates then files = files.concat(json.templates)
-      if json.files then files = files.concat(json.files)
-      if json.images then files = files.concat(json.images)
-      if json.fonts then files = files.concat(json.fonts)
+  processJSON: (err, json) =>
+    if err
+      return @emit('error', err)
 
-      async.parallel [
-        # get dependencies
-        (done) =>
-          if json.dependencies
-            @getDependencies json.dependencies, done
-          else
-            done(null)
+    files = []
+    if json.main then files.push(json.main)
+    if json.scripts then files = files.concat(json.scripts)
+    if json.styles then files = files.concat(json.styles)
+    if json.templates then files = files.concat(json.templates)
+    if json.files then files = files.concat(json.files)
+    if json.images then files = files.concat(json.images)
+    if json.fonts then files = files.concat(json.fonts)
 
-        # download the files
-        (done) =>
-          async.each files, @getFile, done
+    # Remove duplicates
+    files = _.uniq(files)
 
-        # save component.json
-        (done) =>
-          fs.mkdirSync @dirname()
-          json = JSON.stringify(json, null, 2)
-          @writeFile 'component.json', json, done
-
-      ], (err, results) =>
-        if err
-          @emit 'error', err
+    async.parallel [
+      # get dependencies
+      (done) =>
+        if json.dependencies
+          @getDependencies json.dependencies, done
         else
-          @emit 'end'
+          done(null)
+
+      # download the files
+      (done) =>
+        async.each files, @getFile, done
+
+      # save component.json
+      (done) =>
+        fs.mkdirSync @dirname()
+        json = JSON.stringify(json, null, 2)
+        @writeFile 'component.json', json, done
+
+    ], (err, results) =>
+      if err
+        @emit 'error', err
+      else
+        @emit 'end'
 
 
 install = (name, version='master') ->

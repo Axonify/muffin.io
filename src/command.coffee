@@ -80,7 +80,7 @@ opts = {}
 optionParser = null
 
 # Load config
-try config = require sysPath.resolve('config')
+try config = require sysPath.resolve('config.json')
 
 # Directories
 muffinDir = sysPath.join(__dirname, '../')
@@ -277,22 +277,15 @@ task 'install', 'install packages', ->
       [name, version] = pkg.split('@')
       pkgmgr.install name, version
 
-    # save to ./component.json
-    if fs.existsSync('component.json')
-      path = sysPath.resolve('component.json')
-      component = require(path)
-      component.dependencies ?= {}
-      for pkg in pkgs
-        [name, version] = pkg.split('@')
-        component.dependencies[name] = version ? '*'
-      fs.writeFileSync(path, JSON.stringify(component, null, 2))
+    # save to config.json
+    config.client.dependencies ?= {}
+    for pkg in pkgs
+      [name, version] = pkg.split('@')
+      config.client.dependencies[name] = version ? '*'
+    fs.writeFileSync(sysPath.resolve('config.json', JSON.stringify(config, null, 2)))
   else
-    if not fs.existsSync('component.json')
-      utils.fatal 'Missing component.json'
-
-    # install all dependencies listed in component.json
-    component = require(sysPath.resolve('component.json'))
-    for name, version of component.dependencies
+    # install all dependencies listed in config.json
+    for name, version of config.client.dependencies
       pkgmgr.install name, version
 
 # Task - update packages
