@@ -65,11 +65,16 @@ buildAliases = ->
       for repo in repos
         repoDir = sysPath.join(userDir, repo)
         if isDirectory(repoDir)
-          aliases[repo] = aliases["#{user}/#{repo}"] = "components/#{user}/#{repo}/index"
-
-          # extract package deps from component.json
+          # parse component.json
           json = fs.readFileSync(sysPath.join(repoDir, 'component.json'))
           json = JSON.parse(json)
+
+          indexFile = json.main ? 'index'
+          indexPath = "components/#{user}/#{repo}/#{indexFile}"
+
+          aliases[repo] = aliases["#{user}/#{repo}"] = indexPath
+          aliases[json.name] = indexPath if json.name
+
           if json.dependencies
             packageDeps["#{user}/#{repo}"] = Object.keys(json.dependencies)
   return aliases

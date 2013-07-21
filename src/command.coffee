@@ -53,9 +53,6 @@ BANNER = '''
     muffin test
       - run tests written in Mocha or Zombie.js
 
-    muffin doc
-      - generate documentation via docco
-
     muffin server
       - serve the app on port 3000 while watching static files
 

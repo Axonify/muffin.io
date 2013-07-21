@@ -13,6 +13,13 @@ request = require 'superagent'
 async = require 'async'
 _ = require 'underscore'
 
+# Load config
+try config = require sysPath.resolve('config')
+
+# Directories
+clientDir = sysPath.resolve(config?.clientDir ? 'client')
+clientComponentsDir = sysPath.join(clientDir, 'components')
+
 # In-flight requests
 inFlight = {}
 
@@ -30,7 +37,6 @@ class Package extends Emitter
     logging.info "Installing #{@name}@#{@version}..."
 
     @slug = "#{@name}@#{@version}"
-    @dest = options.dest ? 'components'
     @remote = options.remote ? 'https://raw.github.com'
     @auth = options.auth
     @netrc = netrc(options.netrc)
@@ -40,7 +46,7 @@ class Package extends Emitter
     inFlight[@slug] = true
 
   dirname: ->
-    sysPath.join @dest, @name
+    sysPath.join clientComponentsDir, @name
 
   join: (path) ->
     sysPath.join @dirname(), path
