@@ -1,11 +1,10 @@
 {
   "name": "muffin.io",
-  "description": "A delicious approach to modern webapp development",
+  "description": "A full stack development tool for modern webapps",
   "version": "0.2.0",
   "keywords": [
     "backbone",
-    "coffeescript",
-    "webapp"
+    "muffin"
   ],
   "homepage": "http://muffin.io",
   "author": {
@@ -39,11 +38,7 @@
     "netrc": "~0.1.0",
     "superagent": "0.10.0"
   },
-  "devDependencies": {
-    "docco": "~0.3.0"
-  },
-  "optionalDependencies": {},
   "engines": {
-    "node": "0.8.x"
+    "node": ">=0.8.0"
   }
 }
