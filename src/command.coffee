@@ -333,12 +333,20 @@ task 'minify', 'minify and concatenate js/css files for production', ->
         args = args.concat ['--hash', opts.hash]
 
       p = spawn "#{__dirname}/../bin/muffin", args, {stdio: 'inherit'}
-      p.on 'close', done
+      p.on 'exit', (code) ->
+        if code isnt 0
+          process.exit(code)
+        else
+          done(null)
 
     # Minify
     (done) ->
       p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production'], {stdio: 'inherit'}
-      p.on 'close', done
+      p.on 'exit', (code) ->
+        if code isnt 0
+          process.exit(code)
+        else
+          done(null)
 
     # Remove temp directories
     (done) ->
