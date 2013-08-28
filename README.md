@@ -13,30 +13,43 @@ Over the last few years a new trend in webapp development has emerged. A growing
 
 However, tooling for creating the new generation of webapps is still severely lacking. There are a lot of options out there, but none solves the problem particularly well. Some tools add extra layers of complexity on top of the elegant but unopinionated Backbone.js, some try to mimic behaviors of server-side frameworks such as Rails, and others try to support a large variety of development workflows but end up not supporting any of them remarkably well. Muffin is a tool that tries to solve this problem better.
 
+If you want a quick overview of how Muffin does things differently, here is a short video introducing Muffin.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=YOUTUBE_VIDEO_ID_HERE" target="_blank"><img src="http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg" alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+
 
 ## Installation
 
-    $ npm install -g muffin.io
+You'll need to have Node.js installed. You can download Node.js binary installers [here](http://nodejs.org/download/). 
 
-This will also install an executable `muffin`.
+    $ [sudo] npm install -g muffin.io
+
+Muffin comes with a commandline tool aptly named `muffin`.
+
+To use Google App Engine as your backend stack, you need to install the [Google App Engine SDK for Python](https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Python).
+
+To use the Node.js/MongoDB stack, you need to [install MongoDB](http://docs.mongodb.org/manual/installation/). The easiest way to install MongoDB on Mac OS X is via Homebrew.
+
+    $ brew update
+    $ brew install mongodb
 
 
 ## Quick Start
 
-Create a Muffin app:
+Create a new project:
 
-    $ muffin new myfirstapp
+    $ muffin new <app-name>
 
 Install dependencies:
 
-    $ cd myfirstapp
+    $ cd /path/to/your/app
     $ muffin install
 
 Start the server:
 
     $ muffin server
 
-Go to `http://localhost:4000` to see your app in action.
+Now point your browser to `http://localhost:4000` and see your app in action.
 
 
 ## Design Philosophy
@@ -153,10 +166,8 @@ You can specify configuration options for your project in `config.json`.
 
 ### Videos
 
-* [Introducing Muffin](http://www.youtube.com) <br>
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=YOUTUBE_VIDEO_ID_HERE" target="_blank"><img src="http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg" alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
-* [Build a Twitter Clone in 20 Mins](http://www.youtube.com) <br>
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=YOUTUBE_VIDEO_ID_HERE" target="_blank"><img src="http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg" alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+* [Introducing Muffin](http://www.youtube.com)
+* [Build a Twitter Clone in 20 Mins](http://www.youtube.com)
 
 ### Blog posts
 
