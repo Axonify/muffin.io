@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var sysPath = require('path');
-var command = require(sysPath.join(__dirname, '../src/command'));
+var src = sysPath.join(__dirname, '../src');
 
 require('coffee-script');
-command.run();
+require(sysPath.join(src, 'command')).run();
