@@ -73,10 +73,13 @@ buildAliases = ->
           json = JSON.parse(json)
           repo = "#{user}/#{project}"
 
-          indexFile = json.main ? 'index'
-          indexPath = "components/#{repo}/#{indexFile}"
+          # Strip the .js or .coffee suffix
+          if json.main
+            indexFile = json.main.replace(/\.coffee$/, '').replace(/\.js$/, '')
+          else
+            indexFile = 'index'
 
-          aliases[json.name] = aliases[repo] = indexPath
+          aliases[json.name] = aliases[repo] = "components/#{repo}/#{indexFile}"
 
           if json.dependencies
             packageDeps[repo] = Object.keys(json.dependencies)
@@ -223,7 +226,9 @@ compileFile = (source, abortOnError=no) ->
 
           # Wrap the file into AMD module format
           js = CoffeeScript.compile(sourceData, {bare: true})
-          modulePath = sysPath.relative(buildDir, path)[...-3]
+
+          # Strip the .js suffix
+          modulePath = sysPath.relative(buildDir, path).replace(/\.js$/, '')
           deps = parseDeps(js)
 
           # Concat package deps
@@ -285,7 +290,8 @@ compileFile = (source, abortOnError=no) ->
           filename = sysPath.basename(source)
           path = sysPath.join destDir, filename
 
-          modulePath = sysPath.relative(buildDir, path)[...-3]
+          # Strip the .js suffix
+          modulePath = sysPath.relative(buildDir, path).replace(/\.js$/, '')
           deps = parseDeps(js)
 
           # Concat package deps

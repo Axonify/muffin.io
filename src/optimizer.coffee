@@ -83,7 +83,8 @@ concatDeps = (path, aliases) ->
     concat(path) for path in deps
 
   concat = (path) ->
-    if /\.js$/.test(path) then path = path[...-3]
+    # Strip the .js suffix
+    path = path.replace(/\.js$/, '')
 
     # Skip the module if already included
     return if modules[path]

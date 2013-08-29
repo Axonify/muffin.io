@@ -256,10 +256,6 @@ normalize = (path, base=null) ->
 moduleFormatFromPath = (path) ->
   if /\.(html|htm|json|css)$/.test(path)
     format = 'text'
-  else if /\.js$/.test(path)
-    # If path ends with '.js', it's considered as a traditional script; otherwise a module.
-    path = path[...-3]
-    format = 'script'
   else
     format = 'module'
   return [path, format]
