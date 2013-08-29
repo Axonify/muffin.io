@@ -13,6 +13,9 @@ CoffeeScript = require 'coffee-script'
 jade = require 'jade'
 less = require 'less'
 WebSocketServer = require('ws').Server
+http = require 'http'
+send = require 'send'
+url = require 'url'
 
 # Underscore template settings
 _.templateSettings =
@@ -376,6 +379,16 @@ startServer = ->
 
 restartServer = _.debounce startServer, 1000, true
 
+startDummyServer = ->
+  app = http.createServer (req, res) ->
+    send(req, url.parse(req.url).pathname)
+    .root(buildDir)
+    .pipe(res)
+  port = 4000
+  app.listen port, ->
+    console.log "Server is running at http://localhost:#{port}."
+    console.log "Quit the server with CONTROL-C."
+
 # Print an error and exit.
 fatalError = (message) ->
   logging.error message + '\n'
@@ -392,4 +405,4 @@ parseDeps = (content) ->
     .replace(cjsRequireRegex, (match, dep) -> deps.push(dep) if dep not in deps)
   deps
 
-module.exports = {setEnv, buildAliases, compileDir, watchDir, startAndWatchServer}
+module.exports = {setEnv, buildAliases, compileDir, watchDir, startAndWatchServer, startDummyServer}
