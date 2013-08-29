@@ -4,14 +4,12 @@
 
 fs = require 'fs-extra'
 sysPath = require 'path'
-logging = require './logging'
+logging = require './utils/logging'
 Emitter = require('events').EventEmitter
-netrc = require 'netrc'
-utils = require './utils'
-request = require 'superagent'
-{parse} = require 'url'
+utils = require './utils/utils'
 async = require 'async'
 _ = require 'underscore'
+request = require './utils/request'
 
 # Load config
 try config = require sysPath.resolve('config')
@@ -40,7 +38,6 @@ class Package extends Emitter
     @slug = "#{@repo}@#{@version}"
     @remote = options.remote ? 'https://raw.github.com'
     @auth = options.auth
-    @netrc = netrc(options.netrc)
 
     if inFlight[@slug]
       @install = @emit.bind(@, 'end')
@@ -69,32 +66,15 @@ class Package extends Emitter
       callback(null, json)
 
   # Get component.json
-  getJSON: (callback) ->
+  getJSON: (done) ->
     url = @url('component.json')
 
-    req = request.get(url)
-    req.set 'Accept-Encoding', 'gzip'
     logging.info "fetching #{url}"
-
-    # authorize call
-    # netrc = @netrc[parse(url).hostname]
-    # if netrc
-    #   req.auth(netrc.login, netrc.password)
-
-    req.end (res) ->
-      if res.error
-        return callback(res.error)
-      try
-        json = JSON.parse(res.text)
-      catch err
-        err.message += " in #{url}"
-        return callback(err)
-      callback(null, json)
-
-    req.on 'error', (err) ->
-      if err.syscall is 'getaddrinfo'
-        err.message = 'dns lookup failed'
-      callback(err)
+    request.get url, null, (err, content) ->
+      if err
+        done(err)
+      else
+        done(null, JSON.parse(content))
 
   # Create a local component.json from pkgInfo
   writeJSON: (callback) ->
@@ -110,21 +90,9 @@ class Package extends Emitter
     dst = @join(file)
     fs.mkdirSync sysPath.dirname(dst)
 
-    # pipe file
-    req = request.get(url)
-    req.set('Accept-Encoding', 'gzip')
-    req.buffer(false)
-
-    # authorize call
-    # netrc = @netrc[@remote.host]
-    # if netrc then req.auth(netrc.login, netrc.password)
-    # if @auth then req.auth(@auth.user, @auth.pass)
-
-    req.end (res) ->
-      if res.error then return done(res.error)
-      res.pipe fs.createWriteStream(dst)
-      res.on 'error', done
-      res.on 'end', done
+    # download file and save to disk
+    request.get url, dst, (err, res) ->
+      if err then console.log "Problem with request #{err.message}"
 
   writeFile: (file, str, callback) ->
     file = @join(file)

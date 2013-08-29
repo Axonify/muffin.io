@@ -5,7 +5,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 {execFile} = require 'child_process'
-logging = require './logging'
+logging = require './utils/logging'
 uglify = require 'uglify-js'
 
 # Load config

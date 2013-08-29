@@ -9,10 +9,10 @@ async = require 'async'
 {spawn, exec} = require 'child_process'
 watch = require './watch'
 pkgmgr = require './pkgmgr'
-logging = require './logging'
+logging = require './utils/logging'
 optimizer = require './optimizer'
-_ = require './_inflection'
-utils = require './utils'
+_ = require './utils/_inflection'
+utils = require './utils/utils'
 
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
