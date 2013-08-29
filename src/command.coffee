@@ -309,7 +309,7 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync buildDir
-  watch.buildAliases()
+  watch.buildRequireConfig()
   watch.compileDir clientDir
 
 # Task - optimize js/css files (internal use only)
@@ -357,7 +357,7 @@ task 'minify', 'minify and concatenate js/css files for production', ->
     (done) ->
       for path in config.client.concat
         logging.info "Concatenating module dependencies: #{path}"
-        aliases = watch.buildAliases()
+        aliases = watch.buildRequireConfig()
         optimizer.concatDeps(path, aliases)
       done(null)
   ]
@@ -393,7 +393,7 @@ task 'server', 'start a webserver', ->
 
     # Dump versions.json, watch client dir, start server.
     (done) ->
-      watch.buildAliases()
+      watch.buildRequireConfig()
       watch.watchDir clientDir
 
       if fs.existsSync(serverDir)

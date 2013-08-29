@@ -52,12 +52,13 @@ isDirectory = (path) ->
   stats = fs.statSync(path)
   stats.isDirectory()
 
-# Build path aliases and package dependencies
-aliases = {}
+# Build require config and package dependencies
+requireConfig = {}
 packageDeps = {}
 
-buildAliases = ->
+buildRequireConfig = ->
   aliases = config.client.aliases if config?
+  scripts = []
 
   # iterate over the components dir and get module deps
   users = fs.readdirSync(clientComponentsDir)
@@ -79,11 +80,17 @@ buildAliases = ->
           else
             indexFile = 'index'
 
-          aliases[json.name] = aliases[repo] = "components/#{repo}/#{indexFile}"
+          indexPath = "components/#{repo}/#{indexFile}"
+          aliases[json.name] = aliases[repo] = indexPath
+
+          if json.type is 'script'
+            scripts.push indexPath
 
           if json.dependencies
             packageDeps[repo] = Object.keys(json.dependencies)
-  return aliases
+
+  requireConfig = {aliases, scripts}
+  return requireConfig
 
 # Helpers
 cacheBuster = (force) ->
@@ -113,7 +120,7 @@ htmlHelpers =
   include_module_loader: ->
     """
     <script>#{moduleLoaderSrc}</script>
-    <script>require.aliases(#{JSON.stringify(aliases)})</script>
+    <script>require.config(#{JSON.stringify(requireConfig)})</script>
     """
   include_live_reload: ->
     """
@@ -411,4 +418,4 @@ parseDeps = (content) ->
     .replace(cjsRequireRegex, (match, dep) -> deps.push(dep) if dep not in deps)
   deps
 
-module.exports = {setEnv, buildAliases, compileDir, watchDir, startAndWatchServer, startDummyServer}
+module.exports = {setEnv, buildRequireConfig, compileDir, watchDir, startAndWatchServer, startDummyServer}

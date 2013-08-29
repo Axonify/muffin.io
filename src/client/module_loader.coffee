@@ -6,7 +6,7 @@ loader = @
 modules = {}
 inProgressModules = {}
 justDefinedModules = {}
-aliases = {}
+config = {}
 head = document.getElementsByTagName('head')[0]
 
 
@@ -49,8 +49,8 @@ window.define = (path, deps, factory) ->
   justDefinedModules[path] = module
 
 # Load configurations
-require.aliases = (als) ->
-  aliases = als
+require.config = (cfg) ->
+  config = cfg
 
 # Undefine a module
 require.undef = (path) ->
@@ -179,6 +179,13 @@ loadAll = (deps, callback) ->
 didLoadModule = (module) ->
   path = module.path
 
+  # If it's a traditional script, evaluate it here.
+  if module.format is 'script'
+    module.factory.call(window)
+    delete module.factory
+    if config.exports[path]
+      module.exports = window[config.exports[path]]
+
   # Save the module in memory
   modules[path] = module
 
@@ -245,10 +252,10 @@ normalize = (path, base=null) ->
         path = baseParts.concat(parts[1..]).join('/')
       when '..'
         path = baseParts[0...-1].concat(parts[1..]).join('/')
-  else if aliases[path]
-    path = aliases[path]
-  else if aliases[parts[0]]
-    alias = aliases[parts[0]]
+  else if config.aliases[path]
+    path = config.aliases[path]
+  else if config.aliases[parts[0]]
+    alias = config.aliases[parts[0]]
     path = [alias].concat(parts[1..]).join('/')
   return path
 
@@ -256,6 +263,8 @@ normalize = (path, base=null) ->
 moduleFormatFromPath = (path) ->
   if /\.(html|htm|json|css)$/.test(path)
     format = 'text'
+  else if path in config.scripts
+    format = 'script'
   else
     format = 'module'
   return [path, format]
