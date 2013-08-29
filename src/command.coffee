@@ -270,19 +270,19 @@ task 'install', 'install packages', ->
   if pkgs.length > 0
     # install the packages
     for pkg in pkgs
-      [name, version] = pkg.split('@')
-      pkgmgr.install name, version
+      [repo, version] = pkg.split('@')
+      pkgmgr.install repo, version
 
     # save to config.json
     config.client.dependencies ?= {}
     for pkg in pkgs
-      [name, version] = pkg.split('@')
-      config.client.dependencies[name] = version ? '*'
+      [repo, version] = pkg.split('@')
+      config.client.dependencies[repo] = version ? '*'
     fs.writeFileSync(sysPath.resolve('config.json', JSON.stringify(config, null, 2)))
   else
     # install all dependencies listed in config.json
-    for name, version of config.client.dependencies
-      pkgmgr.install name, version
+    for repo, version of config.client.dependencies
+      pkgmgr.install repo, version
 
 # Task - update packages
 task 'update', 'update packages', ->

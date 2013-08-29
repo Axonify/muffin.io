@@ -157,9 +157,87 @@ Default project structure:
       config.json
 
 
-## Project Configuration
+## Configuration
 
 You can specify configuration options for your project in `config.json`.
+
+
+## Preprocessing
+
+Muffin can preprocess the files before compiling or copying them into the public folder. This is a powerful feature you can use to set up customize the build for different environments, for example, different cache busting policies for development and production environment.
+
+All the preprocessing code should be wrapped in escape tags including `<?= ?>`, `<? ?>` or `<?- ?>`. Muffin simply run the Underscore template engine through the files before compilation.
+
+During the preprocessing, Muffin provides a `settings` object and a few helpers (specific to the file type) to the template function.
+
+For example, you can use this feature to selectively add cache busters.
+
+    <? if (settings.env === 'development') { ?>
+      tag.src += "?_#{(new Date()).getTime()}"
+    <? } ?>
+
+
+### HTML/Jade helper
+
+Create a link tag with cache busters appended.
+
+    <?= link_tag(link, attrs) ?>
+
+Create a stylesheet tag with cache busters appended.
+
+    <?= stylesheet_link_tag(link, attrs) ?>
+
+Create a script tag with cache busters appended.
+
+    <?= script_tag(src, attrs) ?>
+
+Inlcude the module loader. For development, this includes a non-minified version in place. For production, a minified version of the module loader is included in place.
+
+    <?= include_module_loader() ?>
+
+Include the live reload module. This is only for development, and has no effect on production build.
+
+    <? = include_live_reload() ?>
+
+
+## Module Loader
+
+With Muffin you can write clean, modular JavaScript/CoffeeScript in the CommonJS format. Each file in Muffin corresponds to a module.
+
+A simple example for a `Backbone.Model`:
+
+```coffeescript
+Backbone = require 'Backbone'
+
+class User extends Backbone.Model
+  initialize: -> {}
+
+module.exports = User
+```
+
+So in another file, you can import the `User` module.
+
+```coffeescript
+Backbone = require 'Backbone'
+User = require './User'
+
+class UserList extends Backbone.Collection
+  model: User
+  initialize: -> {}
+
+module.exports = UserList
+```
+
+Muffin automatically wraps the CommonJS modules into a AMD-compatible format during the build process. For example the User model above compiles into:
+
+```javascript
+define('javascripts/apps/main/models/User', ["Backbone"], function(require, exports, module) {
+  ...
+  module.exports = User;
+});
+```
+
+Note that the first argument in the `define` function is the module path, the second argument is the module's dependencies, and the third argument is the module's factory function. Muffin introspects the file content and automatically sets the module dependencies. This makes module loader's job easier.
 
 
 ## Resources

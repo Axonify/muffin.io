@@ -61,22 +61,22 @@ buildAliases = ->
   for user in users
     userDir = sysPath.join(clientComponentsDir, user)
     if isDirectory(userDir)
-      repos = fs.readdirSync(userDir)
-      for repo in repos
-        repoDir = sysPath.join(userDir, repo)
-        if isDirectory(repoDir)
+      projects = fs.readdirSync(userDir)
+      for project in projects
+        projectDir = sysPath.join(userDir, project)
+        if isDirectory(projectDir)
           # parse component.json
-          json = fs.readFileSync(sysPath.join(repoDir, 'component.json'))
+          json = fs.readFileSync(sysPath.join(projectDir, 'component.json'))
           json = JSON.parse(json)
+          repo = "#{user}/#{project}"
 
           indexFile = json.main ? 'index'
-          indexPath = "components/#{user}/#{repo}/#{indexFile}"
+          indexPath = "components/#{repo}/#{indexFile}"
 
-          aliases[repo] = aliases["#{user}/#{repo}"] = indexPath
-          aliases[json.name] = indexPath if json.name
+          aliases[json.name] = aliases[repo] = indexPath
 
           if json.dependencies
-            packageDeps["#{user}/#{repo}"] = Object.keys(json.dependencies)
+            packageDeps[repo] = Object.keys(json.dependencies)
   return aliases
 
 # Helpers

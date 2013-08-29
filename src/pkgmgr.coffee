@@ -25,18 +25,19 @@ inFlight = {}
 
 # Package class
 class Package extends Emitter
-  constructor: (@name, version, options) ->
+  constructor: (@repo, version, options) ->
     if _.isObject(version)
       @pkgInfo = version
       @version = @pkgInfo.version
+      @pkgInfo.name ?= @repo.split('/')[1]
     else
       @version = version
 
     options ?= {}
     @version = 'master' if @version is '*'
-    logging.info "Installing #{@name}@#{@version}..."
+    logging.info "Installing #{@repo}@#{@version}..."
 
-    @slug = "#{@name}@#{@version}"
+    @slug = "#{@repo}@#{@version}"
     @remote = options.remote ? 'https://raw.github.com'
     @auth = options.auth
     @netrc = netrc(options.netrc)
@@ -46,13 +47,13 @@ class Package extends Emitter
     inFlight[@slug] = true
 
   dirname: ->
-    sysPath.join clientComponentsDir, @name
+    sysPath.join clientComponentsDir, @repo
 
   join: (path) ->
     sysPath.join @dirname(), path
 
   url: (file) ->
-    "#{@remote}/#{@name}/#{@version}/#{file}"
+    "#{@remote}/#{@repo}/#{@version}/#{file}"
 
   # Get local json if the component is installed
   getLocalJSON: (callback) ->
@@ -148,8 +149,8 @@ class Package extends Emitter
   # Check if the component exists already,
   # othewise install it for real.
   install: ->
-    if @name.indexOf('/') < 0
-      @emit 'error', new Error("invalid component name '#{@name}'")
+    if @repo.indexOf('/') < 0
+      @emit 'error', new Error("invalid component repo '#{@repo}'")
 
     @getLocalJSON (err, json) =>
       if err?.code is 'ENOENT'
@@ -206,8 +207,8 @@ class Package extends Emitter
         @emit 'end'
 
 
-install = (name, version='master') ->
-  pkg = new Package(name, version)
+install = (repo, version='master') ->
+  pkg = new Package(repo, version)
   pkg.install()
 
 module.exports = {install}
