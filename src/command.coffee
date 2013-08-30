@@ -357,8 +357,8 @@ task 'minify', 'minify and concatenate js/css files for production', ->
     (done) ->
       for path in config.client.concat
         logging.info "Concatenating module dependencies: #{path}"
-        aliases = watch.buildRequireConfig()
-        optimizer.concatDeps(path, aliases)
+        requireConfig = watch.buildRequireConfig()
+        optimizer.concatDeps(path, requireConfig)
       done(null)
   ]
 

@@ -57,8 +57,9 @@ requireConfig = {}
 packageDeps = {}
 
 buildRequireConfig = ->
-  aliases = config.client.aliases if config?
-  scripts = []
+  _aliases = config.client.aliases if config?
+  _scripts = []
+  _exports = {}
 
   # iterate over the components dir and get module deps
   users = fs.readdirSync(clientComponentsDir)
@@ -81,15 +82,18 @@ buildRequireConfig = ->
             indexFile = 'index'
 
           indexPath = "components/#{repo}/#{indexFile}"
-          aliases[json.name] = aliases[repo] = indexPath
+          _aliases[json.name] = _aliases[repo] = indexPath
 
           if json.type is 'script'
-            scripts.push indexPath
+            _scripts.push indexPath
+
+          if json.exports
+            _exports[indexPath] = json.exports
 
           if json.dependencies
             packageDeps[repo] = Object.keys(json.dependencies)
 
-  requireConfig = {aliases, scripts}
+  requireConfig = {aliases: _aliases, scripts: _scripts, exports: _exports}
   return requireConfig
 
 # Helpers

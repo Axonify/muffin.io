@@ -22,8 +22,7 @@ window.require = (deps, callback) ->
   loadAll deps, ->
     args = []
     for path in deps
-      [path, format] = moduleFormatFromPath(path)
-      exports = evaluate(modules[path], format)
+      exports = evaluate(modules[path])
       args.push exports
     callback.apply(loader, args)
 
@@ -131,7 +130,7 @@ injectCSS = (css, path) ->
 
 # Load a module
 load = (path, callback) ->
-  [path, format] = moduleFormatFromPath(path)
+  format = moduleFormatFromPath(path)
 
   # Skip if the module is already loaded
   if modules[path]
@@ -198,7 +197,7 @@ didLoadModule = (module) ->
   delete inProgressModules[path]
 
 # Evaluate a module by running its factory function
-evaluate = (module, format) ->
+evaluate = (module) ->
   if module.factory?
     module.exports = {}
     path = module.path
@@ -214,10 +213,9 @@ evaluate = (module, format) ->
         # Synchronous require:
         # module = require 'module/path'
         p = normalize(deps, base)
-        [p, fmt] = moduleFormatFromPath(p)
         m = modules[p]
         if m
-          return evaluate(m, fmt)
+          return evaluate(m)
         else
           console.log "module #{p} not found"
           return null
@@ -225,7 +223,7 @@ evaluate = (module, format) ->
     for own prop, value of require
       localRequire[prop] = value
 
-    if format is 'module'
+    if module.format is 'module'
       module.factory.call(window, localRequire, module.exports, module)
     else
       module.factory.call(window)
@@ -267,7 +265,7 @@ moduleFormatFromPath = (path) ->
     format = 'script'
   else
     format = 'module'
-  return [path, format]
+  return format
 
 # Get any one element by a certain attribute value
 getElementByAttributeValue = (attribute, value) ->

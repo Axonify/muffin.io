@@ -47,7 +47,7 @@ optimizeFile = (source, dest) ->
           logging.info "copied #{source}"
 
 # Concatenate all the module dependencies
-concatDeps = (path, aliases) ->
+concatDeps = (path, requireConfig) ->
   content = ''
   modules = {}
 
@@ -69,10 +69,10 @@ concatDeps = (path, aliases) ->
           path = baseParts.concat(parts[1..]).join('/')
         when '..'
           path = baseParts[0...-1].concat(parts[1..]).join('/')
-    else if aliases[path]
-      path = aliases[path]
-    else if aliases[parts[0]]
-      alias = aliases[parts[0]]
+    else if requireConfig.aliases[path]
+      path = requireConfig.aliases[path]
+    else if requireConfig.aliases[parts[0]]
+      alias = requireConfig.aliases[parts[0]]
       path = [alias].concat(parts[1..]).join('/')
     return path
 
