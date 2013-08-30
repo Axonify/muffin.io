@@ -130,8 +130,6 @@ injectCSS = (css, path) ->
 
 # Load a module
 load = (path, callback) ->
-  format = moduleFormatFromPath(path)
-
   # Skip if the module is already loaded
   if modules[path]
     callback(modules[path])
@@ -144,7 +142,7 @@ load = (path, callback) ->
     return
 
   # Otherwise, fetch the module from its path
-  inProgressModules[path] = {path, format, callbacks: [callback]}
+  inProgressModules[path] = {path, callbacks: [callback]}
 
   if /\.(html|htm|json|css)$/.test(path)
     fetchText path, (text) ->
@@ -179,7 +177,7 @@ didLoadModule = (module) ->
   path = module.path
 
   # If it's a traditional script, evaluate it here.
-  if module.format is 'script'
+  if moduleFormatFromPath(path) is 'script'
     module.factory.call(window)
     delete module.factory
     if config.exports[path]
@@ -223,7 +221,7 @@ evaluate = (module) ->
     for own prop, value of require
       localRequire[prop] = value
 
-    if module.format is 'module'
+    if moduleFormatFromPath(path) is 'module'
       module.factory.call(window, localRequire, module.exports, module)
     else
       module.factory.call(window)
