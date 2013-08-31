@@ -7,11 +7,13 @@ sysPath = require 'path'
 optparse = require 'coffee-script/lib/coffee-script/optparse'
 async = require 'async'
 {spawn, exec} = require 'child_process'
-watch = require './watch'
+watcher = require './watcher'
+generator = require './generator'
+server = require './server'
 pkgmgr = require './pkgmgr'
-logging = require './utils/logging'
 optimizer = require './optimizer'
-_ = require './utils/_inflection'
+project = require './project'
+logging = require './utils/logging'
 utils = require './utils/utils'
 
 # The help banner that is printed when `muffin` is called without arguments.
@@ -75,18 +77,6 @@ tasks = {}
 opts = {}
 optionParser = null
 
-# Load config
-try config = require sysPath.resolve('config.json')
-
-# Directories
-muffinDir = sysPath.join(__dirname, '../')
-templatesDir = sysPath.join(muffinDir, 'framework/templates')
-clientDir = sysPath.resolve(config?.clientDir ? 'client')
-serverDir = sysPath.resolve(config?.serverDir ? 'server')
-buildDir = sysPath.resolve(config?.buildDir ? 'public')
-jsDir = sysPath.join(buildDir, 'javascripts')
-tempBuildDir = sysPath.resolve('.tmp-build')
-
 # Define a task with a short name, an optional description, and the function to run.
 task = (name, description, action) ->
   [action, description] = [description, action] unless action
@@ -134,11 +124,11 @@ exports.run = ->
 task 'new', 'create a new project', ->
   projectName = opts.arguments[1]
   utils.fatal "Must supply a name for the new project" unless projectName
-  projectDir = sysPath.join process.cwd(), projectName
+  projectDir = sysPath.join(process.cwd(), projectName)
   utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
-  skeletonPath = sysPath.join muffinDir, 'framework/skeleton'
+  skeletonPath = sysPath.join(project.muffinDir, 'framework/skeleton')
   fs.copy skeletonPath, projectDir, ->
     logging.info "The application '#{projectName}' has been created."
     logging.info "You need to run `npm install` inside the project directory to install dependencies."
@@ -147,126 +137,48 @@ task 'new', 'create a new project', ->
 task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
-
   app = opts.app ? 'main'
-  classified = _.classify(model)
-  underscored = _.underscored(model)
-  underscored_plural = _.underscored(_.pluralize(model))
-  attrs = parseAttrs(opts.arguments[3..])
-
-  copyTemplate {model, classified, underscored, underscored_plural, attrs, _},
-    'client/models/model.coffee': "client/apps/#{app}/models/#{classified}.coffee"
-    'client/models/collection.coffee': "client/apps/#{app}/models/#{classified}List.coffee"
-    'server/models/model.coffee': "server/apps/#{app}/models/#{classified}.coffee"
-    'server/controllers/controller.coffee': "server/apps/#{app}/controllers/#{classified}Controller.coffee"
+  generator.generateModel(model, app, opts)
 
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
-
   app = opts.app ? 'main'
-  classified = _.classify(model)
-  files = [
-    "client/apps/#{app}/models/#{classified}.coffee"
-    "client/apps/#{app}/models/#{classified}List.coffee"
-    "server/apps/#{app}/models/#{classified}.coffee"
-    "server/apps/#{app}/controllers/#{classified}Controller.coffee"
-  ]
-  removeFiles(files)
+  generator.destroyModel(model, app)
 
 # Task - create a new view
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
   utils.fatal "Must supply a name for the view" unless view
-
   app = opts.app ? 'main'
-  copyTemplate {view, _},
-    'client/views/view.coffee': "client/apps/#{app}/views/#{_.classify(view)}.coffee"
-    'client/templates/view.jade': "client/apps/#{app}/templates/#{_.classify(view)}.jade"
+  generator.generateView(view, app)
 
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
   utils.fatal "Must supply a name for the view" unless view
-
   app = opts.app ? 'main'
-  files = [
-    "client/apps/#{app}/views/#{_.classify(view)}.coffee"
-    "client/apps/#{app}/templates/#{_.classify(view)}.jade"
-  ]
-  removeFiles(files)
+  generator.destroyView(view, app)
 
 # Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
 task 'generate scaffold', 'create scaffold for a resource', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
-
   app = opts.app ? 'main'
-  classified = _.classify(model)
-  underscored = _.underscored(model)
-  underscored_plural = _.underscored(_.pluralize(model))
-  attrs = parseAttrs(opts.arguments[3..])
-
-  copyTemplate {model, classified, underscored, underscored_plural, attrs, _},
-    'client/models/model.coffee': "client/apps/#{app}/models/#{classified}.coffee"
-    'client/models/collection.coffee': "client/apps/#{app}/models/#{classified}List.coffee"
-    'client/views/index.coffee': "client/apps/#{app}/views/#{classified}IndexView.coffee"
-    'client/templates/index.jade': "client/apps/#{app}/templates/#{classified}IndexView.jade"
-    'client/templates/table.jade': "client/apps/#{app}/templates/#{classified}ListTable.jade"
-    'client/views/show.coffee': "client/apps/#{app}/views/#{classified}ShowView.coffee"
-    'client/templates/show.jade': "client/apps/#{app}/templates/#{classified}ShowView.jade"
-    'client/views/new.coffee': "client/apps/#{app}/views/#{classified}NewView.coffee"
-    'client/templates/new.jade': "client/apps/#{app}/templates/#{classified}NewView.jade"
-    'client/views/edit.coffee': "client/apps/#{app}/views/#{classified}EditView.coffee"
-    'client/templates/edit.jade': "client/apps/#{app}/templates/#{classified}EditView.jade"
-    'server/models/model.coffee': "server/apps/#{app}/models/#{classified}.coffee"
-    'server/controllers/controller.coffee': "server/apps/#{app}/controllers/#{classified}Controller.coffee"
-
-  # Inject routes into client router
-  _.templateSettings =
-    evaluate    : /<\$([\s\S]+?)\$>/g,
-    interpolate : /<\$=([\s\S]+?)\$>/g,
-    escape      : /<\$-([\s\S]+?)\$>/g
-
-  routes = fs.readFileSync(sysPath.join(templatesDir, 'client/router.coffee')).toString()
-  lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-  injectIntoFile "client/apps/#{app}/router.coffee", '\n' + lines[0..4].join('\n') + '\n', null, "routes:"
-  injectIntoFile "client/apps/#{app}/router.coffee", lines[6..24].join('\n') + '\n\n', "module.exports", null
-
-  # Inject routes into server router
-  routes = fs.readFileSync(sysPath.join(templatesDir, 'server/router.coffee')).toString()
-  lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-  injectIntoFile "server/apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
-  injectIntoFile "server/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
+  generator.generateScaffold(model, app, opts)
 
 # Task - remove generated scaffold for a resource
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
-
   app = opts.app ? 'main'
-  classified = _.classify(model)
-  files = [
-    "client/apps/#{app}/models/#{classified}.coffee"
-    "client/apps/#{app}/models/#{classified}List.coffee"
-    "client/apps/#{app}/views/#{classified}IndexView.coffee"
-    "client/apps/#{app}/templates/#{classified}IndexView.jade"
-    "client/apps/#{app}/templates/#{classified}ListTable.jade"
-    "client/apps/#{app}/views/#{classified}ShowView.coffee"
-    "client/apps/#{app}/templates/#{classified}ShowView.jade"
-    "client/apps/#{app}/views/#{classified}NewView.coffee"
-    "client/apps/#{app}/templates/#{classified}NewView.jade"
-    "client/apps/#{app}/views/#{classified}EditView.coffee"
-    "client/apps/#{app}/templates/#{classified}EditView.jade"
-    "server/apps/#{app}/models/#{classified}.coffee"
-    "server/apps/#{app}/controllers/#{classified}Controller.coffee"
-  ]
-  removeFiles(files)
+  generator.destroyScaffold(model, app)
 
 # Task - install packages
 task 'install', 'install packages', ->
   pkgs = opts.arguments[1..]
+  config = project.config
   if pkgs.length > 0
     # install the packages
     for pkg in pkgs
@@ -290,8 +202,9 @@ task 'update', 'update packages', ->
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
-  watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync buildDir
+  project.setEnv (opts.env ? 'development'), opts
+  project.loadClientSources()
+  fs.removeSync(project.buildDir)
 
   async.series [
     # Build
@@ -301,27 +214,29 @@ task 'watch', 'watch files and compile as needed', ->
 
     # Watch client dir
     (done) ->
-      watch.watchDir clientDir
+      watcher.watchDir(project.clientDir)
+      server.startLiveReloadServer()
   ]
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
-  watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync buildDir
-  watch.buildRequireConfig()
-  watch.compileDir clientDir
+  project.setEnv (opts.env ? 'development'), opts
+  project.loadClientSources()
+  project.buildRequireConfig()
+  fs.removeSync(project.buildDir)
+  watcher.compileDir(project.clientDir)
 
 # Task - optimize js/css files (internal use only)
 task 'optimize', 'optimize js/css files', ->
-  watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync tempBuildDir
-  optimizer.optimizeDir buildDir, tempBuildDir
+  project.setEnv (opts.env ? 'development'), opts
+  fs.removeSync(project.tempBuildDir)
+  optimizer.optimizeDir(project.buildDir, project.tempBuildDir)
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info 'Preparing project files for production...'
-  watch.setEnv (opts.env ? 'production'), opts
+  project.setEnv (opts.env ? 'production'), opts
   async.series [
     # Rebuild
     (done) ->
@@ -349,28 +264,28 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
     # Remove temp directories
     (done) ->
-      fs.removeSync buildDir
-      fs.renameSync tempBuildDir, buildDir
+      fs.removeSync(project.buildDir)
+      fs.renameSync(project.tempBuildDir, project.buildDir)
       done(null)
 
     # Concatenate modules
     (done) ->
-      for path in config.client.concat
+      for path in project.config.client.concat
         logging.info "Concatenating module dependencies: #{path}"
-        requireConfig = watch.buildRequireConfig()
-        optimizer.concatDeps(path, requireConfig)
+        project.buildRequireConfig()
+        optimizer.concatDeps(path)
       done(null)
   ]
 
 # Task - remove the build directory
 task 'clean', 'remove the build directory', ->
-  fs.removeSync buildDir
-  relativePath = sysPath.relative(process.cwd(), buildDir)
+  fs.removeSync(project.buildDir)
+  relativePath = sysPath.relative(process.cwd(), project.buildDir)
   logging.warn "Removed the build directory at #{relativePath}."
 
 # Task - run tests
 task 'test', 'run tests', ->
-  watch.setEnv (opts.env ? 'test'), opts
+  project.setEnv (opts.env ? 'test'), opts
   mocha = new Mocha
   mocha
     .reporter('spec')
@@ -382,8 +297,8 @@ task 'test', 'run tests', ->
 
 # Task - start the server and watch files
 task 'server', 'start a webserver', ->
-  watch.setEnv (opts.env ? 'development'), opts
-  fs.removeSync buildDir
+  project.setEnv (opts.env ? 'development'), opts
+  fs.removeSync(project.buildDir)
 
   async.series [
     # Build
@@ -391,15 +306,19 @@ task 'server', 'start a webserver', ->
       p = spawn "#{__dirname}/../bin/muffin", ['build'], {stdio: 'inherit'}
       p.on 'close', done
 
-    # Dump versions.json, watch client dir, start server.
+    # Watch client dir, start servers.
     (done) ->
-      watch.buildRequireConfig()
-      watch.watchDir clientDir
+      project.buildRequireConfig()
+      watcher.watchDir(project.clientDir)
 
-      if fs.existsSync(serverDir)
-        watch.startAndWatchServer()
+      # Start the live reload server
+      server.startLiveReloadServer()
+
+      # Start either the dummy web server or real app server
+      if fs.existsSync(project.serverDir)
+        server.startAppServer()
       else
-        watch.startDummyServer()
+        server.startDummyWebServer()
   ]
 
 # Task - deploy the app
@@ -421,52 +340,6 @@ findFileIn = (dir) ->
       if stats.isDirectory() and not /nls$/.test file
         found = found.concat findFileIn(file)
   return found
-
-# Create new models/collections from templates
-copyTemplate = (data, mapping) ->
-  for from, to of mapping
-    ejs = fs.readFileSync(sysPath.join(templatesDir, from)).toString()
-    destDir = sysPath.dirname(to)
-    fs.mkdirSync destDir
-
-    _.templateSettings =
-      evaluate    : /<\$([\s\S]+?)\$>/g,
-      interpolate : /<\$=([\s\S]+?)\$>/g,
-      escape      : /<\$-([\s\S]+?)\$>/g
-
-    fs.writeFileSync to, _.template(ejs, data)
-    logging.info " * Create #{to}"
-
-# Inject code into file
-injectIntoFile = (path, code, before, after) ->
-  data = fs.readFileSync(path).toString()
-  if before?
-    index = data.indexOf(before)
-    return if index is -1
-  else if after?
-    index = data.indexOf(after)
-    return if index is -1
-    index += after.length
-  data = data[0...index] + code + data[index..]
-  fs.writeFileSync path, data
-  logging.info " * Update #{path}"
-
-# Remove files
-removeFiles = (files) ->
-  _(files).each (file) ->
-    fs.unlink file, (err) ->
-      logging.info " * Removed #{file}" unless err
-
-# Retrieve the model attributes
-parseAttrs = (args) ->
-  attrs = {}
-  validTypes = ['String', 'Number', 'Date', 'Buffer', 'Boolean', 'Mixed', 'ObjectId', 'Array']
-  for attr in args
-    [key, value] = attr.split(':')
-    if value then value = _(validTypes).find (type) -> type.toLowerCase() is value.toLowerCase()
-    utils.fatal "Must supply a valid schema type for the attribute '#{key}'.\nValid types are: #{validTypes.join(', ')}." unless value?
-    attrs[key] = value
-  return attrs
 
 # Print the `--help` usage message and exit.
 usage = ->

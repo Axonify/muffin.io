@@ -5,18 +5,12 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 logging = require './utils/logging'
+project = require './project'
 Emitter = require('events').EventEmitter
 utils = require './utils/utils'
 async = require 'async'
 _ = require 'underscore'
 request = require './utils/request'
-
-# Load config
-try config = require sysPath.resolve('config')
-
-# Directories
-clientDir = sysPath.resolve(config?.clientDir ? 'client')
-clientComponentsDir = sysPath.join(clientDir, 'components')
 
 # In-flight requests
 inFlight = {}
@@ -44,7 +38,7 @@ class Package extends Emitter
     inFlight[@slug] = true
 
   dirname: ->
-    sysPath.join clientComponentsDir, @repo
+    sysPath.join(project.clientComponentsDir, @repo)
 
   join: (path) ->
     sysPath.join @dirname(), path
