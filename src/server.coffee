@@ -138,7 +138,7 @@ startDummyWebServer = ->
     console.log "Quit the server with CONTROL-C."
 
 startAppServer = ->
-  switch project.serverSettings.type
+  switch project.config.serverType
     when 'nodejs'
       server = new NodeAppServer()
       server.startAndWatch()
