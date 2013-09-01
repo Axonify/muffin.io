@@ -1,0 +1,29 @@
+application: boilerplate-gae
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+builtins:
+- appstats: on  #/_ah/stats/
+- remote_api: on  #/_ah/remote_api/
+
+libraries:
+- name: lxml
+  version: latest
+
+inbound_services:
+- warmup
+
+includes:
+- apps/api
+
+handlers:
+- url: /favicon\.ico
+  static_files: public/images/favicon.ico
+  upload: public/images/favicon\.ico
+- url: (/?.*)/
+  static_files: public\1/index.html
+  upload: public(.*)/index.html
+- url: /
+  static_dir: public

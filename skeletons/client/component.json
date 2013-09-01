@@ -1,0 +1,18 @@
+{
+  "name": "boilerplate-client",
+  "version": "0.1.0",
+  "description": "A HTML project boilerplate used in muffin.io",
+  "dependencies": {
+    "component/jquery": "*",
+    "solutionio/backbone": "*",
+    "btknorr/bootstrap": "*",
+    "muffin/I18n": "*",
+    "muffin/Logger": "*",
+    "muffin/UIKit": "*",
+    "muffin/utils": "*",
+    "muffin/shims": "*"
+    },
+  "development": {},
+  "keywords": [],
+  "license": "MIT"
+}

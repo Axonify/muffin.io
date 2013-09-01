@@ -37,17 +37,13 @@ class Project
     @tempBuildDir = sysPath.resolve('.tmp-build')
 
   registerPlugins: ->
-    # Register default plugins: Jade, LESS
-    @registerPlugin('muffin-plugin-jade')
-    @registerPlugin('muffin-plugin-less')
-
-    # Register extra plugins listed in config.json
+    # Register plugins listed in config.json
     for name in @config?.plugins
       @registerPlugin(name)
 
   registerPlugin: (name) ->
     # Search in the plugins folder
-    pluginPath = sysPath.join('plugins', name)
+    pluginPath = sysPath.join('../plugins', name)
     try plugin = require(pluginPath)
     if plugin
       @plugins.push plugin

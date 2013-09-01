@@ -1,0 +1,13 @@
+{
+  "name": "boilerplate-gae",
+  "version": "0.1.0",
+  "description": "A Google App Engine project boilerplate for muffin.io",
+  "development": {},
+  "keywords": [
+    "Google App Engine",
+    "boilerplate",
+    "muffin.io"
+  ],
+  "scripts": [],
+  "license": "MIT"
+}
