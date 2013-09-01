@@ -1,0 +1,11 @@
+{
+  "name": "muffin-generator-client",
+  "version": "0.1.0",
+  "description": "A Muffin generator for the Backbone.js frontend stack",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

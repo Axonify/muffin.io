@@ -1,0 +1,11 @@
+{
+  "name": "muffin-generator-nodejs",
+  "version": "0.1.0",
+  "description": "A Muffin generator for the Node.js/MongoDB backend",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}
