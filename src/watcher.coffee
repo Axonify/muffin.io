@@ -1,5 +1,5 @@
 #
-# watch.coffee
+# watcher.coffee
 #
 
 fs = require 'fs-extra'

@@ -9,14 +9,19 @@ CoffeeScript = require 'coffee-script'
 class Project
 
   constructor: ->
-    try @config = require sysPath.resolve('config.json')
-    @parseConfig() if @config
-
     @clientSettings = {}
     @serverSettings = {}
 
     @requireConfig = {}
     @packageDeps = {}
+
+    # Load config
+    try @config = require sysPath.resolve('config.json')
+    @parseConfig() if @config
+
+    # Register plugins
+    @plugins = []
+    @registerPlugins()
 
   parseConfig: ->
     @muffinDir = sysPath.join(__dirname, '../')
@@ -30,6 +35,29 @@ class Project
 
     @jsDir = sysPath.join(@buildDir, 'javascripts')
     @tempBuildDir = sysPath.resolve('.tmp-build')
+
+  registerPlugins: ->
+    # Register default plugins: Jade, LESS
+    @registerPlugin('muffin-plugin-jade')
+    @registerPlugin('muffin-plugin-less')
+
+    # Register extra plugins listed in config.json
+    for name in @config?.plugins
+      @registerPlugin(name)
+
+  registerPlugin: (name) ->
+    # Search in the plugins folder
+    pluginPath = sysPath.join('plugins', name)
+    try plugin = require(pluginPath)
+    if plugin
+      @plugins.push plugin
+      return
+
+    # Search in global node modules
+    pluginPath = sysPath.join(__dirname, "../../#{name}")
+    try plugin = require(pluginPath)
+    if plugin
+      @plugins.push plugin
 
   setEnv: (env, opts) ->
     @clientSettings = {env}
