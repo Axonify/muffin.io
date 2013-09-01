@@ -81,7 +81,7 @@ class Watcher
         switch sysPath.extname(source)
           when '.coffee'
             # Run the source file through template engine
-            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientSettings})
+            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientConfig})
             filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
             path = sysPath.join destDir, filename
 
@@ -106,7 +106,7 @@ class Watcher
 
           when '.html', '.htm'
             # Run the source file through template engine
-            sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {project.clientSettings}, htmlHelpers))
+            sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {project.clientConfig}, htmlHelpers))
             filename = sysPath.basename(source)
             path = sysPath.join(destDir, filename)
             fs.writeFileSync(path, sourceData)
@@ -114,7 +114,7 @@ class Watcher
             server.reloadBrowser(path)
 
           when '.appcache'
-            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientSettings})
+            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientConfig})
             filename = sysPath.basename(source)
             path = sysPath.join(destDir, filename)
             fs.writeFileSync(path, sourceData)

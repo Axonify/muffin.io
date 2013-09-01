@@ -1,7 +1,9 @@
 Plugin = require '../Plugin'
 jade = require 'jade'
 
-class JadePlugin extends Plugin
+class JadeCompiler extends Plugin
+
+  type: 'compiler'
 
   compile: ->
     # Compile Jade into html
@@ -12,19 +14,19 @@ class JadePlugin extends Plugin
     html = fn()
 
     # Run through the template engine and write to the output file
-    html = _.template(html, _.extend({}, {project.clientSettings}, helpers()))
+    html = _.template(html, _.extend({}, {project.clientConfig}, helpers()))
     fs.writeFileSync path, html
     logging.info "compiled #{source}"
 
   helpers: ->
     link_tag: (link, attrs={}) ->
-      "<link href='#{project.clientSettings.assetHost}#{link}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+      "<link href='#{project.clientConfig.assetHost}#{link}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
     stylesheet_link_tag: (link, attrs={}) ->
-      "<link rel='stylesheet' type='text/css' href='#{project.clientSettings.assetHost}#{link}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+      "<link rel='stylesheet' type='text/css' href='#{project.clientConfig.assetHost}#{link}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
     script_tag: (src, attrs={}) ->
-      "<script src='#{project.clientSettings.assetHost}#{src}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
+      "<script src='#{project.clientConfig.assetHost}#{src}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}></script>"
     image_tag: (src, attrs={}) ->
-      "<img src='#{project.clientSettings.assetHost}#{src}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
+      "<img src='#{project.clientConfig.assetHost}#{src}#{@cacheBuster(attrs.forceCacheBuster)}' #{("#{k}='#{v}'" for k, v of attrs).join(' ')}>"
     include_module_loader: ->
       """
       <script>#{project.moduleLoaderSrc}</script>
@@ -35,4 +37,4 @@ class JadePlugin extends Plugin
       <script>#{project.liveReloadSrc}</script>
       """
 
-module.exports = JadePlugin
+module.exports = JadeCompiler

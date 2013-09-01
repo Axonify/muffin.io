@@ -9,8 +9,8 @@ CoffeeScript = require 'coffee-script'
 class Project
 
   constructor: ->
-    @clientSettings = {}
-    @serverSettings = {}
+    @clientConfig = {}
+    @serverConfig = {}
 
     @requireConfig = {}
     @packageDeps = {}
@@ -56,26 +56,30 @@ class Project
       @plugins.push plugin
 
   setEnv: (env, opts) ->
-    @clientSettings = {env}
-    for key, value of @config.client
+    @clientConfig = {env}
+    config = {}
+    try config = require sysPath.join(@clientDir, 'config.json')
+    for key, value of config
       if key in ['development', 'production', 'test']
         if key is env
-          _.extend @clientSettings, value
+          _.extend @clientConfig, value
       else
-        @clientSettings[key] = value
-    @clientSettings.assetHost = opts.cdn ? ''
-    @clientSettings.version = opts.hash ? '1.0.0'
+        @clientConfig[key] = value
+    @clientConfig.assetHost = opts.cdn ? ''
+    @clientConfig.version = opts.hash ? '1.0.0'
 
-    @serverSettings = {env}
-    for key, value of @config.server
+    @serverConfig = {env}
+    config = {}
+    try config = require sysPath.join(@serverDir, 'config.json')
+    for key, value of config
       if key in ['development', 'production', 'test']
         if key is env
-          _.extend @serverSettings, value
+          _.extend @serverConfig, value
       else
-        @serverSettings[key] = value
+        @serverConfig[key] = value
 
   buildRequireConfig: ->
-    _aliases = @config.client.aliases
+    _aliases = @clientConfig.aliases
     _scripts = []
     _exports = {}
 
@@ -116,11 +120,11 @@ class Project
   loadClientSources: ->
     # Module loader source
     @moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, 'client/module-loader.coffee')).toString()
-    @moduleLoaderSrc = _.template(@moduleLoaderSrc, {@clientSettings})
+    @moduleLoaderSrc = _.template(@moduleLoaderSrc, {@clientConfig})
     @moduleLoaderSrc = CoffeeScript.compile(@moduleLoaderSrc)
 
     @liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'client/live-reload.coffee')).toString()
-    @liveReloadSrc = _.template(@liveReloadSrc, {@clientSettings})
+    @liveReloadSrc = _.template(@liveReloadSrc, {@clientConfig})
     @liveReloadSrc = CoffeeScript.compile(@liveReloadSrc)
 
 module.exports = new Project()

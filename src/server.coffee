@@ -121,7 +121,7 @@ class GAEAppServer
 liveReloadServer = null
 
 startLiveReloadServer = ->
-  liveReloadServer = new LiveReloadServer(project.clientSettings.liveReload?.port)
+  liveReloadServer = new LiveReloadServer(project.clientConfig.liveReload?.port)
   liveReloadServer.start()
 
 reloadBrowser = (path) ->

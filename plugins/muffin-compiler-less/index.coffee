@@ -1,7 +1,9 @@
 Plugin = require '../Plugin'
 less = require 'less'
 
-class LessPlugin extends Plugin
+class LessCompiler extends Plugin
+
+  type: 'compiler'
 
   compile: ->
     sourceData = fs.readFileSync(source).toString()
@@ -15,4 +17,4 @@ class LessPlugin extends Plugin
       logging.info "compiled #{source}"
       server.reloadBrowser(path)
 
-module.exports = LessPlugin
+module.exports = LessCompiler
