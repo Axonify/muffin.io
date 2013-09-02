@@ -14,15 +14,15 @@ module.exports = (env, callback) ->
       underscored_plural = _.underscored(_.pluralize(model))
 
       mapping =
-        'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
+        'models/model.coffee': "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
       classified = _.classify(model)
       files = [
-        "apps/#{app}/models/#{classified}.coffee"
-        "apps/#{app}/controllers/#{classified}Controller.coffee"
+        "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       ]
       @removeFiles(files)
 
@@ -33,8 +33,8 @@ module.exports = (env, callback) ->
       underscored_plural = _.underscored(_.pluralize(model))
 
       mapping =
-        'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
+        'models/model.coffee': "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
       # Inject routes into server router
@@ -45,14 +45,14 @@ module.exports = (env, callback) ->
 
       routes = fs.readFileSync(sysPath.join(templatesDir, 'router.coffee')).toString()
       lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-      @injectIntoFile "apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
-      @injectIntoFile "apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
+      @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
+      @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
 
     destroyScaffold: (model, app) ->
       classified = _.classify(model)
       files = [
-        "apps/#{app}/models/#{classified}.coffee"
-        "apps/#{app}/controllers/#{classified}Controller.coffee"
+        "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       ]
       @removeFiles(files)
 

@@ -20,6 +20,8 @@ class Project
     @requireConfig = {}
     @packageDeps = {}
 
+    @muffinDir = sysPath.join(__dirname, '../')
+
     # Load config
     try
       @config = require sysPath.resolve('config.json')
@@ -33,8 +35,6 @@ class Project
       @registerPlugin(name)
 
   parseConfig: ->
-    @muffinDir = sysPath.join(__dirname, '../')
-
     @clientDir = sysPath.resolve(@config.clientDir ? 'client')
     @serverDir = sysPath.resolve(@config.serverDir ? 'server')
     @buildDir = sysPath.resolve(@config.buildDir ? 'public')

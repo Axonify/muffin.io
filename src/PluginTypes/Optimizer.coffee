@@ -1,4 +1,3 @@
-project = require './project'
 
 class Optimizer
 

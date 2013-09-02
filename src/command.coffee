@@ -13,7 +13,7 @@ utils = require './utils/utils'
 # server = require './server'
 # pkgmgr = require './pkgmgr'
 # optimizer = require './optimizer'
-# project = require './project'
+project = require './project'
 
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
@@ -134,6 +134,9 @@ task 'new', 'create a new project', ->
   utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
+  createProjectDir = (done) ->
+    fs.mkdir projectDir, done
+
   copyClientSkeleton = (done) ->
     from = sysPath.join(project.muffinDir, 'skeletons/client')
     to = sysPath.join(projectDir, 'client')
@@ -142,28 +145,25 @@ task 'new', 'create a new project', ->
   copyNodeJSSkeleton = (done) ->
     from = sysPath.join(project.muffinDir, 'skeletons/nodejs')
     to = sysPath.join(projectDir, 'server')
-    fs.copySync from, to, done
+    fs.copy from, to, done
 
   copyGAESkeleton = (done) ->
     from = sysPath.join(project.muffinDir, 'skeletons/gae')
     to = sysPath.join(projectDir, 'server')
-    fs.copySync from, to, done
+    fs.copy from, to, done
 
   printMessage = (done) ->
-    if err
-      logging.error err
-    else
-      logging.info "The application '#{projectName}' has been created."
-      logging.info "You need to run `npm install` inside the project directory to install dependencies."
+    logging.info "The application '#{projectName}' has been created."
+    logging.info "You need to run `npm install` inside the project directory to install dependencies."
 
   opts.server ?= 'none'
   switch opts.server
     when 'none'
-      async.series [copyClientSkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, printMessage]
     when 'nodejs'
-      async.series [copyClientSkeleton, copyNodeJSSkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, printMessage]
     when 'gae'
-      async.series [copyClientSkeleton, copyGAESkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, printMessage]
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->

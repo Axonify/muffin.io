@@ -1,15 +1,12 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 _ = require '../utils/_inflection'
-project = require './project'
 
 class Generator
 
   type: 'generator'
 
   constructor: ->
-    @clientDir = project.clientDir
-    @serverDir = project.serverDir
     @templateDir = './templates'
 
   # Create new models/collections from templates
