@@ -5,8 +5,9 @@ module.exports = (env, callback) ->
   class JadeCompiler extends env.Compiler
 
     type: 'compiler'
+    extensions: ['jade']
 
-    compile: ->
+    compile: (data, path, callback) ->
       # Compile Jade into html
       sourceData = fs.readFileSync(source).toString()
       filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
@@ -16,8 +17,9 @@ module.exports = (env, callback) ->
 
       # Run through the template engine and write to the output file
       html = _.template(html, _.extend({}, {project.clientConfig}, helpers()))
-      fs.writeFileSync path, html
       logging.info "compiled #{source}"
+      fs.writeFileSync path, html
+      callback(null, html)
 
     helpers: ->
       link_tag: (link, attrs={}) ->

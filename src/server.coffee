@@ -1,5 +1,6 @@
 #
 # Muffin can start up three servers:
+#
 # 1. A socket server that provides live reload support
 # 2. A dummy web server that serves client files in the build directory. This is useful when a server stack is not available or needed.
 # 3. A real application server. This can be either a Node.js server or a Google App Engine development server.
@@ -13,9 +14,7 @@ chokidar = require 'chokidar'
 logging = require './utils/logging'
 project = require './project'
 
-#
-# Live reload server
-#
+# ## Live reload server
 
 class LiveReloadServer
 
@@ -48,9 +47,7 @@ class LiveReloadServer
     _(connected).each (c) -> c.send(JSON.stringify(message))
 
 
-#
-# Application server
-#
+# ## Node.js application server
 
 class NodeAppServer
 
@@ -108,15 +105,16 @@ class NodeAppServer
           child.kill(signal)
           process.exit 1
 
+
+# ## Google App Engine dev server
+
 class GAEAppServer
 
   start: ->
     spawn 'dev_appserver.py', ['server']
 
 
-#
-# Public interface
-#
+# ## Public interface
 
 liveReloadServer = null
 

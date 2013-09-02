@@ -5,17 +5,19 @@ module.exports = (env, callback) ->
   class LessCompiler extends env.Compiler
 
     type: 'compiler'
+    extensions: ['less']
 
-    compile: ->
+    compile: (data, path, callback) ->
       sourceData = fs.readFileSync(source).toString()
       filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
       path = sysPath.join destDir, filename
 
-      parser = new (less.Parser)
-        paths: [sysPath.dirname(source)]
+      options = {paths: [sysPath.dirname(source)]}
+      parser = new (less.Parser)(options)
       parser.parse sourceData, (err, tree) ->
-        fs.writeFileSync path, tree.toCSS()
+        compiledData = tree.toCSS()
         logging.info "compiled #{source}"
-        server.reloadBrowser(path)
+        fs.writeFileSync path, compiledData
+        callback(err, compiledData)
 
   callback(new LessCompiler())
