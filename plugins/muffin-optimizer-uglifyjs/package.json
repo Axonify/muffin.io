@@ -1,0 +1,11 @@
+{
+  "name": "muffin-optimizer-uglifyjs",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that minifies JavaScript using uglify.js",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

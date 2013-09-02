@@ -6,6 +6,11 @@ fs = require 'fs'
 sysPath = require 'path'
 CoffeeScript = require 'coffee-script'
 
+pluginsEnv =
+  Generator: require('./PluginTypes/Generator')
+  Compiler: require('./PluginTypes/Compiler')
+  Optimizer: require("./PluginTypes/Optimizer")
+
 class Project
 
   constructor: ->
@@ -44,16 +49,12 @@ class Project
   registerPlugin: (name) ->
     # Search in the plugins folder
     pluginPath = sysPath.join('../plugins', name)
-    try plugin = require(pluginPath)
-    if plugin
-      @plugins.push plugin
-      return
+    done = (plugin) -> @plugins.push plugin
+    require(pluginPath)(pluginsEnv, done)
 
     # Search in global node modules
     pluginPath = sysPath.join(__dirname, "../../#{name}")
-    try plugin = require(pluginPath)
-    if plugin
-      @plugins.push plugin
+    require(pluginPath)(pluginsEnv, done)
 
   setEnv: (env, opts) ->
     @clientConfig = {env}

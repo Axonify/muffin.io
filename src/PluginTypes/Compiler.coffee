@@ -1,6 +1,6 @@
 project = require './project'
 
-class Plugin
+class Compiler
 
   cacheBuster: (force) ->
     if project.clientConfig.cacheBuster or force
@@ -8,4 +8,4 @@ class Plugin
     else
       ''
 
-module.exports = Plugin
+module.exports = Compiler

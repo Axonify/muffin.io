@@ -1,16 +1,21 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
-_ = require './utils/_inflection'
+_ = require '../utils/_inflection'
+project = require './project'
 
 class Generator
 
-  templatesDir: './templates'
   type: 'generator'
+
+  constructor: ->
+    @clientDir = project.clientDir
+    @serverDir = project.serverDir
+    @templateDir = './templates'
 
   # Create new models/collections from templates
   copyTemplate: (data, mapping) ->
     for from, to of mapping
-      ejs = fs.readFileSync(sysPath.join(templatesDir, from)).toString()
+      ejs = fs.readFileSync(sysPath.join(@templatesDir, from)).toString()
       destDir = sysPath.dirname(to)
       fs.mkdirSync destDir
 

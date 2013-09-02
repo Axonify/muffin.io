@@ -1,0 +1,11 @@
+{
+  "name": "muffin-optimizer-cleancss",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that minifies css using clean-css",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

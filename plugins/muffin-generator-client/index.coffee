@@ -1,89 +1,90 @@
 sysPath = require 'path'
-Generator = require(sysPath.join(__dirname, '../src/generator'))
 
-class ClientGenerator extends Generator
+module.exports = (env, callback) ->
 
-  type: 'generator'
-  templatesDir: './templates'
+  class ClientGenerator extends env.Generator
 
-  generateModel: (model, app, opts) ->
-    attrs = @parseAttrs(opts.arguments[3..])
-    classified = _.classify(model)
-    underscored = _.underscored(model)
-    underscored_plural = _.underscored(_.pluralize(model))
+    type: 'generator'
+    templatesDir: sysPath.join(__dirname, './templates')
 
-    mapping =
-      'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-      'models/collection.coffee': "apps/#{app}/models/#{classified}List.coffee"
-    @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
+    generateModel: (model, app, opts) ->
+      attrs = @parseAttrs(opts.arguments[3..])
+      classified = _.classify(model)
+      underscored = _.underscored(model)
+      underscored_plural = _.underscored(_.pluralize(model))
 
-  destroyModel: (model, app) ->
-    classified = _.classify(model)
-    files = [
-      "apps/#{app}/models/#{classified}.coffee"
-      "apps/#{app}/models/#{classified}List.coffee"
-    ]
-    @removeFiles(files)
+      mapping =
+        'models/model.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
+        'models/collection.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
+      @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
-  generateView: (view, app) ->
-    mapping =
-      'views/view.coffee': "apps/#{app}/views/#{_.classify(view)}.coffee"
-      'templates/view.jade': "apps/#{app}/templates/#{_.classify(view)}.jade"
-    @copyTemplate {view, _}, mapping
+    destroyModel: (model, app) ->
+      classified = _.classify(model)
+      files = [
+        "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
+      ]
+      @removeFiles(files)
 
-  destroyView: (view, app) ->
-    files = [
-      "apps/#{app}/views/#{_.classify(view)}.coffee"
-      "apps/#{app}/templates/#{_.classify(view)}.jade"
-    ]
-    @removeFiles(files)
+    generateView: (view, app) ->
+      mapping =
+        'views/view.coffee': "#{@clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
+        'templates/view.jade': "#{@clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
+      @copyTemplate {view, _}, mapping
 
-  generateScaffold: (model, app, opts) ->
-    attrs = @parseAttrs(opts.arguments[3..])
-    classified = _.classify(model)
-    underscored = _.underscored(model)
-    underscored_plural = _.underscored(_.pluralize(model))
+    destroyView: (view, app) ->
+      files = [
+        "#{@clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
+      ]
+      @removeFiles(files)
 
-    mapping =
-      'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-      'models/collection.coffee': "apps/#{app}/models/#{classified}List.coffee"
-      'views/index.coffee': "apps/#{app}/views/#{classified}IndexView.coffee"
-      'templates/index.jade': "apps/#{app}/templates/#{classified}IndexView.jade"
-      'templates/table.jade': "apps/#{app}/templates/#{classified}ListTable.jade"
-      'views/show.coffee': "apps/#{app}/views/#{classified}ShowView.coffee"
-      'templates/show.jade': "apps/#{app}/templates/#{classified}ShowView.jade"
-      'views/new.coffee': "apps/#{app}/views/#{classified}NewView.coffee"
-      'templates/new.jade': "apps/#{app}/templates/#{classified}NewView.jade"
-      'views/edit.coffee': "apps/#{app}/views/#{classified}EditView.coffee"
-      'templates/edit.jade': "apps/#{app}/templates/#{classified}EditView.jade"
-    @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
+    generateScaffold: (model, app, opts) ->
+      attrs = @parseAttrs(opts.arguments[3..])
+      classified = _.classify(model)
+      underscored = _.underscored(model)
+      underscored_plural = _.underscored(_.pluralize(model))
 
-    # Inject routes into client router
-    _.templateSettings =
-      evaluate    : /<\$([\s\S]+?)\$>/g,
-      interpolate : /<\$=([\s\S]+?)\$>/g,
-      escape      : /<\$-([\s\S]+?)\$>/g
+      mapping =
+        'models/model.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
+        'models/collection.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
+        'views/index.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}IndexView.coffee"
+        'templates/index.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.jade"
+        'templates/table.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.jade"
+        'views/show.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}ShowView.coffee"
+        'templates/show.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.jade"
+        'views/new.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}NewView.coffee"
+        'templates/new.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.jade"
+        'views/edit.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}EditView.coffee"
+        'templates/edit.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.jade"
+      @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
-    routes = fs.readFileSync(sysPath.join(templatesDir, 'router.coffee')).toString()
-    lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-    @injectIntoFile "apps/#{app}/router.coffee", '\n' + lines[0..4].join('\n') + '\n', null, "routes:"
-    @injectIntoFile "apps/#{app}/router.coffee", lines[6..24].join('\n') + '\n\n', "module.exports", null
+      # Inject routes into client router
+      _.templateSettings =
+        evaluate    : /<\$([\s\S]+?)\$>/g,
+        interpolate : /<\$=([\s\S]+?)\$>/g,
+        escape      : /<\$-([\s\S]+?)\$>/g
 
-  destroyScaffold: (model, app) ->
-    classified = _.classify(model)
-    files = [
-      "apps/#{app}/models/#{classified}.coffee"
-      "apps/#{app}/models/#{classified}List.coffee"
-      "apps/#{app}/views/#{classified}IndexView.coffee"
-      "apps/#{app}/templates/#{classified}IndexView.jade"
-      "apps/#{app}/templates/#{classified}ListTable.jade"
-      "apps/#{app}/views/#{classified}ShowView.coffee"
-      "apps/#{app}/templates/#{classified}ShowView.jade"
-      "apps/#{app}/views/#{classified}NewView.coffee"
-      "apps/#{app}/templates/#{classified}NewView.jade"
-      "apps/#{app}/views/#{classified}EditView.coffee"
-      "apps/#{app}/templates/#{classified}EditView.jade"
-    ]
-    @removeFiles(files)
+      routes = fs.readFileSync(sysPath.join(@templatesDir, 'router.coffee')).toString()
+      lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
+      @injectIntoFile "#{@clientDir}/apps/#{app}/router.coffee", '\n' + lines[0..4].join('\n') + '\n', null, "routes:"
+      @injectIntoFile "#{@clientDir}/apps/#{app}/router.coffee", lines[6..24].join('\n') + '\n\n', "module.exports", null
 
-module.exports = ClientGenerator
+    destroyScaffold: (model, app) ->
+      classified = _.classify(model)
+      files = [
+        "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
+        "#{@clientDir}/apps/#{app}/views/#{classified}IndexView.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.jade"
+        "#{@clientDir}/apps/#{app}/views/#{classified}ShowView.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.jade"
+        "#{@clientDir}/apps/#{app}/views/#{classified}NewView.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.jade"
+        "#{@clientDir}/apps/#{app}/views/#{classified}EditView.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.jade"
+      ]
+      @removeFiles(files)
+
+  callback(new ClientGenerator())
