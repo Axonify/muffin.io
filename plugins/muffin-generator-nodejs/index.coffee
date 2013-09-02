@@ -1,58 +1,59 @@
 sysPath = require 'path'
-Generator = require(sysPath.join(__dirname, '../src/generator'))
 
-class NodeJSGenerator extends Generator
+module.exports = (env, callback) ->
 
-  type: 'generator'
-  templatesDir: './templates'
+  class NodeJSGenerator extends env.Generator
 
-  generateModel: (model, app, opts) ->
-    attrs = @parseAttrs(opts.arguments[3..])
-    classified = _.classify(model)
-    underscored = _.underscored(model)
-    underscored_plural = _.underscored(_.pluralize(model))
+    type: 'generator'
+    templatesDir: './templates'
 
-    mapping =
-      'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-      'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
-    @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
+    generateModel: (model, app, opts) ->
+      attrs = @parseAttrs(opts.arguments[3..])
+      classified = _.classify(model)
+      underscored = _.underscored(model)
+      underscored_plural = _.underscored(_.pluralize(model))
 
-  destroyModel: (model, app) ->
-    classified = _.classify(model)
-    files = [
-      "apps/#{app}/models/#{classified}.coffee"
-      "apps/#{app}/controllers/#{classified}Controller.coffee"
-    ]
-    @removeFiles(files)
+      mapping =
+        'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
+      @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
-  generateScaffold: (model, app, opts) ->
-    attrs = @parseAttrs(opts.arguments[3..])
-    classified = _.classify(model)
-    underscored = _.underscored(model)
-    underscored_plural = _.underscored(_.pluralize(model))
+    destroyModel: (model, app) ->
+      classified = _.classify(model)
+      files = [
+        "apps/#{app}/models/#{classified}.coffee"
+        "apps/#{app}/controllers/#{classified}Controller.coffee"
+      ]
+      @removeFiles(files)
 
-    mapping =
-      'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
-      'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
-    @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
+    generateScaffold: (model, app, opts) ->
+      attrs = @parseAttrs(opts.arguments[3..])
+      classified = _.classify(model)
+      underscored = _.underscored(model)
+      underscored_plural = _.underscored(_.pluralize(model))
 
-    # Inject routes into server router
-    _.templateSettings =
-      evaluate    : /<\$([\s\S]+?)\$>/g,
-      interpolate : /<\$=([\s\S]+?)\$>/g,
-      escape      : /<\$-([\s\S]+?)\$>/g
+      mapping =
+        'models/model.coffee': "apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "apps/#{app}/controllers/#{classified}Controller.coffee"
+      @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
-    routes = fs.readFileSync(sysPath.join(templatesDir, 'router.coffee')).toString()
-    lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-    @injectIntoFile "apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
-    @injectIntoFile "apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
+      # Inject routes into server router
+      _.templateSettings =
+        evaluate    : /<\$([\s\S]+?)\$>/g,
+        interpolate : /<\$=([\s\S]+?)\$>/g,
+        escape      : /<\$-([\s\S]+?)\$>/g
 
-  destroyScaffold: (model, app) ->
-    classified = _.classify(model)
-    files = [
-      "apps/#{app}/models/#{classified}.coffee"
-      "apps/#{app}/controllers/#{classified}Controller.coffee"
-    ]
-    @removeFiles(files)
+      routes = fs.readFileSync(sysPath.join(templatesDir, 'router.coffee')).toString()
+      lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
+      @injectIntoFile "apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
+      @injectIntoFile "apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
 
-module.exports = NodeJSGenerator
+    destroyScaffold: (model, app) ->
+      classified = _.classify(model)
+      files = [
+        "apps/#{app}/models/#{classified}.coffee"
+        "apps/#{app}/controllers/#{classified}Controller.coffee"
+      ]
+      @removeFiles(files)
+
+  callback(new NodeJSGenerator())

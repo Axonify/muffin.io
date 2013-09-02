@@ -21,12 +21,16 @@ class Project
     @packageDeps = {}
 
     # Load config
-    try @config = require sysPath.resolve('config.json')
-    @parseConfig() if @config
+    try
+      @config = require sysPath.resolve('config.json')
+      @parseConfig()
+    catch e
+      return
 
     # Register plugins
-    @plugins = []
-    @registerPlugins()
+    @plugins = {'compilers': [], 'generators': [], 'optimizers': []}
+    for name in @config.plugins
+      @registerPlugin(name)
 
   parseConfig: ->
     @muffinDir = sysPath.join(__dirname, '../')
@@ -41,20 +45,24 @@ class Project
     @jsDir = sysPath.join(@buildDir, 'javascripts')
     @tempBuildDir = sysPath.resolve('.tmp-build')
 
-  registerPlugins: ->
-    # Register plugins listed in config.json
-    for name in @config?.plugins
-      @registerPlugin(name)
-
   registerPlugin: (name) ->
-    # Search in the plugins folder
-    pluginPath = sysPath.join('../plugins', name)
-    done = (plugin) -> @plugins.push plugin
-    require(pluginPath)(pluginsEnv, done)
+    # Save the plugin in @plugins
+    done = (plugin) ->
+      switch plugin.type
+        when 'compiler'
+          @plugins['compilers'].push plugin
+        when 'generator'
+          @plugins['generators'].push plugin
+        when 'optimizer'
+          @plugins['optimizers'].push plugin
+
+    # Search in Muffin's built-in plugins folder
+    pluginPath = sysPath.join(__dirname, "../plugins/#{name}")
+    try return require(pluginPath)(pluginsEnv, done)
 
     # Search in global node modules
     pluginPath = sysPath.join(__dirname, "../../#{name}")
-    require(pluginPath)(pluginsEnv, done)
+    try return require(pluginPath)(pluginsEnv, done)
 
   setEnv: (env, opts) ->
     @clientConfig = {env}

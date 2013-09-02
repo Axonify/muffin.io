@@ -7,5 +7,8 @@
     "muffin"
   ],
   "author": "Yaogang Lian",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "jade": "~0.35.0"
+  }
 }
