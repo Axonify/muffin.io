@@ -7,13 +7,13 @@ sysPath = require 'path'
 optparse = require 'coffee-script/lib/coffee-script/optparse'
 async = require 'async'
 {spawn, exec} = require 'child_process'
-watcher = require './watcher'
-server = require './server'
-pkgmgr = require './pkgmgr'
-optimizer = require './optimizer'
-project = require './project'
 logging = require './utils/logging'
 utils = require './utils/utils'
+# watcher = require './watcher'
+# server = require './server'
+# pkgmgr = require './pkgmgr'
+# optimizer = require './optimizer'
+# project = require './project'
 
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
@@ -65,6 +65,7 @@ BANNER = '''
 SWITCHES = [
   ['-h', '--help',            'display this help message']
   ['-v', '--version',         'display the version number']
+  ['-s', '--server',          'choose the server stack']
   ['-e', '--env',             'set environment (development|production)']
   ['-a', '--app',             'set the app (default to main)']
   ['--cdn',                   'set CDN prefix']
@@ -109,6 +110,12 @@ exports.run = ->
     opts.app = opts.arguments[index+1]
     opts.arguments.splice(index, 2)
 
+  if '-s' in opts.arguments or '--server' in opts.arguments
+    index = opts.arguments.indexOf('-s')
+    index = opts.arguments.indexOf('--server') if index is -1
+    opts.server = opts.arguments[index+1]
+    opts.arguments.splice(index, 2)
+
   if '--cdn' in opts.arguments
     opts.cdn = opts.arguments[opts.arguments.indexOf('--cdn') + 1]
 
@@ -127,10 +134,36 @@ task 'new', 'create a new project', ->
   utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
-  skeletonPath = sysPath.join(project.muffinDir, 'framework/skeleton')
-  fs.copy skeletonPath, projectDir, ->
-    logging.info "The application '#{projectName}' has been created."
-    logging.info "You need to run `npm install` inside the project directory to install dependencies."
+  copyClientSkeleton = (done) ->
+    from = sysPath.join(project.muffinDir, 'skeletons/client')
+    to = sysPath.join(projectDir, 'client')
+    fs.copy from, to, done
+
+  copyNodeJSSkeleton = (done) ->
+    from = sysPath.join(project.muffinDir, 'skeletons/nodejs')
+    to = sysPath.join(projectDir, 'server')
+    fs.copySync from, to, done
+
+  copyGAESkeleton = (done) ->
+    from = sysPath.join(project.muffinDir, 'skeletons/gae')
+    to = sysPath.join(projectDir, 'server')
+    fs.copySync from, to, done
+
+  printMessage = (done) ->
+    if err
+      logging.error err
+    else
+      logging.info "The application '#{projectName}' has been created."
+      logging.info "You need to run `npm install` inside the project directory to install dependencies."
+
+  opts.server ?= 'none'
+  switch opts.server
+    when 'none'
+      async.series [copyClientSkeleton, printMessage]
+    when 'nodejs'
+      async.series [copyClientSkeleton, copyNodeJSSkeleton, printMessage]
+    when 'gae'
+      async.series [copyClientSkeleton, copyGAESkeleton, printMessage]
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->
