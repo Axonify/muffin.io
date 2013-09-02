@@ -8,7 +8,6 @@ optparse = require 'coffee-script/lib/coffee-script/optparse'
 async = require 'async'
 {spawn, exec} = require 'child_process'
 watcher = require './watcher'
-generator = require './generator'
 server = require './server'
 pkgmgr = require './pkgmgr'
 optimizer = require './optimizer'
@@ -138,42 +137,48 @@ task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
-  generator.generateModel(model, app, opts)
+  for generator in project.plugins.generators
+    generator.generateModel(model, app, opts)
 
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
-  generator.destroyModel(model, app)
+  for generator in project.plugins.generators
+    generator.destroyModel(model, app)
 
 # Task - create a new view
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
   utils.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
-  generator.generateView(view, app)
+  for generator in project.plugins.generators
+    generator.generateView(view, app)
 
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
   utils.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
-  generator.destroyView(view, app)
+  for generator in project.plugins.generators
+    generator.destroyView(view, app)
 
 # Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
 task 'generate scaffold', 'create scaffold for a resource', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
-  generator.generateScaffold(model, app, opts)
+  for generator in project.plugins.generators
+    generator.generateScaffold(model, app, opts)
 
 # Task - remove generated scaffold for a resource
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   model = opts.arguments[2]
   utils.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
-  generator.destroyScaffold(model, app)
+  for generator in project.plugins.generators
+    generator.destroyScaffold(model, app)
 
 # Task - install packages
 task 'install', 'install packages', ->
