@@ -25,34 +25,28 @@ class Optimizer
   # Recursively optimize all the files in a directory and its subdirectories
   optimizeDir: (fromDir, toDir) ->
     # Minify the js files
-    fs.stat fromDir, (err, stats) ->
-      throw err if err and err.code isnt 'ENOENT'
-      return if err?.code is 'ENOENT'
-      if stats.isDirectory()
-        fs.readdir fromDir, (err, files) ->
-          throw err if err and err.code isnt 'ENOENT'
-          return if err?.code is 'ENOENT'
-          @optimizeDir sysPath.join(fromDir, file), sysPath.join(toDir, file) for file in files
-      else if stats.isFile()
-        @optimizeFile(fromDir, toDir)
+    stats = fs.statSync(fromDir)
+    if stats.isDirectory()
+      files = fs.readdirSync(fromDir)
+      for file in files
+        @optimizeDir sysPath.join(fromDir, file), sysPath.join(toDir, file)
+    else if stats.isFile()
+      @optimizeFile(fromDir, toDir)
 
   # Optimize a single file
   optimizeFile: (source, dest) ->
     destDir = sysPath.dirname(dest)
-    fs.exists destDir, (exists) ->
-      fs.mkdirSync destDir unless exists
-      _optimize()
+    fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
-    _optimize = ->
-      switch sysPath.extname(source)
-        when '.js'
-          # Use uglifyjs to minify the js file
-          result = uglify.minify([source], {compress: {comparisons: false}})
-          fs.writeFileSync dest, result.code
-          logging.info "minified #{source}"
-        else
-          fs.copy source, dest, (err) ->
-            logging.info "copied #{source}"
+    switch sysPath.extname(source)
+      when '.js'
+        # Use uglifyjs to minify the js file
+        result = uglify.minify([source], {compress: {comparisons: false}})
+        fs.writeFileSync dest, result.code
+        logging.info "minified #{source}"
+      else
+        fs.copy source, dest, (err) ->
+          logging.info "copied #{source}"
 
   # Concatenate all the module dependencies
   concatDeps: (path) ->
