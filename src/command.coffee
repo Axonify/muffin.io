@@ -152,18 +152,33 @@ task 'new', 'create a new project', ->
     to = sysPath.join(projectDir, 'server')
     fs.copy from, to, done
 
+  writeJSONConfig = (done) ->
+    json = JSON.parse(fs.readFileSync(sysPath.join(project.muffinDir, 'skeletons/config.json')))
+    switch opts.server
+      when 'nodejs'
+        json.serverDir = 'server'
+        json.buildDir = 'server/public'
+        json.plugins.push 'muffin-generator-nodejs'
+      when 'gae'
+        json.serverDir = 'server'
+        json.buildDir = 'server/public'
+        json.plugins.push 'muffin-generator-gae'
+    to = sysPath.join(projectDir, 'config.json')
+    fs.writeFileSync(to, JSON.stringify(json, null, 2))
+    done(null)
+
   printMessage = (done) ->
     logging.info "The application '#{projectName}' has been created."
-    logging.info "You need to run `npm install` inside the project directory to install dependencies."
+    logging.info "You need to run `muffin install` inside the project directory to install dependencies."
 
   opts.server ?= 'none'
   switch opts.server
     when 'none'
-      async.series [createProjectDir, copyClientSkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, writeJSONConfig, printMessage]
     when 'nodejs'
-      async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, writeJSONConfig, printMessage]
     when 'gae'
-      async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, writeJSONConfig, printMessage]
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->
