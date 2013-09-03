@@ -1,6 +1,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 _ = require '../utils/_inflection'
+logging = require '../utils/logging'
 
 class Generator
 
@@ -51,7 +52,7 @@ class Generator
     for attr in args
       [key, value] = attr.split(':')
       if value then value = _(validTypes).find (type) -> type.toLowerCase() is value.toLowerCase()
-      utils.fatal "Must supply a valid schema type for the attribute '#{key}'.\nValid types are: #{validTypes.join(', ')}." unless value?
+      logging.fatal "Must supply a valid schema type for the attribute '#{key}'.\nValid types are: #{validTypes.join(', ')}." unless value?
       attrs[key] = value
     return attrs
 

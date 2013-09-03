@@ -8,7 +8,6 @@ optparse = require 'coffee-script/lib/coffee-script/optparse'
 async = require 'async'
 {spawn, exec} = require 'child_process'
 logging = require './utils/logging'
-utils = require './utils/utils'
 project = require './project'
 watcher = require './watcher'
 server = require './server'
@@ -93,7 +92,7 @@ exports.run = ->
   try
     opts = optionParser.parse process.argv[2..]
   catch e
-    utils.fatal e
+    logging.fatal e
 
   return usage() if process.argv.length <= 2 or opts.help
   return version() if opts.version
@@ -129,9 +128,9 @@ exports.run = ->
 # Task - create a new project
 task 'new', 'create a new project', ->
   projectName = opts.arguments[1]
-  utils.fatal "Must supply a name for the new project" unless projectName
+  logging.fatal "Must supply a name for the new project" unless projectName
   projectDir = sysPath.join(process.cwd(), projectName)
-  utils.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
+  logging.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
   # Copy skeleton files
   createProjectDir = (done) ->
@@ -183,7 +182,7 @@ task 'new', 'create a new project', ->
 # Task - create a new model
 task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
-  utils.fatal "Must supply a name for the model" unless model
+  logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.generateModel(model, app, opts)
@@ -191,7 +190,7 @@ task 'generate model', 'create a new model', ->
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
-  utils.fatal "Must supply a name for the model" unless model
+  logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.destroyModel(model, app)
@@ -199,7 +198,7 @@ task 'destroy model', 'remove a generated model', ->
 # Task - create a new view
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
-  utils.fatal "Must supply a name for the view" unless view
+  logging.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.generateView(view, app)
@@ -207,7 +206,7 @@ task 'generate view', 'create a new view', ->
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
-  utils.fatal "Must supply a name for the view" unless view
+  logging.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.destroyView(view, app)
@@ -215,7 +214,7 @@ task 'destroy view', 'remove a generated view', ->
 # Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
 task 'generate scaffold', 'create scaffold for a resource', ->
   model = opts.arguments[2]
-  utils.fatal "Must supply a name for the model" unless model
+  logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.generateScaffold(model, app, opts)
@@ -223,7 +222,7 @@ task 'generate scaffold', 'create scaffold for a resource', ->
 # Task - remove generated scaffold for a resource
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   model = opts.arguments[2]
-  utils.fatal "Must supply a name for the model" unless model
+  logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
     generator.destroyScaffold(model, app)
@@ -377,20 +376,7 @@ task 'deploy', 'deploy the app', ->
   dest = opts.arguments[1]
   platforms = ['heroku', 'amazon', 'nodejitsu']
   unless dest and dest.toLowerCase() in platforms
-    utils.fatal "Must choose a platform from the following: heroku, amazon, nodejitsu"
-
-# Find file in directory
-findFileIn = (dir) ->
-  found = []
-  for file in fs.readdirSync(dir)
-    file = sysPath.join(dir, file)
-    if /\.coffee$/.test file
-      found.push file
-    else
-      stats = fs.statSync(file)
-      if stats.isDirectory() and not /nls$/.test file
-        found = found.concat findFileIn(file)
-  return found
+    logging.fatal "Must choose a platform from the following: heroku, amazon, nodejitsu"
 
 # Print the `--help` usage message and exit.
 usage = ->

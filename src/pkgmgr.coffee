@@ -7,7 +7,6 @@ sysPath = require 'path'
 logging = require './utils/logging'
 project = require './project'
 Emitter = require('events').EventEmitter
-utils = require './utils/utils'
 async = require 'async'
 _ = require 'underscore'
 request = require './utils/request'

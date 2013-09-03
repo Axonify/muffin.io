@@ -14,6 +14,10 @@ colors =
 
 class Logger
 
+  fatal: (msg) ->
+    @error(msg)
+    process.exit 1
+
   error: (msg) ->
     growl msg, {title: 'muffin error', image: path.join(__dirname, '../muffin.png')}
     @log 'ERROR', msg
