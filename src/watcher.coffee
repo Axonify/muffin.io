@@ -7,16 +7,22 @@ sysPath = require 'path'
 os = require 'os'
 {spawn} = require 'child_process'
 _ = require 'underscore'
-logging = require './utils/logging'
-project = require './project'
 chokidar = require 'chokidar'
 CoffeeScript = require 'coffee-script'
+logging = require './utils/logging'
+project = require './project'
+server = require './server'
 
 # Underscore template settings
 _.templateSettings =
   evaluate    : /<\?([\s\S]+?)\?>/g,
   interpolate : /<\?=([\s\S]+?)\?>/g,
   escape      : /<\?-([\s\S]+?)\?>/g
+
+# Files to ignore
+ignored = (file) ->
+  /^\.|~$/.test(file) or /\.swp/.test(file)
+
 
 class Watcher
 
@@ -31,17 +37,13 @@ class Watcher
 
   # Recursively compile all files in a directory and its subdirectories
   compileDir: (source) ->
-    fs.stat source, (err, stats) ->
-      throw err if err and err.code isnt 'ENOENT'
-      return if err?.code is 'ENOENT'
-      if stats.isDirectory()
-        fs.readdir source, (err, files) ->
-          throw err if err and err.code isnt 'ENOENT'
-          return if err?.code is 'ENOENT'
-          files = files.filter (file) -> not @ignored(file)
-          @compileDir sysPath.join(source, file) for file in files
-      else if stats.isFile()
-        @compileFile source, yes
+    stats = fs.statSync(source)
+    if stats.isDirectory()
+      files = fs.readdirSync(source)
+      files = files.filter (file) -> not ignored(file)
+      @compileDir sysPath.join(source, file) for file in files
+    else if stats.isFile()
+      @compileFile source, yes
 
   destDirForFile: (source) ->
     inAssetsDir = !!~ source.indexOf project.clientAssetsDir
@@ -72,84 +74,81 @@ class Watcher
   # Compile a single file
   compileFile: (source, abortOnError=no) ->
     destDir = @destDirForFile(source)
-    fs.exists destDir, (exists) ->
-      fs.mkdirSync destDir unless exists
-      _compile()
+    fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
-    _compile = ->
-      try
-        switch sysPath.extname(source)
-          when '.coffee'
-            # Run the source file through template engine
-            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientConfig})
-            filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
-            path = sysPath.join destDir, filename
+    try
+      switch sysPath.extname(source)
+        when '.coffee'
+          # Run the source file through template engine
+          sourceData = _.template(fs.readFileSync(source).toString(), {settings: project.clientConfig})
+          filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
+          path = sysPath.join destDir, filename
 
-            # Wrap the file into AMD module format
-            js = CoffeeScript.compile(sourceData, {bare: true})
+          # Wrap the file into AMD module format
+          js = CoffeeScript.compile(sourceData, {bare: true})
 
-            # Strip the .js suffix
-            modulePath = sysPath.relative(project.buildDir, path).replace(/\.js$/, '')
-            deps = parseDeps(js)
+          # Strip the .js suffix
+          modulePath = sysPath.relative(project.buildDir, path).replace(/\.js$/, '')
+          deps = @parseDeps(js)
 
-            # Concat package deps
-            match = modulePath.match(/^components\/(.*)\/(.*)\//)
-            if match
-              extraDeps = project.packageDeps["#{match[1]}/#{match[2]}"]
-              if extraDeps?.length > 0
-                deps = deps.concat(extraDeps)
+          # Concat package deps
+          match = modulePath.match(/^components\/(.*)\/(.*)\//)
+          if match
+            extraDeps = project.packageDeps["#{match[1]}/#{match[2]}"]
+            if extraDeps?.length > 0
+              deps = deps.concat(extraDeps)
 
-            js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
-            fs.writeFileSync path, js
-            logging.info "compiled #{source}"
-            server.reloadBrowser(path)
+          js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
+          fs.writeFileSync path, js
+          logging.info "compiled #{source}"
+          server.reloadBrowser(path)
 
-          when '.html', '.htm'
-            # Run the source file through template engine
-            sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {project.clientConfig}, htmlHelpers))
-            filename = sysPath.basename(source)
-            path = sysPath.join(destDir, filename)
-            fs.writeFileSync(path, sourceData)
+        when '.html', '.htm'
+          # Run the source file through template engine
+          sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings: project.clientConfig}, htmlHelpers))
+          filename = sysPath.basename(source)
+          path = sysPath.join(destDir, filename)
+          fs.writeFileSync(path, sourceData)
+          logging.info "copied #{source}"
+          server.reloadBrowser(path)
+
+        when '.appcache'
+          sourceData = _.template(fs.readFileSync(source).toString(), {settings: project.clientConfig})
+          filename = sysPath.basename(source)
+          path = sysPath.join(destDir, filename)
+          fs.writeFileSync(path, sourceData)
+          logging.info "copied #{source}"
+
+        when '.js'
+          js = fs.readFileSync(source).toString()
+          filename = sysPath.basename(source)
+          path = sysPath.join(destDir, filename)
+
+          # Strip the .js suffix
+          modulePath = sysPath.relative(project.buildDir, path).replace(/\.js$/, '')
+          deps = @parseDeps(js)
+
+          # Concat package deps
+          match = modulePath.match(/^components\/(.*)\/(.*)\//)
+          if match
+            extraDeps = project.packageDeps["#{match[1]}/#{match[2]}"]
+            if extraDeps?.length > 0
+              deps = deps.concat(extraDeps)
+
+          js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
+          fs.writeFileSync path, js
+          logging.info "copied #{source}"
+          server.reloadBrowser(path)
+        else
+          filename = sysPath.basename(source)
+          path = sysPath.join destDir, filename
+
+          fs.copy source, path, (err) ->
             logging.info "copied #{source}"
             server.reloadBrowser(path)
-
-          when '.appcache'
-            sourceData = _.template(fs.readFileSync(source).toString(), {project.clientConfig})
-            filename = sysPath.basename(source)
-            path = sysPath.join(destDir, filename)
-            fs.writeFileSync(path, sourceData)
-            logging.info "copied #{source}"
-
-          when '.js'
-            js = fs.readFileSync(source).toString()
-            filename = sysPath.basename(source)
-            path = sysPath.join(destDir, filename)
-
-            # Strip the .js suffix
-            modulePath = sysPath.relative(project.buildDir, path).replace(/\.js$/, '')
-            deps = parseDeps(js)
-
-            # Concat package deps
-            match = modulePath.match(/^components\/(.*)\/(.*)\//)
-            if match
-              extraDeps = project.packageDeps["#{match[1]}/#{match[2]}"]
-              if extraDeps?.length > 0
-                deps = deps.concat(extraDeps)
-
-            js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
-            fs.writeFileSync path, js
-            logging.info "copied #{source}"
-            server.reloadBrowser(path)
-          else
-            filename = sysPath.basename(source)
-            path = sysPath.join destDir, filename
-
-            fs.copy source, path, (err) ->
-              logging.info "copied #{source}"
-              server.reloadBrowser(path)
-      catch err
-        logging.error "#{err.message} (#{source})"
-        process.exit(1) if abortOnError
+    catch err
+      logging.error "#{err.message} (#{source})"
+      process.exit(1) if abortOnError
 
   # Remove a file
   removeFile: (source) ->
@@ -165,17 +164,6 @@ class Watcher
           return if err
           logging.info "removed #{source}"
 
-  # Helpers
-  isDirectory: (path) ->
-    stats = fs.statSync(path)
-    stats.isDirectory()
-
-  # Files to ignore
-  ignored: (file) ->
-    /^\.|~$/.test(file) or /\.swp/.test(file)
-
-  serverIgnored: (file) ->
-    /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(project.buildDir)
 
   # Print an error and exit.
   fatalError: (message) ->

@@ -4,6 +4,7 @@
 
 fs = require 'fs'
 sysPath = require 'path'
+_ = require 'underscore'
 CoffeeScript = require 'coffee-script'
 
 pluginsEnv =
@@ -92,10 +93,14 @@ class Project
     _scripts = []
     _exports = {}
 
+    isDirectory = (path) ->
+      stats = fs.statSync(path)
+      stats.isDirectory()
+
     # iterate over the components dir and get module deps
-    users = fs.readdirSync(project.clientComponentsDir)
+    users = fs.readdirSync(@clientComponentsDir)
     for user in users
-      userDir = sysPath.join(project.clientComponentsDir, user)
+      userDir = sysPath.join(@clientComponentsDir, user)
       if isDirectory(userDir)
         projects = fs.readdirSync(userDir)
         for p in projects
@@ -129,11 +134,11 @@ class Project
   loadClientSources: ->
     # Module loader source
     @moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, 'client/module-loader.coffee')).toString()
-    @moduleLoaderSrc = _.template(@moduleLoaderSrc, {@clientConfig})
+    @moduleLoaderSrc = _.template(@moduleLoaderSrc, {settings: @clientConfig})
     @moduleLoaderSrc = CoffeeScript.compile(@moduleLoaderSrc)
 
     @liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'client/live-reload.coffee')).toString()
-    @liveReloadSrc = _.template(@liveReloadSrc, {@clientConfig})
+    @liveReloadSrc = _.template(@liveReloadSrc, {settings: @clientConfig})
     @liveReloadSrc = CoffeeScript.compile(@liveReloadSrc)
 
 module.exports = new Project()

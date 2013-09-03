@@ -14,6 +14,11 @@ chokidar = require 'chokidar'
 logging = require './utils/logging'
 project = require './project'
 
+
+# Files to ignore
+ignored = (file) ->
+  /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(project.buildDir)
+
 # ## Live reload server
 
 class LiveReloadServer
@@ -56,7 +61,7 @@ class NodeAppServer
 
   startAndWatch: ->
     # Watch .coffee and .js files and restart the server when they change
-    watcher = chokidar.watch project.serverDir, {ignored: serverIgnored, persistent: true, ignoreInitial: true}
+    watcher = chokidar.watch project.serverDir, {ignored: ignored, persistent: true, ignoreInitial: true}
     @start()
     watcher.on 'add', (source) ->
       logging.info "added #{source}"

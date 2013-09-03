@@ -16,7 +16,7 @@ module.exports = (env, callback) ->
       html = fn()
 
       # Run through the template engine and write to the output file
-      html = _.template(html, _.extend({}, {project.clientConfig}, helpers()))
+      html = _.template(html, _.extend({}, {settings: project.clientConfig}, helpers()))
       logging.info "compiled #{source}"
       fs.writeFileSync path, html
       callback(null, html)
