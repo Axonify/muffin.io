@@ -1,0 +1,11 @@
+{
+  "name": "muffin-compiler-html",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that pre-processes html files",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

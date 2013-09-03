@@ -62,13 +62,18 @@ class Watcher
 
   destForFile: (source) ->
     destDir = @destDirForFile(source)
-    switch sysPath.extname(source)
-      when '.coffee'
-        filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
-      when '.jade'
-        filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
-      else
-        filename = sysPath.basename(source)
+    extension = sysPath.extname(source)
+
+    # Run through the compiler plugins
+    for compiler in project.plugins.compilers
+      if extension in compiler.extensions
+        return compiler.destForFile(source)
+
+    # Handle the rest
+    if extension is '.coffee'
+      filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
+    else
+      filename = sysPath.basename(source)
     return sysPath.join(destDir, filename)
 
   # Compile a single file
@@ -76,8 +81,9 @@ class Watcher
     destDir = @destDirForFile(source)
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
+    extension = sysPath.extname(source)
     try
-      switch sysPath.extname(source)
+      switch extension
         when '.coffee'
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), {settings: project.clientConfig})
@@ -101,7 +107,6 @@ class Watcher
           js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js
           logging.info "compiled #{source}"
-          server.reloadBrowser(path)
 
         when '.html', '.htm'
           # Run the source file through template engine
@@ -110,7 +115,6 @@ class Watcher
           path = sysPath.join(destDir, filename)
           fs.writeFileSync(path, sourceData)
           logging.info "copied #{source}"
-          server.reloadBrowser(path)
 
         when '.appcache'
           sourceData = _.template(fs.readFileSync(source).toString(), {settings: project.clientConfig})
@@ -138,14 +142,24 @@ class Watcher
           js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
           fs.writeFileSync path, js
           logging.info "copied #{source}"
-          server.reloadBrowser(path)
-        else
-          filename = sysPath.basename(source)
-          path = sysPath.join destDir, filename
 
-          fs.copy source, path, (err) ->
+        else
+          # Run through the compiler plugins
+          compiled = no
+          for compiler in project.plugins.compilers
+            if extension in compiler.extensions
+              compiler.compile(source, destDir)
+              compiled = yes
+              break
+
+          # Copy to the destination when everything else fails.
+          unless compiled
+            filename = sysPath.basename(source)
+            path = sysPath.join(destDir, filename)
+            fs.copyFileSync source, path
             logging.info "copied #{source}"
-            server.reloadBrowser(path)
+
+      server.reloadBrowser(path)
     catch err
       logging.error "#{err.message} (#{source})"
       process.exit(1) if abortOnError
@@ -153,17 +167,10 @@ class Watcher
   # Remove a file
   removeFile: (source) ->
     dest = destForFile(source)
-    fs.stat dest, (err, stats) ->
-      return if err
-      if stats.isDirectory()
-        fs.rmdir dest, (err) ->
-          return if err
-          logging.info "removed #{source}"
-      else if stats.isFile()
-        fs.unlink dest, (err) ->
-          return if err
-          logging.info "removed #{source}"
-
+    stats = fs.statSync(dest)
+    if stats.isFile()
+      fs.unlinkSync(dest)
+      logging.info "removed #{source}"
 
   # Print an error and exit.
   fatalError: (message) ->

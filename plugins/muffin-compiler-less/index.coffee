@@ -5,9 +5,13 @@ module.exports = (env, callback) ->
   class LessCompiler extends env.Compiler
 
     type: 'compiler'
-    extensions: ['less']
+    extensions: ['.less']
 
-    compile: (data, path, callback) ->
+    destForFile: (source, destDir) ->
+      filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
+      return sysPath.join(destDir, filename)
+
+    compile: (source, destDir, callback) ->
       sourceData = fs.readFileSync(source).toString()
       filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
       path = sysPath.join destDir, filename

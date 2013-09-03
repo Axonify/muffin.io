@@ -11,9 +11,9 @@ logging = require './utils/logging'
 utils = require './utils/utils'
 project = require './project'
 watcher = require './watcher'
-# server = require './server'
-# pkgmgr = require './pkgmgr'
-# optimizer = require './optimizer'
+server = require './server'
+pkgmgr = require './pkgmgr'
+optimizer = require './optimizer'
 
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
@@ -256,7 +256,6 @@ task 'update', 'update packages', ->
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   project.setEnv (opts.env ? 'development'), opts
-  project.loadClientSources()
   fs.removeSync(project.buildDir)
 
   async.series [
@@ -275,7 +274,6 @@ task 'watch', 'watch files and compile as needed', ->
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   project.setEnv (opts.env ? 'development'), opts
-  project.loadClientSources()
   project.buildRequireConfig()
   fs.removeSync(project.buildDir)
   watcher.compileDir(project.clientDir)

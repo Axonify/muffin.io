@@ -1,0 +1,11 @@
+{
+  "name": "muffin-compiler-appcache",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that preprocesses appcache file.",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

@@ -6,11 +6,9 @@ fs = require 'fs'
 sysPath = require 'path'
 _ = require 'underscore'
 CoffeeScript = require 'coffee-script'
-
-pluginsEnv =
-  Generator: require('./PluginTypes/Generator')
-  Compiler: require('./PluginTypes/Compiler')
-  Optimizer: require("./PluginTypes/Optimizer")
+Generator = require('./PluginTypes/Generator')
+Compiler = require('./PluginTypes/Compiler')
+Optimizer = require("./PluginTypes/Optimizer")
 
 class Project
 
@@ -30,10 +28,19 @@ class Project
     catch e
       return
 
-    # Register plugins
     @plugins = {'compilers': [], 'generators': [], 'optimizers': []}
-    for name in @config.plugins
-      @registerPlugin(name)
+
+    # Register mandatory plugins
+    mandatoryPlugins = [
+      'muffin-compiler-js'
+      'muffin-compiler-html'
+      'muffin-compiler-coffeescript'
+      'muffin-compiler-appcache'
+    ]
+    @registerPlugin(name) for name in mandatoryPlugins
+
+    # Register optional plugins
+    @registerPlugin(name) for name in @config.plugins
 
   parseConfig: ->
     @clientDir = sysPath.resolve(@config.clientDir ? 'client')
@@ -48,7 +55,7 @@ class Project
 
   registerPlugin: (name) ->
     # Save the plugin in @plugins
-    done = (plugin) ->
+    done = (plugin) =>
       switch plugin.type
         when 'compiler'
           @plugins['compilers'].push plugin
@@ -56,6 +63,8 @@ class Project
           @plugins['generators'].push plugin
         when 'optimizer'
           @plugins['optimizers'].push plugin
+
+    pluginsEnv = {Generator, Compiler, Optimizer, project: @}
 
     # Search in Muffin's built-in plugins folder
     pluginPath = sysPath.join(__dirname, "../plugins/#{name}")
@@ -130,15 +139,5 @@ class Project
               @packageDeps[repo] = Object.keys(json.dependencies)
 
     @requireConfig = {aliases: _aliases, scripts: _scripts, exports: _exports}
-
-  loadClientSources: ->
-    # Module loader source
-    @moduleLoaderSrc = fs.readFileSync(sysPath.join(__dirname, 'client/module-loader.coffee')).toString()
-    @moduleLoaderSrc = _.template(@moduleLoaderSrc, {settings: @clientConfig})
-    @moduleLoaderSrc = CoffeeScript.compile(@moduleLoaderSrc)
-
-    @liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'client/live-reload.coffee')).toString()
-    @liveReloadSrc = _.template(@liveReloadSrc, {settings: @clientConfig})
-    @liveReloadSrc = CoffeeScript.compile(@liveReloadSrc)
 
 module.exports = new Project()

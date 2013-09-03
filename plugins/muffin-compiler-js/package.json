@@ -1,0 +1,11 @@
+{
+  "name": "muffin-compiler-js",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that wraps js file",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}
