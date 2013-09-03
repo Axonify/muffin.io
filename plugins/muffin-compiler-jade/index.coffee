@@ -10,6 +10,10 @@ module.exports = (env, callback) ->
     type: 'compiler'
     extensions: ['.jade']
 
+    constructor: ->
+      @project = env.project
+      @loadHtmlHelpers()
+
     destForFile: (source, destDir) ->
       filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
       return sysPath.join(destDir, filename)
@@ -25,7 +29,6 @@ module.exports = (env, callback) ->
       # Run through the template engine and write to the output file
       html = _.template(html, _.extend({}, {settings: env.project.clientConfig}, @htmlHelpers))
       fs.writeFileSync path, html
-      logging.info "compiled #{source}"
       callback(null, html)
 
   callback(new JadeCompiler())

@@ -1,3 +1,5 @@
+fs = require 'fs'
+sysPath = require 'path'
 less = require 'less'
 
 module.exports = (env, callback) ->
@@ -6,6 +8,9 @@ module.exports = (env, callback) ->
 
     type: 'compiler'
     extensions: ['.less']
+
+    constructor: ->
+      @project = env.project
 
     destForFile: (source, destDir) ->
       filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
@@ -20,7 +25,6 @@ module.exports = (env, callback) ->
       parser = new (less.Parser)(options)
       parser.parse sourceData, (err, tree) ->
         compiledData = tree.toCSS()
-        logging.info "compiled #{source}"
         fs.writeFileSync path, compiledData
         callback(err, compiledData)
 

@@ -5,7 +5,6 @@
 fs = require 'fs'
 sysPath = require 'path'
 _ = require 'underscore'
-CoffeeScript = require 'coffee-script'
 Generator = require('./PluginTypes/Generator')
 Compiler = require('./PluginTypes/Compiler')
 Optimizer = require("./PluginTypes/Optimizer")
