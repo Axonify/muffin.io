@@ -4,7 +4,7 @@
 
 fs = require 'fs-extra'
 sysPath = require 'path'
-{execFile} = require 'child_process'
+async = require 'async'
 logging = require './utils/logging'
 project = require './project'
 
@@ -22,18 +22,27 @@ jsEscape = (content) ->
 class Optimizer
 
   # Recursively optimize all the files in a directory and its subdirectories
-  optimizeDir: (fromDir, toDir) ->
-    # Minify the js files
-    stats = fs.statSync(fromDir)
-    if stats.isDirectory()
-      files = fs.readdirSync(fromDir)
-      for file in files
-        @optimizeDir sysPath.join(fromDir, file), sysPath.join(toDir, file)
-    else if stats.isFile()
-      @optimizeFile(fromDir, toDir)
+  optimizeDir: (fromDir, toDir, callback) ->
+    queue = []
+    queue.push [fromDir, toDir]
+
+    test = -> queue.length > 0
+
+    fn = (done) =>
+      [from, to] = queue.pop()
+      stats = fs.statSync(from)
+      if stats.isDirectory()
+        files = fs.readdirSync(from)
+        for file in files
+          queue.push [sysPath.join(from, file), sysPath.join(to, file)]
+        done(null)
+      else if stats.isFile()
+        @optimizeFile from, to, done
+
+    async.whilst test, fn, callback
 
   # Optimize a single file
-  optimizeFile: (source, dest) ->
+  optimizeFile: (source, dest, callback) ->
     destDir = sysPath.dirname(dest)
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
@@ -44,11 +53,13 @@ class Optimizer
       if extension in optimizer.extensions
         optimizer.optimize source, dest, ->
           logging.info "minified #{source}"
+          callback(null)
         return
 
     # Othewise, copy to the destination
-    fs.copy source, dest, (err) ->
+    fs.copy source, dest, ->
       logging.info "copied #{source}"
+      callback(null)
 
   # Concatenate all the module dependencies
   concatDeps: (path) ->

@@ -5,6 +5,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 _ = require 'underscore'
+async = require 'async'
 chokidar = require 'chokidar'
 logging = require './utils/logging'
 project = require './project'
@@ -27,14 +28,25 @@ class Watcher
       logging.error "Error occurred while watching files: #{error}"
 
   # Recursively compile all files in a directory and its subdirectories
-  compileDir: (source) ->
-    stats = fs.statSync(source)
-    if stats.isDirectory()
-      files = fs.readdirSync(source)
-      files = files.filter (file) -> not ignored(file)
-      @compileDir sysPath.join(source, file) for file in files
-    else if stats.isFile()
-      @compileFile source, yes
+  compileDir: (source, callback) ->
+    queue = []
+    queue.push source
+
+    test = -> queue.length > 0
+
+    fn = (done) =>
+      from = queue.pop()
+      stats = fs.statSync(from)
+      if stats.isDirectory()
+        files = fs.readdirSync(from)
+        files = files.filter (file) -> not ignored(file)
+        for file in files
+          queue.push sysPath.join(from, file)
+        done(null)
+      else if stats.isFile()
+        @compileFile from, yes, done
+
+    async.whilst test, fn, callback
 
   destDirForFile: (source) ->
     inAssetsDir = !!~ source.indexOf project.clientAssetsDir
@@ -65,7 +77,7 @@ class Watcher
     return sysPath.join(destDir, filename)
 
   # Compile a single file
-  compileFile: (source, abortOnError=no) ->
+  compileFile: (source, abortOnError=no, callback) ->
     destDir = @destDirForFile(source)
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
@@ -77,6 +89,7 @@ class Watcher
           compiler.compile source, destDir, ->
             logging.info "compiled #{source}"
             server.reloadBrowser(path)
+            callback(null)
           return
 
       # Otherwise, copy to the destination
@@ -85,6 +98,7 @@ class Watcher
       fs.copy source, path, ->
         logging.info "copied #{source}"
         server.reloadBrowser(path)
+        callback(null)
 
     catch err
       logging.error "#{err.message} (#{source})"

@@ -222,20 +222,27 @@ task 'watch', 'watch files and compile as needed', ->
   project.setEnv 'development'
 
   # Rebuild
-  project.buildRequireConfig()
-  fs.removeSync(project.buildDir)
-  watcher.compileDir(project.clientDir)
+  rebuild = (done) ->
+    project.buildRequireConfig()
+    fs.removeSync(project.buildDir)
+    watcher.compileDir(project.clientDir, done)
 
   # Watch the client directory
-  watcher.watchDir(project.clientDir)
-  server.startLiveReloadServer()
+  watch = (done) ->
+    server.startLiveReloadServer()
+    watcher.watchDir(project.clientDir, done)
 
-  if opts.server
-    # Start either the dummy web server or real app server
+  # Start either the dummy web server or real app server
+  startServer = (done) ->
     if fs.existsSync(project.serverDir)
       server.startAppServer()
     else
       server.startDummyWebServer()
+
+  if opts.server
+    async.series [rebuild, watch, startServer]
+  else
+    async.series [rebuild, watch]
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
@@ -250,25 +257,31 @@ task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info 'Preparing project files for production...'
   project.setEnv 'production'
 
-  # Rebuild
-  logging.info 'Building project...'
-  project.buildRequireConfig()
-  fs.removeSync(project.buildDir)
-  watcher.compileDir(project.clientDir)
+  rebuild = (done) ->
+    logging.info 'Building project...'
+    project.buildRequireConfig()
+    fs.removeSync(project.buildDir)
+    watcher.compileDir(project.clientDir, done)
 
-  # Minify
-  logging.info 'Minifying project files...'
-  fs.removeSync(project.tempBuildDir)
-  optimizer.optimizeDir(project.buildDir, project.tempBuildDir)
+  minify = (done) ->
+    logging.info 'Minifying project files...'
+    fs.removeSync(project.tempBuildDir)
+    optimizer.optimizeDir(project.buildDir, project.tempBuildDir, done)
 
   # Remove temp directories
-  fs.removeSync(project.buildDir)
-  fs.renameSync(project.tempBuildDir, project.buildDir)
+  removeTempDirs = (done) ->
+    fs.removeSync(project.buildDir)
+    fs.renameSync(project.tempBuildDir, project.buildDir)
+    done(null)
 
   # Concatenate modules
-  for path in project.clientConfig.concat
-    logging.info "Concatenating module dependencies: #{path}"
-    optimizer.concatDeps(path)
+  concat = (done) ->
+    for path in project.clientConfig.concat
+      logging.info "Concatenating module dependencies: #{path}"
+      optimizer.concatDeps(path)
+    done(null)
+
+  async.series [rebuild, minify, removeTempDirs, concat]
 
 # Task - remove the build directory
 task 'clean', 'remove the build directory', ->
