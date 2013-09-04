@@ -134,9 +134,10 @@ reloadBrowser = (path) ->
   liveReloadServer?.reloadBrowser(path)
 
 startDummyWebServer = ->
+  console.log 'Starting a dummy web server for the static files...'
   app = http.createServer (req, res) ->
     send(req, url.parse(req.url).pathname)
-    .root(buildDir)
+    .root(project.buildDir)
     .pipe(res)
   port = 4000
   app.listen port, ->

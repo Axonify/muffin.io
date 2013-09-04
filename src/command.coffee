@@ -235,7 +235,7 @@ task 'watch', 'watch files and compile as needed', ->
 
   # Start either the dummy web server or real app server
   startServer = (done) ->
-    if fs.existsSync(project.serverDir)
+    if project.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
       server.startAppServer()
     else
       server.startDummyWebServer()
