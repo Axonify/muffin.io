@@ -131,6 +131,11 @@ task 'new', 'create a new project', ->
     fs.writeFileSync(to, JSON.stringify(json, null, 2))
     done(null)
 
+  writeGitIgnore = (done) ->
+    from = sysPath.join(project.muffinDir, 'skeletons/.gitignore')
+    to = sysPath.join(projectDir, '.gitignore')
+    fs.copy from, to, done
+
   printMessage = (done) ->
     logging.info "The application '#{projectName}' has been created."
     logging.info "You need to run `muffin install` inside the project directory to install dependencies."
@@ -138,7 +143,7 @@ task 'new', 'create a new project', ->
   opts.server ?= 'none'
   switch opts.server
     when 'none'
-      async.series [createProjectDir, copyClientSkeleton, writeJSONConfig, printMessage]
+      async.series [createProjectDir, copyClientSkeleton, writeJSONConfig, writeGitIgnore, printMessage]
     when 'nodejs'
       async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, writeJSONConfig, printMessage]
     when 'gae'
