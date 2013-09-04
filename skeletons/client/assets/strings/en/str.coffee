@@ -1,2 +1,2 @@
 module.exports =
-  title: "Webapp"
+  title: "My Awesome Webapp"

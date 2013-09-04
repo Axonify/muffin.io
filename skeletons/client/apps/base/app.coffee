@@ -2,8 +2,8 @@
 # BaseApp is in charge of logging, CSRF, JSON caching, etc.
 #
 
-Backbone = require 'backbone'
-ViewHelpers = require 'lib/ViewHelpers'
+Backbone = require 'Backbone'
+ViewHelpers = require './ViewHelpers'
 Logger = require 'muffin/Logger'
 utils = require 'muffin/utils'
 $.os = utils.detectOS()
@@ -39,10 +39,6 @@ class App
       # Enable button pressed state on touchstart
       $(document).on 'touchstart', 'a', (e) -> $(e.target).addClass('pressed')
       $(document).on 'touchend', 'a', (e) -> $(e.target).removeClass('pressed')
-
-      # Hide address bar
-      $(document).on 'orientationchange', helpers.hideAddressBar
-      helpers.hideAddressBar()
     else
       # Trigger 'press' events on click
       $(document).on 'click', 'body', (e) ->

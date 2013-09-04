@@ -1,4 +1,4 @@
-Backbone = require 'backbone'
+Backbone = require 'Backbone'
 
 class Router extends Backbone.Router
 

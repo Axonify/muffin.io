@@ -1,4 +1,4 @@
-Backbone = require 'backbone'
+Backbone = require 'Backbone'
 UIKit = require 'muffin/UIKit'
 
 class LayoutView extends UIKit.View

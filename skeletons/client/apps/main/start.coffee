@@ -1,7 +1,4 @@
-window.$ = require 'jquery'
-window._ = require 'underscore'
-Backbone = require 'backbone'
-Backbone.$ = window.$
+Backbone = require 'Backbone'
 I18n = require 'muffin/I18n'
 
 start = ->

@@ -1,5 +1,5 @@
 #
-# MainApp sets up UI layout on desktop browsers.
+# Main App
 #
 
 I18n = require 'muffin/I18n'

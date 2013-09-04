@@ -251,7 +251,7 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   project.setEnv 'development'
   project.buildRequireConfig()
   fs.removeSync(project.buildDir)
-  watcher.compileDir(project.clientDir)
+  watcher.compileDir project.clientDir, -> {}
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
