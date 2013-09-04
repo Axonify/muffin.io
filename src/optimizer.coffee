@@ -7,7 +7,6 @@ sysPath = require 'path'
 {execFile} = require 'child_process'
 logging = require './utils/logging'
 project = require './project'
-uglify = require 'uglify-js'
 
 # Escape js content
 jsEscape = (content) ->
@@ -38,15 +37,18 @@ class Optimizer
     destDir = sysPath.dirname(dest)
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
-    switch sysPath.extname(source)
-      when '.js'
-        # Use uglifyjs to minify the js file
-        result = uglify.minify([source], {compress: {comparisons: false}})
-        fs.writeFileSync dest, result.code
-        logging.info "minified #{source}"
-      else
-        fs.copy source, dest, (err) ->
-          logging.info "copied #{source}"
+    extension = sysPath.extname(source)
+
+    # Run through the optimizer plugins
+    for optimizer in project.plugins.optimizers
+      if extension in optimizer.extensions
+        optimizer.optimize source, dest, ->
+          logging.info "minified #{source}"
+        return
+
+    # Othewise, copy to the destination
+    fs.copy source, dest, (err) ->
+      logging.info "copied #{source}"
 
   # Concatenate all the module dependencies
   concatDeps: (path) ->
