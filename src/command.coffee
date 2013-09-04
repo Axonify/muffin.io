@@ -1,13 +1,9 @@
-#
-# command.coffee
-#
-
 fs = require 'fs-extra'
 sysPath = require 'path'
-optparse = require 'coffee-script/lib/coffee-script/optparse'
 async = require 'async'
 {spawn, exec} = require 'child_process'
 logging = require './utils/logging'
+optparse = require './utils/optparse'
 project = require './project'
 watcher = require './watcher'
 server = require './server'
@@ -20,6 +16,7 @@ BANNER = '''
 
     muffin new <project-name>
       - create a new project
+      - you can specify a server stack: --server [nodejs|gae]
 
     Code generators:
       * muffin generate model user
@@ -44,7 +41,7 @@ BANNER = '''
       - compile coffeescripts into javascripts and copy assets to `public/` directory
 
     muffin minify
-      - minify and concatenate js/css files, optimize png/jpeg images, build for production
+      - minify and concatenate js/css files, build for production
 
     muffin clean
       - remove the build directory
@@ -58,6 +55,9 @@ BANNER = '''
     muffin deploy [heroku | amazon | nodejitsu]
       - deploy to Heroku, Amazon or Nodejitsu
 
+    -h, --help         display this help message
+    -v, --version      display the version number
+
 '''
 
 # The list of all the valid option flags that `muffin` supports.
@@ -65,61 +65,26 @@ SWITCHES = [
   ['-h', '--help',            'display this help message']
   ['-v', '--version',         'display the version number']
   ['-s', '--server',          'choose the server stack']
-  ['-e', '--env',             'set environment (development|production)']
   ['-a', '--app',             'set the app (default to main)']
-  ['--cdn',                   'set CDN prefix']
-  ['--hash',                  'set a hash as the client version']
 ]
 
 # Top-level objects shared by all the functions.
 tasks = {}
 opts = {}
-optionParser = null
 
-# Define a task with a short name, an optional description, and the function to run.
+# Define a task with a short name, a description, and the function to run.
 task = (name, description, action) ->
-  [action, description] = [description, action] unless action
   tasks[name] = {name, description, action}
 
 # Invoke a task
 invoke = (name) ->
-  missingTask name unless tasks[name]
   tasks[name].action opts
 
 # Run `muffin`
 exports.run = ->
-  optionParser = new optparse.OptionParser SWITCHES, BANNER
-  try
-    opts = optionParser.parse process.argv[2..]
-  catch e
-    logging.fatal e
-
-  return usage() if process.argv.length <= 2 or opts.help
+  opts = optparse.parse(process.argv[2..], SWITCHES)
+  return usage() if opts.help or opts.arguments.length is 0
   return version() if opts.version
-
-  if '-e' in opts.arguments or '--env' in opts.arguments
-    index = opts.arguments.indexOf('-e')
-    index = opts.arguments.indexOf('--env') if index is -1
-    opts.env = opts.arguments[index+1]
-    opts.arguments.splice(index, 2)
-
-  if '-a' in opts.arguments or '--app' in opts.arguments
-    index = opts.arguments.indexOf('-a')
-    index = opts.arguments.indexOf('--app') if index is -1
-    opts.app = opts.arguments[index+1]
-    opts.arguments.splice(index, 2)
-
-  if '-s' in opts.arguments or '--server' in opts.arguments
-    index = opts.arguments.indexOf('-s')
-    index = opts.arguments.indexOf('--server') if index is -1
-    opts.server = opts.arguments[index+1]
-    opts.arguments.splice(index, 2)
-
-  if '--cdn' in opts.arguments
-    opts.cdn = opts.arguments[opts.arguments.indexOf('--cdn') + 1]
-
-  if '--hash' in opts.arguments
-    opts.hash = opts.arguments[opts.arguments.indexOf('--hash') + 1]
 
   for len in [1..2]
     name = opts.arguments[0...len].join(' ')
@@ -254,7 +219,7 @@ task 'update', 'update packages', ->
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
-  project.setEnv (opts.env ? 'development'), opts
+  project.setEnv 'development'
   fs.removeSync(project.buildDir)
 
   async.series [
@@ -272,30 +237,26 @@ task 'watch', 'watch files and compile as needed', ->
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
-  project.setEnv (opts.env ? 'development'), opts
+  project.setEnv 'development'
   project.buildRequireConfig()
   fs.removeSync(project.buildDir)
   watcher.compileDir(project.clientDir)
 
 # Task - optimize js/css files (internal use only)
 task 'optimize', 'optimize js/css files', ->
-  project.setEnv (opts.env ? 'development'), opts
+  project.setEnv 'development'
   fs.removeSync(project.tempBuildDir)
   optimizer.optimizeDir(project.buildDir, project.tempBuildDir)
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info 'Preparing project files for production...'
-  project.setEnv (opts.env ? 'production'), opts
+  project.setEnv 'production'
+
   async.series [
     # Rebuild
     (done) ->
       args = ['build', '-e', 'production']
-      if opts.cdn
-        args = args.concat ['--cdn', opts.cdn]
-      if opts.hash
-        args = args.concat ['--hash', opts.hash]
-
       p = spawn "#{__dirname}/../bin/muffin", args, {stdio: 'inherit'}
       p.on 'exit', (code) ->
         if code isnt 0
@@ -335,7 +296,7 @@ task 'clean', 'remove the build directory', ->
 
 # Task - run tests
 task 'test', 'run tests', ->
-  project.setEnv (opts.env ? 'test'), opts
+  project.setEnv 'test'
   mocha = new Mocha
   mocha
     .reporter('spec')
@@ -347,7 +308,7 @@ task 'test', 'run tests', ->
 
 # Task - start the server and watch files
 task 'server', 'start a webserver', ->
-  project.setEnv (opts.env ? 'development'), opts
+  project.setEnv 'development'
   fs.removeSync(project.buildDir)
 
   async.series [
@@ -380,7 +341,7 @@ task 'deploy', 'deploy the app', ->
 
 # Print the `--help` usage message and exit.
 usage = ->
-  console.log optionParser.help()
+  console.log BANNER
 
 # Print the `--version` message and exit.
 version = ->

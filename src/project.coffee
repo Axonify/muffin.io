@@ -73,7 +73,7 @@ class Project
     pluginPath = sysPath.join(__dirname, "../../#{name}")
     try return require(pluginPath)(pluginsEnv, done)
 
-  setEnv: (env, opts) ->
+  setEnv: (env) ->
     @clientConfig = {env}
     config = {}
     try config = require sysPath.join(@clientDir, 'config.json')
@@ -83,8 +83,6 @@ class Project
           _.extend @clientConfig, value
       else
         @clientConfig[key] = value
-    @clientConfig.assetHost = opts.cdn ? ''
-    @clientConfig.version = opts.hash ? '1.0.0'
 
     @serverConfig = {env}
     config = {}

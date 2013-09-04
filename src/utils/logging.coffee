@@ -1,11 +1,11 @@
-#
-# logging.coffee
-#
+# The `Logger` class provides multi-level logging support,
+# as well as ASCII color support and growl notifications.
 
+sysPath = require 'path'
 color = require 'ansi-color'
 growl = require 'growl'
-path = require 'path'
 
+# Show messages of different levels in different colors.
 colors =
   ERROR: 'red'
   WARN: 'yellow'
@@ -14,13 +14,15 @@ colors =
 
 class Logger
 
+  # `logging.fatal` calls `logging.error`, then kills the process.
   fatal: (msg) ->
     @error(msg)
     process.exit 1
 
+  # `logging.error` prints the error message in red, and displays a growl notification.
   error: (msg) ->
-    growl msg, {title: 'muffin error', image: path.join(__dirname, '../muffin.png')}
     @log 'ERROR', msg
+    growl msg, {title: 'muffin error', image: sysPath.join(__dirname, '../muffin.png')}
 
   warn: (msg) ->
     @log 'WARN', msg
@@ -40,4 +42,5 @@ class Logger
       info = "#{prefix}: #{msg}"
       console.log info
 
+# Freeze the Logger object so that it can't be modified later.
 module.exports = Object.freeze(new Logger())
