@@ -194,8 +194,9 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
 
 # Task - install packages
 task 'install', 'install packages', ->
+  project.setEnv 'development'
+
   pkgs = opts.arguments[1..]
-  config = project.clientConfig
   if pkgs.length > 0
     # install the packages
     for pkg in pkgs
@@ -203,6 +204,7 @@ task 'install', 'install packages', ->
       pkgmgr.install repo, version
 
     # save to config.json
+    config = project.clientConfig
     config.dependencies ?= {}
     for pkg in pkgs
       [repo, version] = pkg.split('@')
@@ -210,7 +212,7 @@ task 'install', 'install packages', ->
     fs.writeFileSync(sysPath.join(project.clientDir, 'config.json'), JSON.stringify(config, null, 2))
   else
     # install all dependencies listed in config.json
-    for repo, version of config.dependencies
+    for repo, version of project.clientConfig.dependencies
       pkgmgr.install repo, version
 
 # Task - update packages
