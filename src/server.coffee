@@ -89,7 +89,7 @@ class NodeAppServer
 
       child.stdout.on 'data', (data) ->
         console.log data.toString()
-        reload() if /Quit the server with CONTROL-C/.test(data.toString())
+        reloadBrowser() if /Quit the server with CONTROL-C/.test(data.toString())
 
       child.stderr.on 'data', (data) ->
         if data.toString().length > 1

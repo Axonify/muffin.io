@@ -1,7 +1,6 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 async = require 'async'
-{spawn, exec} = require 'child_process'
 logging = require './utils/logging'
 optparse = require './utils/optparse'
 project = require './project'
@@ -14,9 +13,9 @@ optimizer = require './optimizer'
 BANNER = '''
   Usage:
 
-    muffin new <project-name>
-      - create a new project
-      - you can specify a server stack: --server [nodejs|gae]
+    muffin new <app-name>
+      - create a new application
+      - you can specify a server stack with: --server [nodejs|gae]
 
     Code generators:
       * muffin generate model user
@@ -35,12 +34,16 @@ BANNER = '''
       * muffin update (updates all the frontend dependencies)
 
     muffin watch
+      - env is set to 'development'
       - watch the current project and recompile as needed
+      - you can specify --server or -s to start a web server (auto detected from server type)
 
     muffin build
+      - make a development build, env is set to 'development'
       - compile coffeescripts into javascripts and copy assets to `public/` directory
 
     muffin minify
+      - make a production build, env is set to 'production'
       - minify and concatenate js/css files, build for production
 
     muffin clean
@@ -48,9 +51,6 @@ BANNER = '''
 
     muffin test
       - run tests written in Mocha or Zombie.js
-
-    muffin server
-      - serve the app on port 3000 while watching static files
 
     muffin deploy [heroku | amazon | nodejitsu]
       - deploy to Heroku, Amazon or Nodejitsu
@@ -220,19 +220,22 @@ task 'update', 'update packages', ->
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   project.setEnv 'development'
+
+  # Rebuild
+  project.buildRequireConfig()
   fs.removeSync(project.buildDir)
+  watcher.compileDir(project.clientDir)
 
-  async.series [
-    # Build
-    (done) ->
-      p = spawn "#{__dirname}/../bin/muffin", ['build'], {stdio: 'inherit'}
-      p.on 'close', done
+  # Watch the client directory
+  watcher.watchDir(project.clientDir)
+  server.startLiveReloadServer()
 
-    # Watch client dir
-    (done) ->
-      watcher.watchDir(project.clientDir)
-      server.startLiveReloadServer()
-  ]
+  if opts.server
+    # Start either the dummy web server or real app server
+    if fs.existsSync(project.serverDir)
+      server.startAppServer()
+    else
+      server.startDummyWebServer()
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
@@ -242,51 +245,30 @@ task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   fs.removeSync(project.buildDir)
   watcher.compileDir(project.clientDir)
 
-# Task - optimize js/css files (internal use only)
-task 'optimize', 'optimize js/css files', ->
-  project.setEnv 'development'
-  fs.removeSync(project.tempBuildDir)
-  optimizer.optimizeDir(project.buildDir, project.tempBuildDir)
-
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info 'Preparing project files for production...'
   project.setEnv 'production'
 
-  async.series [
-    # Rebuild
-    (done) ->
-      args = ['build', '-e', 'production']
-      p = spawn "#{__dirname}/../bin/muffin", args, {stdio: 'inherit'}
-      p.on 'exit', (code) ->
-        if code isnt 0
-          process.exit(code)
-        else
-          done(null)
+  # Rebuild
+  logging.info 'Building project...'
+  project.buildRequireConfig()
+  fs.removeSync(project.buildDir)
+  watcher.compileDir(project.clientDir)
 
-    # Minify
-    (done) ->
-      p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production'], {stdio: 'inherit'}
-      p.on 'exit', (code) ->
-        if code isnt 0
-          process.exit(code)
-        else
-          done(null)
+  # Minify
+  logging.info 'Minifying project files...'
+  fs.removeSync(project.tempBuildDir)
+  optimizer.optimizeDir(project.buildDir, project.tempBuildDir)
 
-    # Remove temp directories
-    (done) ->
-      fs.removeSync(project.buildDir)
-      fs.renameSync(project.tempBuildDir, project.buildDir)
-      done(null)
+  # Remove temp directories
+  fs.removeSync(project.buildDir)
+  fs.renameSync(project.tempBuildDir, project.buildDir)
 
-    # Concatenate modules
-    (done) ->
-      for path in project.clientConfig.concat
-        logging.info "Concatenating module dependencies: #{path}"
-        project.buildRequireConfig()
-        optimizer.concatDeps(path)
-      done(null)
-  ]
+  # Concatenate modules
+  for path in project.clientConfig.concat
+    logging.info "Concatenating module dependencies: #{path}"
+    optimizer.concatDeps(path)
 
 # Task - remove the build directory
 task 'clean', 'remove the build directory', ->
@@ -305,32 +287,6 @@ task 'test', 'run tests', ->
   mocha.addFile './test/spec'
   mocha.run (failures) ->
     process.exit (if failures > 0 then 1 else 0)
-
-# Task - start the server and watch files
-task 'server', 'start a webserver', ->
-  project.setEnv 'development'
-  fs.removeSync(project.buildDir)
-
-  async.series [
-    # Build
-    (done) ->
-      p = spawn "#{__dirname}/../bin/muffin", ['build'], {stdio: 'inherit'}
-      p.on 'close', done
-
-    # Watch client dir, start servers.
-    (done) ->
-      project.buildRequireConfig()
-      watcher.watchDir(project.clientDir)
-
-      # Start the live reload server
-      server.startLiveReloadServer()
-
-      # Start either the dummy web server or real app server
-      if fs.existsSync(project.serverDir)
-        server.startAppServer()
-      else
-        server.startDummyWebServer()
-  ]
 
 # Task - deploy the app
 task 'deploy', 'deploy the app', ->

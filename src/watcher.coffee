@@ -4,8 +4,6 @@
 
 fs = require 'fs-extra'
 sysPath = require 'path'
-os = require 'os'
-{spawn} = require 'child_process'
 _ = require 'underscore'
 chokidar = require 'chokidar'
 logging = require './utils/logging'

@@ -33,7 +33,7 @@ Install dependencies:
 
 Start the server:
 
-    $ muffin server
+    $ muffin watch --server
 
 Go to `http://localhost:4000` and see your app in action.
 
