@@ -70,35 +70,35 @@ class Watcher
     # Run through the compiler plugins
     for compiler in project.plugins.compilers
       if extension in compiler.extensions
-        return compiler.destForFile(source)
+        return compiler.destForFile(source, destDir)
 
     # Handle the rest
     filename = sysPath.basename(source)
     return sysPath.join(destDir, filename)
 
   # Compile a single file
-  compileFile: (source, abortOnError=no, callback) ->
+  compileFile: (source, abortOnError=no, callback) =>
     destDir = @destDirForFile(source)
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
     extension = sysPath.extname(source)
+    dest = @destForFile(source)
+
     try
       # Run through the compiler plugins
       for compiler in project.plugins.compilers
         if extension in compiler.extensions
           compiler.compile source, destDir, ->
             logging.info "compiled #{source}"
-            server.reloadBrowser(path)
-            callback(null)
+            server.reloadBrowser(dest)
+            if callback then callback(null)
           return
 
       # Otherwise, copy to the destination
-      filename = sysPath.basename(source)
-      path = sysPath.join(destDir, filename)
-      fs.copy source, path, ->
+      fs.copy source, dest, ->
         logging.info "copied #{source}"
-        server.reloadBrowser(path)
-        callback(null)
+        server.reloadBrowser(dest)
+        if callback then callback(null)
 
     catch err
       logging.error "#{err.message} (#{source})"
@@ -106,7 +106,7 @@ class Watcher
 
   # Remove a file
   removeFile: (source) ->
-    dest = destForFile(source)
+    dest = @destForFile(source)
     stats = fs.statSync(dest)
     if stats.isFile()
       fs.unlinkSync(dest)

@@ -229,8 +229,9 @@ task 'watch', 'watch files and compile as needed', ->
 
   # Watch the client directory
   watch = (done) ->
+    watcher.watchDir(project.clientDir)
     server.startLiveReloadServer()
-    watcher.watchDir(project.clientDir, done)
+    done(null)
 
   # Start either the dummy web server or real app server
   startServer = (done) ->

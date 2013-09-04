@@ -6,9 +6,12 @@
 # 3. A real application server. This can be either a Node.js server or a Google App Engine development server.
 #
 
-http = require 'http'
-send = require 'send'
+sysPath = require 'path'
 url = require 'url'
+http = require 'http'
+{spawn} = require 'child_process'
+_ = require 'underscore'
+send = require 'send'
 WebSocketServer = require('ws').Server
 chokidar = require 'chokidar'
 logging = require './utils/logging'
@@ -83,8 +86,7 @@ class NodeAppServer
       logging.info 'Restarting the application server...'
     else
       # Start the server in a child process
-      child = exports.child = spawn 'node', ['server/server.js'],
-        cwd: process.cwd()
+      child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit', cwd: process.cwd()}
       child.shouldRestart = false
 
       child.stdout.on 'data', (data) ->
@@ -116,7 +118,8 @@ class NodeAppServer
 class GAEAppServer
 
   start: ->
-    spawn 'dev_appserver.py', ['server']
+    console.log 'Starting Google App Engine development server...'
+    spawn 'dev_appserver.py', ['server'], {stdio: 'inherit'}
 
 
 # ## Public interface
