@@ -1,5 +1,5 @@
 fs = require 'fs'
-uglify = require 'uglify-js'
+UglifyJS = require 'uglify-js'
 
 module.exports = (env, callback) ->
 
@@ -10,7 +10,7 @@ module.exports = (env, callback) ->
 
     optimize: (source, dest, callback) ->
       # Use uglifyjs to minify the js file
-      result = uglify.minify([source], {compress: {comparisons: false}})
+      result = UglifyJS.minify([source], {compress: {comparisons: false}})
       fs.writeFileSync dest, result.code
       callback(null, result.code)
 

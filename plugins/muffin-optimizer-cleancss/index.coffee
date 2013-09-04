@@ -10,7 +10,8 @@ module.exports = (env, callback) ->
 
     optimize: (source, dest, callback) ->
       # Use clean-css to minify the css file
-      result = cleanCSS.process(source)
+      sourceData = fs.readFileSync(source).toString()
+      result = cleanCSS.process(sourceData)
       fs.writeFileSync dest, result
       callback(null, result)
 
