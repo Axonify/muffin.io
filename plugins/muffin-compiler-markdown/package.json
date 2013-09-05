@@ -1,0 +1,11 @@
+{
+  "name": "muffin-compiler-markdown",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that compiles Markdown into HTML",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}

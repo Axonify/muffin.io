@@ -4,6 +4,7 @@
   "plugins": [
     "muffin-compiler-jade",
     "muffin-compiler-less",
+    "muffin-compiler-markdown",
     "muffin-generator-client",
     "muffin-optimizer-uglifyjs",
     "muffin-optimizer-cleancss"
