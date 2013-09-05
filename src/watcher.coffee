@@ -105,7 +105,7 @@ class Watcher
       process.exit(1) if abortOnError
 
   # Remove a file
-  removeFile: (source) ->
+  removeFile: (source) =>
     dest = @destForFile(source)
     stats = fs.statSync(dest)
     if stats.isFile()
