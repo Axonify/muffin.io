@@ -2,6 +2,7 @@ fs = require 'fs'
 sysPath = require 'path'
 _ = require 'underscore'
 marked = require 'marked'
+hljs = require 'highlight.js'
 
 module.exports = (env, callback) ->
 
@@ -22,6 +23,14 @@ module.exports = (env, callback) ->
       sourceData = fs.readFileSync(source).toString()
       filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
       path = sysPath.join(destDir, filename)
+
+      # Set highlight option
+      marked.setOptions
+        highlight: (code, lang) ->
+          if lang
+            hljs.highlight(lang, code).value
+          else
+            hljs.highlightAuto(code).value
 
       html = marked(sourceData)
       fs.writeFileSync path, html
