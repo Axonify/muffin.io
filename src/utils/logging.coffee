@@ -1,11 +1,11 @@
-# The `Logger` class provides multi-level logging support,
-# as well as ASCII color support and growl notifications.
+# The `Logger` class supports multiple log levels, ASCII color and
+# growl notifications.
 
 sysPath = require 'path'
 color = require 'ansi-color'
 growl = require 'growl'
 
-# Show messages of different levels in different colors.
+# Color map for log levels
 colors =
   ERROR: 'red'
   WARN: 'yellow'
@@ -34,7 +34,8 @@ class Logger
     @log 'DEBUG', msg
 
   log: (level, msg) =>
-    if level is 'ERROR' or level is 'WARN'
+    # Prepend timestamp and log level to the log message.
+    if level in ['ERROR', 'WARN']
       info = color.set "#{(new Date).toLocaleTimeString()} [#{level}]: #{msg}", colors[level]
       console.error info
     else
@@ -42,5 +43,5 @@ class Logger
       info = "#{prefix}: #{msg}"
       console.log info
 
-# Freeze the Logger object so that it can't be modified later.
+# Freeze the Logger object so it can't be modified later.
 module.exports = Object.freeze(new Logger())

@@ -22,8 +22,8 @@ project = require './project'
 ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(project.buildDir)
 
-# ## Live reload server
 
+# Live reload server
 class LiveReloadServer
 
   constructor: (@port=9485) ->
@@ -55,8 +55,7 @@ class LiveReloadServer
     _(connected).each (c) -> c.send(JSON.stringify(message))
 
 
-# ## Node.js application server
-
+# Node.js application server
 class NodeAppServer
 
   constructor: ->
@@ -113,8 +112,7 @@ class NodeAppServer
           process.exit 1
 
 
-# ## Google App Engine dev server
-
+# Google App Engine dev server
 class GAEAppServer
 
   start: ->
@@ -122,7 +120,8 @@ class GAEAppServer
     spawn 'dev_appserver.py', ['server'], {stdio: 'inherit'}
 
 
-# ## Public interface
+# Public interface
+# ----------------
 
 liveReloadServer = null
 

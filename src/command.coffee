@@ -1,3 +1,5 @@
+# The `muffin` command line tool.
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 async = require 'async'
