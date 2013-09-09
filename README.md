@@ -6,36 +6,51 @@ All documentation, samples and demos are on the hompage - [http://muffin.io](htt
 
 ## Installation
 
-Install Muffin via npm:
+Install Muffin using npm:
 
-    $ [sudo] npm install -g muffin.io
+```bash
+$ [sudo] npm install -g muffin.io
+```
 
 Muffin comes with a command line tool aptly named `muffin`.
 
 To use Google App Engine as the backend stack, you need to install the [Google App Engine SDK for Python](https://developers.google.com/appengine/downloads#Google_App_Engine_SDK_for_Python).
 
-To use Node.js/MongoDB as the backend stack, you need to [install MongoDB](http://docs.mongodb.org/manual/installation/). The easiest way to install MongoDB on Mac OS X is via Homebrew.
+To use Node.js/MongoDB as the backend stack, you need to [install MongoDB](http://docs.mongodb.org/manual/installation/). The easiest way to install MongoDB on Mac OS X is using Homebrew:
 
-    $ brew update
-    $ brew install mongodb
-
+```bash
+$ brew update
+$ brew install mongodb
+```
 
 ## Quick Start
 
 Create a new project:
 
-    $ muffin new <app-name>
+```bash
+$ muffin new <project-name>
+```
+
+This sets up a project boilerplate with only the frontend stack. To specify a server stack, you can use the `--server` or `-s` option:
+
+```bash
+$ muffin new <project-name> -s [nodejs|gae]
+```
 
 Install dependencies:
 
-    $ cd /path/to/your/app
-    $ muffin install
+```bash
+$ cd /path/to/your/project
+$ muffin install
+```
 
-Start the server:
+Start the development server while watching for file changes:
 
-    $ muffin watch --server
+```bash
+$ muffin watch -s
+```
 
-Go to `http://localhost:4000` and see your app in action.
+Now point your browser to `http://localhost:4000` and see your app in action.
 
 
 ## License

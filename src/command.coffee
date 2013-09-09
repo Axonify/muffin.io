@@ -13,8 +13,8 @@ optimizer = require './optimizer'
 BANNER = '''
   Usage:
 
-    muffin new <app-name>
-      - create a new application
+    muffin new <project-name>
+      - create a new project
       - you can specify a server stack with: --server [nodejs|gae]
 
     Code generators:
