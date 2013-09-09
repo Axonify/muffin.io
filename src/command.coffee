@@ -11,16 +11,17 @@ server = require './server'
 pkgmgr = require './pkgmgr'
 optimizer = require './optimizer'
 
-# The help banner that is printed when `muffin` is called without arguments.
+# The help banner
 BANNER = '''
   Usage:
 
-    muffin new <project-name>
-      - create a new project
-      - you can specify a server stack with: --server [nodejs|gae]
+    Create a new project:
+      * muffin new <project-name> (the frontend stack only)
+      * muffin new <project-name> -s nodejs (frontend and nodejs server stack)
+      * muffin new <project-name> -s gae (frontend and Google App Engine server stack)
 
     Code generators:
-      * muffin generate model user
+      * muffin generate model user (use --app option to generate inside a specific app)
       * muffin generate view UserListView
       * muffin generate scaffold user name:string email:string age:number --app auth
 
@@ -30,32 +31,25 @@ BANNER = '''
       * muffin destroy scaffold user --app auth
 
     Package management:
-      * muffin install <package-name>
-      * muffin install (installs all the frontend dependencies specified in package.json)
-      * muffin update <package-name>
-      * muffin update (updates all the frontend dependencies)
+      * muffin install <package-name> (install a Muffin package and save in config.json)
+      * muffin install (install all packages listed in config.json)
+      * muffin update <package-name> (update a Muffin package and save in config.json)
+      * muffin update  (update all packages listed in config.json)
 
-    muffin watch
-      - env is set to 'development'
-      - watch the current project and recompile as needed
-      - you can specify --server or -s to start a web server (auto detected from server type)
+    Watch mode:
+      * muffin watch (watch the client files and recompile as needed)
+      * muffin watch -s (watch the client files and start an app server)
 
-    muffin build
-      - make a development build, env is set to 'development'
-      - compile coffeescripts into javascripts and copy assets to `public/` directory
+    Build:
+      * muffin build (env is set to 'development', files are compiled but not minified)
+      * muffin minify (env is set to 'production', files are minified and concatenated)
+      * muffin clean (removes the build directory)
 
-    muffin minify
-      - make a production build, env is set to 'production'
-      - minify and concatenate js/css files, build for production
+    Run tests:
+      * muffin test (tests are written in Mocha)
 
-    muffin clean
-      - remove the build directory
-
-    muffin test
-      - run tests written in Mocha or Zombie.js
-
-    muffin deploy [heroku | amazon | nodejitsu]
-      - deploy to Heroku, Amazon or Nodejitsu
+    Deploy:
+      * muffin deploy [heroku|jitsu|gh-pages]
 
     -h, --help         display this help message
     -v, --version      display the version number

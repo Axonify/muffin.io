@@ -1,7 +1,5 @@
-#
-# A simple utility to download files via HTTP requests.
-# Supports gzip decompression and HTTPS.
-#
+# A simple utility to download files via HTTP.
+# Supports gzip and HTTPS.
 
 fs = require 'fs-extra'
 http = require 'http'

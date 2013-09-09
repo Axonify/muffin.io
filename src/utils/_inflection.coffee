@@ -1,6 +1,7 @@
 # Underscore.inflection
 # (c) 2011 Lance Carlson <lcarlson at rubyskills dot com>
 # Ported from http://code.google.com/p/inflection-js/source/browse/trunk/inflection.js
+
 _ = require 'underscore'
 _.str = require 'underscore.string'
 _.mixin(_.str.exports())
