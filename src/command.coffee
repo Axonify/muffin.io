@@ -93,6 +93,16 @@ task 'new', 'create a new project', ->
   projectDir = sysPath.join(process.cwd(), projectName)
   logging.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
 
+  # Create project boilerplate
+  opts.server ?= 'none'
+  switch opts.server
+    when 'none'
+      async.series [createProjectDir, copyClientSkeleton, writeJSONConfig, writeGitIgnore, printMessage]
+    when 'nodejs'
+      async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, writeJSONConfig, writeGitIgnore, printMessage]
+    when 'gae'
+      async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, writeJSONConfig, writeGitIgnore, printMessage]
+
   # Copy skeleton files
   createProjectDir = (done) ->
     fs.mkdir projectDir, done
@@ -128,22 +138,23 @@ task 'new', 'create a new project', ->
     done(null)
 
   writeGitIgnore = (done) ->
-    from = sysPath.join(project.muffinDir, 'skeletons/.gitignore')
-    to = sysPath.join(projectDir, '.gitignore')
-    fs.copy from, to, done
+    switch opts.server
+      when 'none'
+        from = sysPath.join(project.muffinDir, 'skeletons/_gitignore')
+        to = sysPath.join(projectDir, '.gitignore')
+        fs.copy from, to, done
+      when 'nodejs'
+        from = sysPath.join(project.muffinDir, 'skeletons/nodejs/_gitignore')
+        to = sysPath.join(projectDir, 'server/.gitignore')
+        fs.copy from, to, done
+      when 'gae'
+        from = sysPath.join(project.muffinDir, 'skeletons/gae/_gitignore')
+        to = sysPath.join(projectDir, 'server/.gitignore')
+        fs.copy from, to, done
 
   printMessage = (done) ->
     logging.info "The application '#{projectName}' has been created."
     logging.info "You need to run `muffin install` inside the project directory to install dependencies."
-
-  opts.server ?= 'none'
-  switch opts.server
-    when 'none'
-      async.series [createProjectDir, copyClientSkeleton, writeJSONConfig, writeGitIgnore, printMessage]
-    when 'nodejs'
-      async.series [createProjectDir, copyClientSkeleton, copyNodeJSSkeleton, writeJSONConfig, printMessage]
-    when 'gae'
-      async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, writeJSONConfig, printMessage]
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->
@@ -151,7 +162,7 @@ task 'generate model', 'create a new model', ->
   logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.generateModel(model, app, opts)
+    generator.generateModel?(model, app, opts)
 
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
@@ -159,7 +170,7 @@ task 'destroy model', 'remove a generated model', ->
   logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.destroyModel(model, app)
+    generator.destroyModel?(model, app)
 
 # Task - create a new view
 task 'generate view', 'create a new view', ->
@@ -167,7 +178,7 @@ task 'generate view', 'create a new view', ->
   logging.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.generateView(view, app)
+    generator.generateView?(view, app)
 
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
@@ -175,7 +186,7 @@ task 'destroy view', 'remove a generated view', ->
   logging.fatal "Must supply a name for the view" unless view
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.destroyView(view, app)
+    generator.destroyView?(view, app)
 
 # Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
 task 'generate scaffold', 'create scaffold for a resource', ->
@@ -183,7 +194,7 @@ task 'generate scaffold', 'create scaffold for a resource', ->
   logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.generateScaffold(model, app, opts)
+    generator.generateScaffold?(model, app, opts)
 
 # Task - remove generated scaffold for a resource
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
@@ -191,7 +202,7 @@ task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   logging.fatal "Must supply a name for the model" unless model
   app = opts.app ? 'main'
   for generator in project.plugins.generators
-    generator.destroyScaffold(model, app)
+    generator.destroyScaffold?(model, app)
 
 # Task - install packages
 task 'install', 'install packages', ->

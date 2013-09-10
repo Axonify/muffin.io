@@ -1,4 +1,5 @@
 sysPath = require 'path'
+fs = require 'fs'
 
 module.exports = (env, callback) ->
 
@@ -45,7 +46,7 @@ module.exports = (env, callback) ->
         interpolate : /<\$=([\s\S]+?)\$>/g,
         escape      : /<\$-([\s\S]+?)\$>/g
 
-      routes = fs.readFileSync(sysPath.join(templatesDir, 'router.coffee')).toString()
+      routes = fs.readFileSync(sysPath.join(@templatesDir, 'router.coffee')).toString()
       lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
       @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
       @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null

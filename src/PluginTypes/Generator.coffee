@@ -20,7 +20,7 @@ class Generator
         escape      : /<\$-([\s\S]+?)\$>/g
 
       fs.writeFileSync to, _.template(ejs, data)
-      logging.info " * Create #{to}"
+      logging.info " * Created #{sysPath.relative(process.cwd(), to)}"
 
   # Inject code into file
   injectIntoFile: (path, code, before, after) ->
@@ -34,13 +34,13 @@ class Generator
       index += after.length
     data = data[0...index] + code + data[index..]
     fs.writeFileSync path, data
-    logging.info " * Update #{path}"
+    logging.info " * Updated #{sysPath.relative(process.cwd(), path)}"
 
   # Remove files
   removeFiles: (files) ->
     _(files).each (file) ->
       fs.unlink file, (err) ->
-        logging.info " * Removed #{file}" unless err
+        logging.info " * Removed #{sysPath.relative(process.cwd(), file)}" unless err
 
   # Retrieve the model attributes
   parseAttrs: (args) ->
