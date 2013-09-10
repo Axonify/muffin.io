@@ -17,7 +17,7 @@ BANNER = '''
 
     Create a new project:
       * muffin new <project-name> (the frontend stack only)
-      * muffin new <project-name> -s nodejs (frontend and nodejs server stack)
+      * muffin new <project-name> -s nodejs (frontend and Node.js server stack)
       * muffin new <project-name> -s gae (frontend and Google App Engine server stack)
 
     Code generators:
@@ -38,18 +38,19 @@ BANNER = '''
 
     Watch mode:
       * muffin watch (watch the client files and recompile as needed)
-      * muffin watch -s (watch the client files and start an app server)
+      * muffin watch -s (watch the client files and start a web server/app server)
 
     Build:
       * muffin build (env is set to 'development', files are compiled but not minified)
       * muffin minify (env is set to 'production', files are minified and concatenated)
-      * muffin clean (removes the build directory)
+      * muffin server (run the server without watching client files, useful for testing the production build)
+      * muffin clean (remove the build directory)
 
     Run tests:
       * muffin test (tests are written in Mocha)
 
     Deploy:
-      * muffin deploy [heroku|jitsu|gh-pages]
+      * muffin deploy [heroku|jitsu|gae|gh-pages]
 
     -h, --help         display this help message
     -v, --version      display the version number
@@ -60,7 +61,7 @@ BANNER = '''
 SWITCHES = [
   ['-h', '--help',            'display this help message']
   ['-v', '--version',         'display the version number']
-  ['-s', '--server',          'choose the server stack']
+  ['-s', '--server',          'choose the server stack or start the server']
   ['-a', '--app',             'set the app (default to main)']
 ]
 
@@ -78,22 +79,90 @@ invoke = (name) ->
 
 # Run `muffin`
 exports.run = ->
+  # Remove the first two arguments because they are generic.
+  # `process.argv = ['node', '/usr/local/lib/node_modules/muffin.io/bin/muffin', ...]`
   opts = optparse.parse(process.argv[2..], SWITCHES)
-  return usage() if opts.help or opts.arguments.length is 0
   return version() if opts.version
+  return usage() if opts.help or opts.arguments.length is 0
 
+  # The task name may consist of one or two words.
   for len in [1..2]
-    name = opts.arguments[0...len].join(' ')
-    return invoke name if tasks[name]
+    name = opts.arguments[...len].join(' ')
+    if tasks[name] then return invoke name
+
+  # The task name is not recognized.
+  logging.fatal "Muffin can't run the task '#{opts.arguments.join(' ')}'."
 
 # Task - create a new project
 task 'new', 'create a new project', ->
   projectName = opts.arguments[1]
-  logging.fatal "Must supply a name for the new project" unless projectName
+  logging.fatal "You must provide a name for the project." unless projectName
   projectDir = sysPath.join(process.cwd(), projectName)
-  logging.fatal "The application #{projectName} already exists." if fs.existsSync(projectDir)
+  logging.fatal "The application '#{projectName}' already exists." if fs.existsSync(projectDir)
 
-  # Create project boilerplate
+  # Create the project directory
+  createProjectDir = (done) ->
+    fs.mkdir projectDir, done
+
+  # Copy client boilerplate
+  copyClientSkeleton = (done) ->
+    from = sysPath.join(__dirname, '../skeletons/client')
+    to = sysPath.join(projectDir, 'client')
+    fs.copy from, to, done
+
+  # Copy Node.js/MongoDB boilerplate
+  copyNodeJSSkeleton = (done) ->
+    from = sysPath.join(__dirname, '../skeletons/nodejs')
+    to = sysPath.join(projectDir, 'server')
+    fs.copy from, to, done
+
+  # Copy Google App Engine boilerplate
+  copyGAESkeleton = (done) ->
+    from = sysPath.join(__dirname, '../skeletons/gae')
+    to = sysPath.join(projectDir, 'server')
+    fs.copy from, to, done
+
+  # Write `config.json` in the project directory
+  writeJSONConfig = (done) ->
+    from = sysPath.join(__dirname, '../skeletons/config.json')
+    json = JSON.parse(fs.readFileSync(from))
+    switch opts.server
+      when 'nodejs'
+        json.serverDir = 'server'
+        json.serverType = 'nodejs'
+        json.buildDir = 'server/public'
+        json.plugins.push 'muffin-generator-nodejs'
+      when 'gae'
+        json.serverDir = 'server'
+        json.serverType = 'gae'
+        json.buildDir = 'server/public'
+        json.plugins.push 'muffin-generator-gae'
+    to = sysPath.join(projectDir, 'config.json')
+    fs.writeFileSync(to, JSON.stringify(json, null, 2))
+    done(null)
+
+  # Write .gitignore files
+  writeGitIgnore = (done) ->
+    switch opts.server
+      when 'none'
+        from = sysPath.join(__dirname, '../skeletons/_gitignore')
+        to = sysPath.join(projectDir, '.gitignore')
+        fs.copy from, to, done
+      when 'nodejs'
+        from = sysPath.join(__dirname, '../skeletons/nodejs/_gitignore')
+        to = sysPath.join(projectDir, 'server/.gitignore')
+        fs.copy from, to, done
+      when 'gae'
+        from = sysPath.join(__dirname, '../skeletons/gae/_gitignore')
+        to = sysPath.join(projectDir, 'server/.gitignore')
+        fs.copy from, to, done
+
+  # Print completion message
+  printMessage = (done) ->
+    logging.info "The application '#{projectName}' has been created."
+    logging.info "You need to run `muffin install` inside the project directory to install dependencies."
+
+  # Use `async` to run these functions in series.
   opts.server ?= 'none'
   switch opts.server
     when 'none'
@@ -103,104 +172,87 @@ task 'new', 'create a new project', ->
     when 'gae'
       async.series [createProjectDir, copyClientSkeleton, copyGAESkeleton, writeJSONConfig, writeGitIgnore, printMessage]
 
-  # Copy skeleton files
-  createProjectDir = (done) ->
-    fs.mkdir projectDir, done
-
-  copyClientSkeleton = (done) ->
-    from = sysPath.join(project.muffinDir, 'skeletons/client')
-    to = sysPath.join(projectDir, 'client')
-    fs.copy from, to, done
-
-  copyNodeJSSkeleton = (done) ->
-    from = sysPath.join(project.muffinDir, 'skeletons/nodejs')
-    to = sysPath.join(projectDir, 'server')
-    fs.copy from, to, done
-
-  copyGAESkeleton = (done) ->
-    from = sysPath.join(project.muffinDir, 'skeletons/gae')
-    to = sysPath.join(projectDir, 'server')
-    fs.copy from, to, done
-
-  writeJSONConfig = (done) ->
-    json = JSON.parse(fs.readFileSync(sysPath.join(project.muffinDir, 'skeletons/config.json')))
-    switch opts.server
-      when 'nodejs'
-        json.serverDir = 'server'
-        json.buildDir = 'server/public'
-        json.plugins.push 'muffin-generator-nodejs'
-      when 'gae'
-        json.serverDir = 'server'
-        json.buildDir = 'server/public'
-        json.plugins.push 'muffin-generator-gae'
-    to = sysPath.join(projectDir, 'config.json')
-    fs.writeFileSync(to, JSON.stringify(json, null, 2))
-    done(null)
-
-  writeGitIgnore = (done) ->
-    switch opts.server
-      when 'none'
-        from = sysPath.join(project.muffinDir, 'skeletons/_gitignore')
-        to = sysPath.join(projectDir, '.gitignore')
-        fs.copy from, to, done
-      when 'nodejs'
-        from = sysPath.join(project.muffinDir, 'skeletons/nodejs/_gitignore')
-        to = sysPath.join(projectDir, 'server/.gitignore')
-        fs.copy from, to, done
-      when 'gae'
-        from = sysPath.join(project.muffinDir, 'skeletons/gae/_gitignore')
-        to = sysPath.join(projectDir, 'server/.gitignore')
-        fs.copy from, to, done
-
-  printMessage = (done) ->
-    logging.info "The application '#{projectName}' has been created."
-    logging.info "You need to run `muffin install` inside the project directory to install dependencies."
-
 # Task - create a new model
 task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
-  logging.fatal "Must supply a name for the model" unless model
+  logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
+
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
   for generator in project.plugins.generators
-    generator.generateModel?(model, app, opts)
+    generator.generateModel?(model, app, opts.arguments[3..])
 
 # Task - remove a generated model
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
-  logging.fatal "Must supply a name for the model" unless model
+  logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
+
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
   for generator in project.plugins.generators
     generator.destroyModel?(model, app)
 
 # Task - create a new view
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
-  logging.fatal "Must supply a name for the view" unless view
+  logging.fatal "You must provide a name for the view." unless view
   app = opts.app ? 'main'
+
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
   for generator in project.plugins.generators
     generator.generateView?(view, app)
 
 # Task - remove a generated view
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
-  logging.fatal "Must supply a name for the view" unless view
+  logging.fatal "You must provide a name for the view." unless view
   app = opts.app ? 'main'
+
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
   for generator in project.plugins.generators
     generator.destroyView?(view, app)
 
-# Task - create scaffold for a resource, including client models, views, templates, tests, and server models, RESTful APIs
-task 'generate scaffold', 'create scaffold for a resource', ->
+# Task - create scaffolding for a resource
+task 'generate scaffold', 'create scaffolding for a resource', ->
   model = opts.arguments[2]
-  logging.fatal "Must supply a name for the model" unless model
+  logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
-  for generator in project.plugins.generators
-    generator.generateScaffold?(model, app, opts)
 
-# Task - remove generated scaffold for a resource
-task 'destroy scaffold', 'remove generated scaffold for a resource', ->
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
+  for generator in project.plugins.generators
+    generator.generateScaffold?(model, app, opts.arguments[3..])
+
+# Task - remove generated scaffolding for a resource
+task 'destroy scaffold', 'remove generated scaffolding for a resource', ->
   model = opts.arguments[2]
-  logging.fatal "Must supply a name for the model" unless model
+  logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
+
+  # Load plugins
+  project.setEnv 'development'
+  project.loadPlugins()
+
+  # Invoke each generator to do its job.
   for generator in project.plugins.generators
     generator.destroyScaffold?(model, app)
 
@@ -249,7 +301,7 @@ task 'watch', 'watch files and compile as needed', ->
 
   # Start either the dummy web server or real app server
   startServer = (done) ->
-    if project.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
+    if project.config.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
       server.startAppServer()
     else
       server.startDummyWebServer()

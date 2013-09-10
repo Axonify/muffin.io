@@ -10,7 +10,6 @@ module.exports = (env, callback) ->
 
     constructor: ->
       @project = env.project
-      @loadHtmlHelpers()
 
     destForFile: (source, destDir) ->
       filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
@@ -27,7 +26,7 @@ module.exports = (env, callback) ->
       html = fn()
 
       # Run through the template engine and write to the output file
-      html = _.template(html, _.extend({}, {settings: env.project.clientConfig}, @htmlHelpers))
+      html = _.template(html, _.extend({}, {settings: env.project.clientConfig}, @project.htmlHelpers))
       fs.writeFileSync path, html
       callback(null, html)
 

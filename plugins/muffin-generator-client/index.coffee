@@ -7,9 +7,9 @@ module.exports = (env, callback) ->
 
     templatesDir: sysPath.join(__dirname, './templates')
 
-    generateModel: (model, app, opts) ->
+    generateModel: (model, app, args) ->
       _ = env._
-      attrs = @parseAttrs(opts.arguments[3..])
+      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
@@ -43,9 +43,9 @@ module.exports = (env, callback) ->
       ]
       @removeFiles(files)
 
-    generateScaffold: (model, app, opts) ->
+    generateScaffold: (model, app, args) ->
       _ = env._
-      attrs = @parseAttrs(opts.arguments[3..])
+      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
