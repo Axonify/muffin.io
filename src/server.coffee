@@ -1,10 +1,8 @@
-#
 # Muffin can start up three servers:
 #
 # 1. A socket server that provides live reload support
 # 2. A dummy web server that serves client files in the build directory. This is useful when a server stack is not available or needed.
 # 3. A real application server. This can be either a Node.js server or a Google App Engine development server.
-#
 
 sysPath = require 'path'
 url = require 'url'

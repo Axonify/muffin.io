@@ -178,11 +178,8 @@ task 'generate model', 'create a new model', ->
   logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.generateModel?(model, app, opts.arguments[3..])
 
@@ -192,11 +189,8 @@ task 'destroy model', 'remove a generated model', ->
   logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.destroyModel?(model, app)
 
@@ -206,11 +200,8 @@ task 'generate view', 'create a new view', ->
   logging.fatal "You must provide a name for the view." unless view
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.generateView?(view, app)
 
@@ -220,11 +211,8 @@ task 'destroy view', 'remove a generated view', ->
   logging.fatal "You must provide a name for the view." unless view
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.destroyView?(view, app)
 
@@ -234,11 +222,8 @@ task 'generate scaffold', 'create scaffolding for a resource', ->
   logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.generateScaffold?(model, app, opts.arguments[3..])
 
@@ -248,11 +233,8 @@ task 'destroy scaffold', 'remove generated scaffolding for a resource', ->
   logging.fatal "You must provide a name for the model." unless model
   app = opts.app ? 'main'
 
-  # Load plugins
-  project.setEnv 'development'
-  project.loadPlugins()
-
   # Invoke each generator to do its job.
+  project.setEnv 'development'
   for generator in project.plugins.generators
     generator.destroyScaffold?(model, app)
 
@@ -289,8 +271,8 @@ task 'watch', 'watch files and compile as needed', ->
 
   # Rebuild
   rebuild = (done) ->
-    project.buildRequireConfig()
     fs.removeSync(project.buildDir)
+    project.loadHtmlHelpers()
     watcher.compileDir(project.clientDir, done)
 
   # Watch the client directory
@@ -315,8 +297,8 @@ task 'watch', 'watch files and compile as needed', ->
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   project.setEnv 'development'
-  project.buildRequireConfig()
   fs.removeSync(project.buildDir)
+  project.loadHtmlHelpers()
   watcher.compileDir project.clientDir, -> {}
 
 # Task - minify and concatenate js/css files for production
@@ -326,8 +308,8 @@ task 'minify', 'minify and concatenate js/css files for production', ->
 
   rebuild = (done) ->
     logging.info 'Building project...'
-    project.buildRequireConfig()
     fs.removeSync(project.buildDir)
+    project.loadHtmlHelpers()
     watcher.compileDir(project.clientDir, done)
 
   minify = (done) ->
