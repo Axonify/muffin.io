@@ -5,7 +5,6 @@ module.exports = (env, callback) ->
 
   class UglifyJSOptimizer extends env.Optimizer
 
-    type: 'optimizer'
     extensions: ['.js']
 
     optimize: (source, dest, callback) ->

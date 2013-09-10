@@ -1,6 +1,5 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 marked = require 'marked'
 hljs = require 'highlight.js'
 
@@ -8,7 +7,6 @@ module.exports = (env, callback) ->
 
   class MarkdownCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.md', '.markdown', '.mdown', '.mkd', '.mkdn']
 
     constructor: ->

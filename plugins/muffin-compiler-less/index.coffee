@@ -6,7 +6,6 @@ module.exports = (env, callback) ->
 
   class LessCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.less']
 
     constructor: ->

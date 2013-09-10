@@ -5,7 +5,6 @@ module.exports = (env, callback) ->
 
   class CleanCSSOptimizer extends env.Optimizer
 
-    type: 'optimizer'
     extensions: ['.css']
 
     optimize: (source, dest, callback) ->

@@ -1,13 +1,11 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 jade = require 'jade'
 
 module.exports = (env, callback) ->
 
   class JadeCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.jade']
 
     constructor: ->
@@ -19,6 +17,8 @@ module.exports = (env, callback) ->
       return sysPath.join(destDir, filename)
 
     compile: (source, destDir, callback) ->
+      _ = env._
+
       # Compile Jade into html
       sourceData = fs.readFileSync(source).toString()
       filename = sysPath.basename(source, sysPath.extname(source)) + '.html'

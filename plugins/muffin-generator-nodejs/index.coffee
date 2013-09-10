@@ -4,10 +4,10 @@ module.exports = (env, callback) ->
 
   class NodeJSGenerator extends env.Generator
 
-    type: 'generator'
-    templatesDir: './templates'
+    templatesDir: sysPath.join(__dirname, './templates')
 
     generateModel: (model, app, opts) ->
+      _ = env._
       attrs = @parseAttrs(opts.arguments[3..])
       classified = _.classify(model)
       underscored = _.underscored(model)
@@ -19,6 +19,7 @@ module.exports = (env, callback) ->
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
+      _ = env._
       classified = _.classify(model)
       files = [
         "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
@@ -27,6 +28,7 @@ module.exports = (env, callback) ->
       @removeFiles(files)
 
     generateScaffold: (model, app, opts) ->
+      _ = env._
       attrs = @parseAttrs(opts.arguments[3..])
       classified = _.classify(model)
       underscored = _.underscored(model)
@@ -49,6 +51,7 @@ module.exports = (env, callback) ->
       @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
 
     destroyScaffold: (model, app) ->
+      _ = env._
       classified = _.classify(model)
       files = [
         "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"

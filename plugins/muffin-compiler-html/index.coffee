@@ -1,12 +1,10 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 
 module.exports = (env, callback) ->
 
   class HtmlCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.html', '.htm']
 
     constructor: ->
@@ -18,6 +16,8 @@ module.exports = (env, callback) ->
       return sysPath.join(destDir, filename)
 
     compile: (source, destDir, callback) ->
+      _ = env._
+
       # Run the source file through template engine
       sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings: @project.clientConfig}, @htmlHelpers))
       filename = sysPath.basename(source)

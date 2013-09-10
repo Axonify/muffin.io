@@ -1,13 +1,11 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 CoffeeScript = require 'coffee-script'
 
 module.exports = (env, callback) ->
 
   class CoffeeScriptCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.coffee']
 
     constructor: ->
@@ -18,6 +16,8 @@ module.exports = (env, callback) ->
       return sysPath.join(destDir, filename)
 
     compile: (source, destDir, callback) ->
+      _ = env._
+
       # Run the source file through template engine
       sourceData = _.template(fs.readFileSync(source).toString(), {settings: @project.clientConfig})
       filename = sysPath.basename(source, sysPath.extname(source)) + '.js'

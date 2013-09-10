@@ -1,14 +1,11 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
-_ = require '../utils/_inflection'
+_ = require 'underscore'
 logging = require '../utils/logging'
 
 class Generator
 
   type: 'generator'
-
-  constructor: ->
-    @templateDir = './templates'
 
   # Create new models/collections from templates
   copyTemplate: (data, mapping) ->

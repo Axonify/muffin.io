@@ -1,12 +1,10 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 
 module.exports = (env, callback) ->
 
   class JavaScriptCompiler extends env.Compiler
 
-    type: 'compiler'
     extensions: ['.js']
 
     constructor: ->

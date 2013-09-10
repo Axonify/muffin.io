@@ -1,15 +1,14 @@
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
 
 module.exports = (env, callback) ->
 
   class ClientGenerator extends env.Generator
 
-    type: 'generator'
     templatesDir: sysPath.join(__dirname, './templates')
 
     generateModel: (model, app, opts) ->
+      _ = env._
       attrs = @parseAttrs(opts.arguments[3..])
       classified = _.classify(model)
       underscored = _.underscored(model)
@@ -21,6 +20,7 @@ module.exports = (env, callback) ->
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
+      _ = env._
       classified = _.classify(model)
       files = [
         "#{env.project.clientDir}/apps/#{app}/models/#{classified}.coffee"
@@ -29,12 +29,14 @@ module.exports = (env, callback) ->
       @removeFiles(files)
 
     generateView: (view, app) ->
+      _ = env._
       mapping =
         'views/view.coffee': "#{env.project.clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
         'templates/view.jade': "#{env.project.clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
       @copyTemplate {view, _}, mapping
 
     destroyView: (view, app) ->
+      _ = env._
       files = [
         "#{env.project.clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
         "#{env.project.clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
@@ -42,6 +44,7 @@ module.exports = (env, callback) ->
       @removeFiles(files)
 
     generateScaffold: (model, app, opts) ->
+      _ = env._
       attrs = @parseAttrs(opts.arguments[3..])
       classified = _.classify(model)
       underscored = _.underscored(model)
@@ -73,6 +76,7 @@ module.exports = (env, callback) ->
       @injectIntoFile "#{env.project.clientDir}/apps/#{app}/router.coffee", lines[6..24].join('\n') + '\n\n', "module.exports", null
 
     destroyScaffold: (model, app) ->
+      _ = env._
       classified = _.classify(model)
       files = [
         "#{env.project.clientDir}/apps/#{app}/models/#{classified}.coffee"

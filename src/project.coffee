@@ -4,7 +4,7 @@
 
 fs = require 'fs'
 sysPath = require 'path'
-_ = require 'underscore'
+_ = require './utils/_inflection'
 Generator = require('./PluginTypes/Generator')
 Compiler = require('./PluginTypes/Compiler')
 Optimizer = require("./PluginTypes/Optimizer")
@@ -63,7 +63,7 @@ class Project
         when 'optimizer'
           @plugins['optimizers'].push plugin
 
-    pluginsEnv = {Generator, Compiler, Optimizer, project: @}
+    pluginsEnv = {Generator, Compiler, Optimizer, project: @, _}
 
     # Search in Muffin's built-in plugins folder
     pluginPath = sysPath.join(__dirname, "../plugins/#{name}")

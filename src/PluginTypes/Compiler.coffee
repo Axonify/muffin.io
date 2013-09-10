@@ -5,6 +5,8 @@ CoffeeScript = require 'coffee-script'
 
 class Compiler
 
+  type: 'compiler'
+
   loadHtmlHelpers: ->
     # Underscore template settings
     _.templateSettings =
