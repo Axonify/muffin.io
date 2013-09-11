@@ -13,21 +13,17 @@ class Project
 
   constructor: ->
     @clientConfig = {}
-    @serverConfig = {}
 
     # These are used to facilitate module loading.
     @requireConfig = {}
     @packageDeps = {}
 
-    # Load `config.json` in the project directory
-    try
-      @config = require sysPath.resolve('config.json')
-      @parseConfig()
-    catch e
-      return
+    # Load configuration file
+    try @parseConfig()
 
   # Retrieve directory settings from the config file
   parseConfig: ->
+    @config = require sysPath.resolve('config.json')
     @clientDir = sysPath.resolve(@config.clientDir ? 'client')
     @serverDir = sysPath.resolve(@config.serverDir ? 'server')
     @buildDir = sysPath.resolve(@config.buildDir ? 'public')
@@ -50,16 +46,6 @@ class Project
           _.extend @clientConfig, value
       else
         @clientConfig[key] = value
-
-    @serverConfig = {env}
-    config = {}
-    try config = require sysPath.join(@serverDir, 'config.json')
-    for key, value of config
-      if key in ['development', 'production', 'test']
-        if key is env
-          _.extend @serverConfig, value
-      else
-        @serverConfig[key] = value
 
     # Now that all the settings are loaded, we are ready to load plugins.
     @loadPlugins()

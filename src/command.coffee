@@ -157,12 +157,12 @@ task 'new', 'create a new project', ->
         to = sysPath.join(projectDir, 'server/.gitignore')
         fs.copy from, to, done
 
-  # Print completion message
+  # Print the completion message
   printMessage = (done) ->
     logging.info "The application '#{projectName}' has been created."
     logging.info "You need to run `muffin install` inside the project directory to install dependencies."
 
-  # Use `async` to run these functions in series.
+  # Use `async` to run these subtasks in series.
   opts.server ?= 'none'
   switch opts.server
     when 'none'
@@ -264,16 +264,23 @@ task 'install', 'install packages', ->
 # Task - update packages
 task 'update', 'update packages', ->
 
+# Common subtask: build
+build = (done) ->
+  fs.removeSync(project.buildDir)
+  project.loadHtmlHelpers()
+  watcher.compileDir(project.clientDir, done)
+
+# Common subtask: startServer
+startServer = (done) ->
+  if project.config.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
+    server.startAppServer()
+  else
+    server.startDummyWebServer()
+
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   project.setEnv 'development'
-
-  # Rebuild
-  rebuild = (done) ->
-    fs.removeSync(project.buildDir)
-    project.loadHtmlHelpers()
-    watcher.compileDir(project.clientDir, done)
 
   # Watch the client directory
   watch = (done) ->
@@ -281,36 +288,21 @@ task 'watch', 'watch files and compile as needed', ->
     server.startLiveReloadServer()
     done(null)
 
-  # Start either the dummy web server or real app server
-  startServer = (done) ->
-    if project.config.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
-      server.startAppServer()
-    else
-      server.startDummyWebServer()
-
   if opts.server
-    async.series [rebuild, watch, startServer]
+    async.series [build, watch, startServer]
   else
-    async.series [rebuild, watch]
+    async.series [build, watch]
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
   logging.info 'Building project...'
   project.setEnv 'development'
-  fs.removeSync(project.buildDir)
-  project.loadHtmlHelpers()
-  watcher.compileDir project.clientDir, -> {}
+  build -> {}
 
 # Task - minify and concatenate js/css files for production
 task 'minify', 'minify and concatenate js/css files for production', ->
   logging.info 'Preparing project files for production...'
   project.setEnv 'production'
-
-  rebuild = (done) ->
-    logging.info 'Building project...'
-    fs.removeSync(project.buildDir)
-    project.loadHtmlHelpers()
-    watcher.compileDir(project.clientDir, done)
 
   minify = (done) ->
     logging.info 'Minifying project files...'
@@ -330,7 +322,11 @@ task 'minify', 'minify and concatenate js/css files for production', ->
       optimizer.concatDeps(path)
     done(null)
 
-  async.series [rebuild, minify, removeTempDirs, concat]
+  async.series [build, minify, removeTempDirs, concat]
+
+# Task - start a server without watching client files
+task 'server', 'start a server without watching client files', ->
+  startServer -> {}
 
 # Task - remove the build directory
 task 'clean', 'remove the build directory', ->
