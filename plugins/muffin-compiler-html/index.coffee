@@ -1,3 +1,5 @@
+# A Muffin plugin that handles HTML files.
+
 fs = require 'fs'
 sysPath = require 'path'
 
@@ -10,18 +12,20 @@ module.exports = (env, callback) ->
     constructor: ->
       @project = env.project
 
-    destForFile: (source, destDir) ->
-      filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
-      return sysPath.join(destDir, filename)
+    destForFile: (path, destDir) ->
+      ext = sysPath.extname(path)
+      filename = sysPath.basename(path, ext) + '.html'
+      sysPath.join(destDir, filename)
 
-    compile: (source, destDir, callback) ->
+    compile: (path, destDir, callback) ->
       _ = env._
 
-      # Run the source file through template engine
-      sourceData = _.template(fs.readFileSync(source).toString(), _.extend({}, {settings: @project.clientConfig}, @project.htmlHelpers))
-      filename = sysPath.basename(source)
-      path = sysPath.join(destDir, filename)
-      fs.writeFileSync(path, sourceData)
-      callback(null, sourceData)
+      # Run the file through the template engine
+      data = _.template(fs.readFileSync(path).toString(), _.extend({}, {settings: @project.clientConfig}, @project.htmlHelpers))
+
+      # Write to dest
+      dest = @destForFile(path, destDir)
+      fs.writeFileSync dest, data
+      callback(null, data)
 
   callback(new HtmlCompiler())

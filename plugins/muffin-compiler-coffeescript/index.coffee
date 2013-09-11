@@ -14,7 +14,8 @@ module.exports = (env, callback) ->
       @project = env.project
 
     destForFile: (path, destDir) ->
-      filename = sysPath.basename(path, sysPath.extname(path)) + '.js'
+      ext = sysPath.extname(path)
+      filename = sysPath.basename(path, ext) + '.js'
       sysPath.join(destDir, filename)
 
     compile: (path, destDir, callback) ->

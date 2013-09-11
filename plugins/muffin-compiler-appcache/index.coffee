@@ -1,3 +1,5 @@
+# A Muffin plugin that handles appcache files.
+
 fs = require 'fs'
 sysPath = require 'path'
 
@@ -10,16 +12,19 @@ module.exports = (env, callback) ->
     constructor: ->
       @project = env.project
 
-    destForFile: (source, destDir) ->
-      filename = sysPath.basename(source)
-      return sysPath.join(destDir, filename)
+    destForFile: (path, destDir) ->
+      filename = sysPath.basename(path)
+      sysPath.join(destDir, filename)
 
-    compile: (source, destDir, callback) ->
+    compile: (path, destDir, callback) ->
       _ = env._
-      sourceData = _.template(fs.readFileSync(source).toString(), {settings: @project.clientConfig})
-      filename = sysPath.basename(source)
-      path = sysPath.join(destDir, filename)
-      fs.writeFileSync(path, sourceData)
-      callback(null, sourceData)
+
+      # Run the file through the template engine
+      data = _.template(fs.readFileSync(path).toString(), {settings: @project.clientConfig})
+
+      # Write to dest
+      dest = @destForFile(path, destDir)
+      fs.writeFileSync dest, data
+      callback(null, data)
 
   callback(new AppCacheCompiler())

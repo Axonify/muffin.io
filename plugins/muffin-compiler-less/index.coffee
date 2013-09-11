@@ -1,3 +1,5 @@
+# A Muffin plugin that compiles LESS into CSS.
+
 fs = require 'fs'
 sysPath = require 'path'
 less = require 'less'
@@ -11,20 +13,24 @@ module.exports = (env, callback) ->
     constructor: ->
       @project = env.project
 
-    destForFile: (source, destDir) ->
-      filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
-      return sysPath.join(destDir, filename)
+    destForFile: (path, destDir) ->
+      ext = sysPath.extname(path)
+      filename = sysPath.basename(path, ext) + '.css'
+      sysPath.join(destDir, filename)
 
-    compile: (source, destDir, callback) ->
-      sourceData = fs.readFileSync(source).toString()
-      filename = sysPath.basename(source, sysPath.extname(source)) + '.css'
-      path = sysPath.join destDir, filename
+    compile: (path, destDir, callback) ->
+      # Read the source file
+      data = fs.readFileSync(path).toString()
 
-      options = {paths: [sysPath.dirname(source)]}
+      # Output file
+      dest = @destForFile(path, destDir)
+
+      # Compile LESS into CSS
+      options = {paths: [sysPath.dirname(path)]}
       parser = new (less.Parser)(options)
-      parser.parse sourceData, (err, tree) ->
+      parser.parse data, (err, tree) ->
         compiledData = tree.toCSS()
-        fs.writeFileSync path, compiledData
+        fs.writeFileSync dest, compiledData
         callback(err, compiledData)
 
   callback(new LessCompiler())

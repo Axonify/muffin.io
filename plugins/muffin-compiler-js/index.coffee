@@ -1,3 +1,5 @@
+# A Muffin plugin that wraps JavaScript files into modules.
+
 fs = require 'fs'
 sysPath = require 'path'
 
@@ -10,17 +12,19 @@ module.exports = (env, callback) ->
     constructor: ->
       @project = env.project
 
-    destForFile: (source, destDir) ->
-      filename = sysPath.basename(source)
-      return sysPath.join(destDir, filename)
+    destForFile: (path, destDir) ->
+      filename = sysPath.basename(path)
+      sysPath.join(destDir, filename)
 
-    compile: (source, destDir, callback) ->
-      js = fs.readFileSync(source).toString()
-      filename = sysPath.basename(source)
-      path = sysPath.join(destDir, filename)
+    compile: (path, destDir, callback) ->
+      # Read the source file
+      js = fs.readFileSync(path).toString()
 
-      # Strip the .js suffix
-      modulePath = sysPath.relative(@project.buildDir, path).replace(/\.js$/, '')
+      # Strip the `.js` suffix from the module path
+      dest = @destForFile(path, destDir)
+      modulePath = sysPath.relative(@project.buildDir, dest).replace(/\.js$/, '')
+
+      # Inspect the JavaScript content to infer dependencies
       deps = @parseDeps(js)
 
       # Concat package deps
@@ -30,8 +34,9 @@ module.exports = (env, callback) ->
         if extraDeps?.length > 0
           deps = deps.concat(extraDeps)
 
+      # Wrap the file into an AMD module
       js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
-      fs.writeFileSync path, js
+      fs.writeFileSync dest, js
       callback(null, js)
 
   callback(new JavaScriptCompiler())

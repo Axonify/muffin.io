@@ -7,6 +7,10 @@ module.exports = (env, callback) ->
 
     templatesDir: sysPath.join(__dirname, './templates')
 
+    constructor: ->
+      @project = env.project
+      @serverDir = @project.serverDir
+
     generateModel: (model, app, args) ->
       _ = env._
       attrs = @parseAttrs(args)
@@ -15,16 +19,16 @@ module.exports = (env, callback) ->
       underscored_plural = _.underscored(_.pluralize(model))
 
       mapping =
-        'models/model.coffee': "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
       _ = env._
       classified = _.classify(model)
       files = [
-        "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
-        "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       ]
       @removeFiles(files)
 
@@ -36,8 +40,8 @@ module.exports = (env, callback) ->
       underscored_plural = _.underscored(_.pluralize(model))
 
       mapping =
-        'models/model.coffee': "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
       # Inject routes into server router
@@ -48,15 +52,15 @@ module.exports = (env, callback) ->
 
       routes = fs.readFileSync(sysPath.join(@templatesDir, 'router.coffee')).toString()
       lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
-      @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
-      @injectIntoFile "#{env.project.serverDir}/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
+      @injectIntoFile "#{@serverDir}/apps/#{app}/router.coffee", lines[0] + '\n\n', "# Router", null
+      @injectIntoFile "#{@serverDir}/apps/#{app}/router.coffee", lines[2..7].join('\n') + '\n\n', "module.exports", null
 
     destroyScaffold: (model, app) ->
       _ = env._
       classified = _.classify(model)
       files = [
-        "#{env.project.serverDir}/apps/#{app}/models/#{classified}.coffee"
-        "#{env.project.serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       ]
       @removeFiles(files)
 
