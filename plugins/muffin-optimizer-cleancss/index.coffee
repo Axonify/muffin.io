@@ -1,3 +1,5 @@
+# A Muffin plugin that minifies CSS files.
+
 fs = require 'fs'
 cleanCSS = require 'clean-css'
 
@@ -7,10 +9,14 @@ module.exports = (env, callback) ->
 
     extensions: ['.css']
 
-    optimize: (source, dest, callback) ->
-      # Use clean-css to minify the css file
-      sourceData = fs.readFileSync(source).toString()
-      result = cleanCSS.process(sourceData)
+    optimize: (path, dest, callback) ->
+      # Read the source file
+      data = fs.readFileSync(path).toString()
+
+      # Run through clean-css
+      result = cleanCSS.process(data)
+
+      # Write to dest
       fs.writeFileSync dest, result
       callback(null, result)
 

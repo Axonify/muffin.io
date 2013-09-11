@@ -1,3 +1,5 @@
+# A superclass for Muffin plugins of type 'generator'.
+
 fs = require 'fs-extra'
 sysPath = require 'path'
 _ = require 'underscore'
@@ -38,7 +40,7 @@ class Generator
 
   # Remove files
   removeFiles: (files) ->
-    _(files).each (file) ->
+    for file in files
       fs.unlink file, (err) ->
         logging.info " * Removed #{sysPath.relative(process.cwd(), file)}" unless err
 

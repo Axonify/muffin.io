@@ -1,3 +1,5 @@
+# A Muffin plugin that generates client models and views.
+
 fs = require 'fs'
 sysPath = require 'path'
 
@@ -12,15 +14,21 @@ module.exports = (env, callback) ->
       @clientDir = @project.clientDir
 
     generateModel: (model, app, args) ->
+      # Rails-style inflection on the model name
       _ = env._
-      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
 
+      # Parse args for model attributes
+      attrs = @parseAttrs(args)
+
+      # Mapping from template files to project files
       mapping =
         'models/model.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
         'models/collection.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
+
+      # Copy template files
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
@@ -34,26 +42,32 @@ module.exports = (env, callback) ->
 
     generateView: (view, app) ->
       _ = env._
+      classified = _.classify(view)
       mapping =
-        'views/view.coffee': "#{@clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
-        'templates/view.jade': "#{@clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
-      @copyTemplate {view, _}, mapping
+        'views/view.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}.coffee"
+        'templates/view.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}.jade"
+      @copyTemplate {view, classified, _}, mapping
 
     destroyView: (view, app) ->
       _ = env._
+      classified = _.classify(view)
       files = [
-        "#{@clientDir}/apps/#{app}/views/#{_.classify(view)}.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{_.classify(view)}.jade"
+        "#{@clientDir}/apps/#{app}/views/#{classified}.coffee"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}.jade"
       ]
       @removeFiles(files)
 
     generateScaffold: (model, app, args) ->
+      # Rails-style inflection on the model name
       _ = env._
-      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
 
+      # Parse args for model attributes
+      attrs = @parseAttrs(args)
+
+      # Mapping from template files to project files
       mapping =
         'models/model.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
         'models/collection.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"

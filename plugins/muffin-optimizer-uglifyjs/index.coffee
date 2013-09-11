@@ -1,3 +1,5 @@
+# A Muffin plugin that minifies JavaScript.
+
 fs = require 'fs'
 UglifyJS = require 'uglify-js'
 
@@ -7,9 +9,11 @@ module.exports = (env, callback) ->
 
     extensions: ['.js']
 
-    optimize: (source, dest, callback) ->
+    optimize: (path, dest, callback) ->
       # Use uglifyjs to minify the js file
-      result = UglifyJS.minify([source], {compress: {comparisons: false}})
+      result = UglifyJS.minify([path], {compress: {comparisons: false}})
+
+      # Write to dest
       fs.writeFileSync dest, result.code
       callback(null, result.code)
 

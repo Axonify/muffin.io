@@ -1,15 +1,15 @@
 Backbone = require 'Backbone'
 UIKit = require 'UIKit'
 
-class <$- _.classify(view) $> extends UIKit.View
-  
-  template: _.tpl(require '../templates/<$- _.classify(view) $>.html')
-  
+class <$- classified $> extends UIKit.View
+
+  template: _.tpl(require '../templates/<$- classified $>.html')
+
   events: {}
-  
+
   initialize: ->
     @$el.html @template()
-  
+
   render: => @
 
-module.exports = <$- _.classify(view) $>
+module.exports = <$- classified $>

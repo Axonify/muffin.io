@@ -1,5 +1,7 @@
-sysPath = require 'path'
+# A Muffin plugin that generates Node.js models and controllers.
+
 fs = require 'fs'
+sysPath = require 'path'
 
 module.exports = (env, callback) ->
 
@@ -12,15 +14,21 @@ module.exports = (env, callback) ->
       @serverDir = @project.serverDir
 
     generateModel: (model, app, args) ->
+      # Rails-style inflection on the model name
       _ = env._
-      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
 
+      # Parse args for model attributes
+      attrs = @parseAttrs(args)
+
+      # Mapping from template files to project files
       mapping =
         'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
         'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+
+      # Copy template files
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
     destroyModel: (model, app) ->
@@ -33,12 +41,16 @@ module.exports = (env, callback) ->
       @removeFiles(files)
 
     generateScaffold: (model, app, args) ->
+      # Rails-style inflection on the model name
       _ = env._
-      attrs = @parseAttrs(args)
       classified = _.classify(model)
       underscored = _.underscored(model)
       underscored_plural = _.underscored(_.pluralize(model))
 
+      # Parse args for model attributes
+      attrs = @parseAttrs(args)
+
+      # Mapping from template files to project files
       mapping =
         'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
         'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"

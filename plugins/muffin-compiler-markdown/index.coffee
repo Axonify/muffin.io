@@ -1,3 +1,6 @@
+# A Muffin plugin that compiles markdown into html.
+# Syntax highlighting is provided by `highlight.js`.
+
 fs = require 'fs'
 sysPath = require 'path'
 marked = require 'marked'
@@ -7,20 +10,20 @@ module.exports = (env, callback) ->
 
   class MarkdownCompiler extends env.Compiler
 
+    # Support all common markdown suffixes
     extensions: ['.md', '.markdown', '.mdown', '.mkd', '.mkdn']
 
     constructor: ->
       @project = env.project
 
-    destForFile: (source, destDir) ->
-      filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
-      return sysPath.join(destDir, filename)
+    destForFile: (path, destDir) ->
+      ext = sysPath.extname(path)
+      filename = sysPath.basename(path, ext) + '.html'
+      sysPath.join(destDir, filename)
 
-    compile: (source, destDir, callback) ->
-      # Compile markdown into html
-      sourceData = fs.readFileSync(source).toString()
-      filename = sysPath.basename(source, sysPath.extname(source)) + '.html'
-      path = sysPath.join(destDir, filename)
+    compile: (path, destDir, callback) ->
+      # Read the source file
+      data = fs.readFileSync(path).toString()
 
       # Set highlight option
       marked.setOptions
@@ -30,8 +33,12 @@ module.exports = (env, callback) ->
           else
             hljs.highlightAuto(code).value
 
-      html = marked(sourceData)
-      fs.writeFileSync path, html
+      # Compile markdown into html
+      html = marked(data)
+
+      # Write to dest
+      dest = @destForFile(path, destDir)
+      fs.writeFileSync dest, html
       callback(null, html)
 
   callback(new MarkdownCompiler())
