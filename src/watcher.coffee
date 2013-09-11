@@ -18,7 +18,7 @@ class Watcher
 
   # Watch a directory
   watchDir: (dir) ->
-    watcher = chokidar.watch dir, {ignored: ignored, persistent: true, ignoreInitial: true}
+    watcher = chokidar.watch dir, {ignored: ignored, persistent: true, usePolling: false}
     watcher.on 'add', @compileFile
     watcher.on 'change', @compileFile
     watcher.on 'unlink', @removeFile
