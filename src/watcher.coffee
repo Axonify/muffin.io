@@ -1,6 +1,4 @@
-#
-# watcher.coffee
-#
+# Watch the client folder for file changes and recompile as needed.
 
 fs = require 'fs-extra'
 sysPath = require 'path'
@@ -15,7 +13,7 @@ server = require './server'
 ignored = (file) ->
   /^\.|~$/.test(file) or /\.swp/.test(file)
 
-
+# The `Watcher` class can watch for file changes, compile files, and remove files.
 class Watcher
 
   # Watch a directory
