@@ -10,6 +10,7 @@ window.onload = ->
 onMessage = (e) ->
   message = JSON.parse(e.data)
   if message.reload is 'soft'
+    # Soft refresh: apply changes without reloading the browser
     switch message.type
       when 'css'
         tags = document.getElementsByTagName('link')
@@ -26,19 +27,9 @@ onMessage = (e) ->
           url = url.replace(/\?.*$/, '')
           if message.path.match(url)
             tags[i].setAttribute('src', cacheBuster(url))
-      when 'module'
-        if /\.css$/.test(message.path)
-          # We only need to reload the css module if it's already applied.
-          tag = getElementByAttributeValue('data-path', message.path)
-          if tag
-            tag.parentNode.removeChild(tag)
-            require.undef message.path
-            require [message.path], -> {}
-        else
-          window.location.reload(true)
   else
-    # Hard refresh
-    window.location.reload(true)
+    # Hard refresh: reload the browser
+    window.location.reload()
 
 cacheBuster = (url) ->
   date = Math.round(Date.now() / 1000).toString()
