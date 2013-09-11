@@ -11,7 +11,8 @@ server = require './server'
 
 # Files to ignore
 ignored = (file) ->
-  /^\.|~$/.test(file) or /\.swp/.test(file)
+  filename = sysPath.basename(file)
+  /^\.|~$/.test(filename) or /\.swp/.test(filename)
 
 # The `Watcher` class can watch for file changes, compile files, and remove files.
 class Watcher

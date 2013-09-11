@@ -15,13 +15,13 @@ chokidar = require 'chokidar'
 logging = require './utils/logging'
 project = require './project'
 
-
 # Files to ignore
 ignored = (file) ->
-  /^\.|~$/.test(file) or /\.swp/.test(file) or file.match(project.buildDir)
+  filename = sysPath.basename(file)
+  /^\.|~$/.test(filename) or /\.swp/.test(filename) or file.match(project.buildDir)
 
 
-# Live reload server
+# The `LiveReloadServer` sets up a web socket server to communicate with the browser.
 class LiveReloadServer
 
   constructor: (@port=9485) ->
@@ -53,7 +53,7 @@ class LiveReloadServer
     _(connected).each (c) -> c.send(JSON.stringify(message))
 
 
-# Node.js application server
+# The Node.js application server
 class NodeAppServer
 
   constructor: ->
@@ -110,7 +110,7 @@ class NodeAppServer
           process.exit 1
 
 
-# Google App Engine dev server
+# The Google App Engine development server
 class GAEAppServer
 
   start: ->
