@@ -349,9 +349,9 @@ task 'test', 'run tests', ->
 # Task - deploy the app
 task 'deploy', 'deploy the app', ->
   dest = opts.arguments[1]
-  platforms = ['heroku', 'amazon', 'nodejitsu']
+  platforms = ['heroku', 'jitsu', 'gae', 'gh-pages']
   unless dest and dest.toLowerCase() in platforms
-    logging.fatal "Must choose a platform from the following: heroku, amazon, nodejitsu"
+    logging.fatal "Must choose a platform from the following: heroku, jitsu, gae, gh-pages"
 
 # Print the `--help` usage message and exit.
 usage = ->
@@ -359,5 +359,6 @@ usage = ->
 
 # Print the `--version` message and exit.
 version = ->
-  json = JSON.parse(fs.readFileSync("#{__dirname}/../package.json"))
+  path = sysPath.join(__dirname, '../package.json')
+  json = JSON.parse(fs.readFileSync(path))
   console.log "muffin.io - version #{json.version}"
