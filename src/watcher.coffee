@@ -19,6 +19,8 @@ class Watcher
 
   # Watch a directory
   watchDir: (dir) ->
+    # Use `chokidar` for more reliable cross-platform file watching.
+    # Turn polling off to reduce CPU usage.
     watcher = chokidar.watch dir, {ignored: ignored, persistent: true, usePolling: false}
     watcher.on 'add', @compileFile
     watcher.on 'change', @compileFile
@@ -26,10 +28,11 @@ class Watcher
     watcher.on 'error', (error) ->
       logging.error "Error occurred while watching files: #{error}"
 
-  # Recursively compile all files in a directory and its subdirectories
-  compileDir: (source, callback) ->
+  # Compile all the files in a directory and its subdirectories
+  compileDir: (dir, callback) ->
+    # Use a queue-based implementation to iterate over all files
     queue = []
-    queue.push source
+    queue.push dir
 
     test = -> queue.length > 0
 
@@ -47,68 +50,83 @@ class Watcher
 
     async.whilst test, fn, callback
 
-  destDirForFile: (source) ->
-    inAssetsDir = !!~ source.indexOf project.clientAssetsDir
-    inComponentsDir = !!~ source.indexOf project.clientComponentsDir
-
-    if inAssetsDir
-      relativePath = sysPath.relative(project.clientAssetsDir, source)
-      dest = sysPath.join(project.buildDir, relativePath)
-    else if inComponentsDir
-      relativePath = sysPath.relative(project.clientDir, source)
-      dest = sysPath.join(project.buildDir, relativePath)
-    else
-      relativePath = sysPath.relative(project.clientDir, source)
-      dest = sysPath.join(project.jsDir, relativePath)
-    return sysPath.dirname(dest)
-
-  destForFile: (source) ->
-    destDir = @destDirForFile(source)
-    extension = sysPath.extname(source)
-
-    # Run through the compiler plugins
-    for compiler in project.plugins.compilers
-      if extension in compiler.extensions
-        return compiler.destForFile(source, destDir)
-
-    # Handle the rest
-    filename = sysPath.basename(source)
-    return sysPath.join(destDir, filename)
-
   # Compile a single file
-  compileFile: (source, abortOnError=no, callback) =>
-    destDir = @destDirForFile(source)
+  compileFile: (path, abortOnError=no, callback) =>
+    destDir = @destDirForFile(path)
+    dest = @destForFile(path)
+
+    # Create destDir if it doesn't exist
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
-    extension = sysPath.extname(source)
-    dest = @destForFile(source)
-
     try
-      # Run through the compiler plugins
-      for compiler in project.plugins.compilers
-        if extension in compiler.extensions
-          compiler.compile source, destDir, ->
-            logging.info "compiled #{source}"
-            server.reloadBrowser(dest)
-            if callback then callback(null)
-          return
+      # Find a compiler that can handle this file extension
+      ext = sysPath.extname(path)
+      compiler = @compilerForExt(ext)
 
-      # Otherwise, copy to the destination
-      fs.copy source, dest, ->
-        logging.info "copied #{source}"
-        server.reloadBrowser(dest)
-        if callback then callback(null)
+      if compiler
+        # Let the compiler handle it.
+        compiler.compile path, destDir, ->
+          logging.info "compiled #{path}"
+          server.reloadBrowser(dest)
+          callback?(null)
+      else
+        # No plugins can handle this file. Simply copy it over.
+        fs.copy path, dest, ->
+          logging.info "copied #{path}"
+          server.reloadBrowser(dest)
+          callback?(null)
 
     catch err
-      logging.error "#{err.message} (#{source})"
+      logging.error "#{err.message} (#{path})"
       process.exit(1) if abortOnError
 
   # Remove a file
-  removeFile: (source) =>
-    dest = @destForFile(source)
+  removeFile: (path) =>
+    dest = @destForFile(path)
     stats = fs.statSync(dest)
     if stats.isFile()
       fs.unlinkSync(dest)
-      logging.info "removed #{source}"
+      logging.info "removed #{path}"
+
+  # Find a compiler that can handle this file extension
+  compilerForExt: (ext) ->
+    for compiler in project.plugins.compilers
+      if extension in compiler.extensions
+        return compiler
+    return null
+
+  # The destDir for a file depends on where the file is located.
+  destDirForFile: (path) ->
+    inAssetsDir = (source.indexOf(project.clientAssetsDir) > -1)
+    inComponentsDir = (source.indexOf(project.clientComponentsDir) > -1)
+
+    if inAssetsDir
+      # If the file is in the `assets` folder, copy it to the buildDir.
+      relativePath = sysPath.relative(project.clientAssetsDir, path)
+      dest = sysPath.join(project.buildDir, relativePath)
+    else if inComponentsDir
+      # If the file is in the `components` folder, copy it to the buildDir.
+      relativePath = sysPath.relative(project.clientDir, path)
+      dest = sysPath.join(project.buildDir, relativePath)
+    else
+      # Otherwise, copy it to the jsDir.
+      relativePath = sysPath.relative(project.clientDir, path)
+      dest = sysPath.join(project.jsDir, relativePath)
+
+    return sysPath.dirname(dest)
+
+  # The dest for a file depends on the compiler that handles it.
+  destForFile: (path) ->
+    destDir = @destDirForFile(path)
+
+    # Find a compiler that can handle this file extension
+    ext = sysPath.extname(path)
+    compiler = @compilerForExtension(ext)
+
+    if compiler
+      compiler.destForFile(path, destDir)
+    else
+      filename = sysPath.basename(path)
+      sysPath.join(destDir, filename)
 
 module.exports = new Watcher()
