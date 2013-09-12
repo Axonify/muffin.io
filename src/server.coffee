@@ -29,7 +29,7 @@ class LiveReloadServer
     @connections = []
 
   start: ->
-    server = new WebSocketServer {host: 'localhost', port: @port}
+    server = new WebSocketServer {port: @port}
     server.on 'connection', (c) =>
       @connections.push c
       c.on 'close', =>
