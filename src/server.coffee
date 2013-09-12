@@ -9,6 +9,8 @@
 sysPath = require 'path'
 url = require 'url'
 http = require 'http'
+net = require 'net'
+async = require 'async'
 {spawn} = require 'child_process'
 _ = require 'underscore'
 send = require 'send'
@@ -128,8 +130,29 @@ class GAEAppServer
 liveReloadServer = null
 
 startLiveReloadServer = ->
-  liveReloadServer = new LiveReloadServer(project.clientConfig.liveReload?.port)
+  liveReloadServer = new LiveReloadServer(project.liveReloadPort)
   liveReloadServer.start()
+
+testPort = (callback) ->
+  port = 9485
+  portIsAvailable = false
+
+  test = -> portIsAvailable
+
+  fn = (done) ->
+    server = net.createServer()
+    server.on 'listening', ->
+      portIsAvailable = true
+      project.liveReloadPort = port
+      server.on 'close', done
+      server.close()
+    .on 'error', (err) ->
+      if err.code is 'EADDRINUSE'
+        port += 1
+        done(null)
+    .listen(port)
+
+  async.until test, fn, callback
 
 reloadBrowser = (path) ->
   liveReloadServer?.reloadBrowser(path)
@@ -154,4 +177,4 @@ startAppServer = ->
       server = new GAEAppServer()
       server.start()
 
-module.exports = {startLiveReloadServer, reloadBrowser, startDummyWebServer, startAppServer}
+module.exports = {startLiveReloadServer, testPort, reloadBrowser, startDummyWebServer, startAppServer}

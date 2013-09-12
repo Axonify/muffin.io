@@ -148,8 +148,9 @@ class Project
     moduleLoaderSrc = _.template(moduleLoaderSrc, {settings: @clientConfig})
     moduleLoaderSrc = CoffeeScript.compile(moduleLoaderSrc)
 
+    # Live reload source
     liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'client/live-reload.coffee')).toString()
-    liveReloadSrc = _.template(liveReloadSrc, {settings: @clientConfig})
+    liveReloadSrc = _.template(liveReloadSrc, {port: @liveReloadPort})
     liveReloadSrc = CoffeeScript.compile(liveReloadSrc)
 
     # Build require config for the module loader

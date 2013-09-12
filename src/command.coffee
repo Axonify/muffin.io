@@ -283,6 +283,10 @@ task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   project.setEnv 'development'
 
+  # Test if the live reload port is in use, and increment it as needed.
+  testPort = (done) ->
+    server.testPort done
+
   # Watch the client directory
   watch = (done) ->
     watcher.watchDir(project.clientDir)
@@ -290,9 +294,9 @@ task 'watch', 'watch files and compile as needed', ->
     done(null)
 
   if opts.server
-    async.series [build, watch, startServer]
+    async.series [testPort, build, watch, startServer]
   else
-    async.series [build, watch]
+    async.series [testPort, build, watch]
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->

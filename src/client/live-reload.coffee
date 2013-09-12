@@ -3,7 +3,7 @@ return unless WebSocket
 
 window.onload = ->
   host = window.location.hostname
-  port = <?= (settings.liveReload && settings.liveReload.port) ? settings.liveReload.port : 9485 ?>
+  port = <?= port || 9485 ?>
   connection = new WebSocket("ws://#{host}:#{port}")
   connection.onmessage = onMessage
 
