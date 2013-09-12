@@ -20,8 +20,10 @@ class Watcher
   # Watch a directory
   watchDir: (dir) ->
     # Use `chokidar` for more reliable cross-platform file watching.
-    # Turn polling off to reduce CPU usage.
-    watcher = chokidar.watch dir, {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: false}
+    # Have to turn on 'polling' because FSWatcher has a lot of issues.
+    # Set polling interval to 200ms to reduce CPU usage.
+    watcher = chokidar.watch dir,
+      {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: true, interval: 200}
     watcher.on 'add', @compileFile
     watcher.on 'change', @compileFile
     watcher.on 'unlink', @removeFile

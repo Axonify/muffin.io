@@ -67,16 +67,19 @@ class NodeAppServer
     # Start the server
     @start()
 
-    # Watch server files and restart the server when they change
-    watcher = chokidar.watch project.serverDir, {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: false}
-    watcher.on 'add', (source) ->
-      logging.info "added #{source}"
+    # Watch server files and restart the server when they change.
+    # Have to turn on 'polling' because FSWatcher has a lot of issues.
+    # Set polling interval to 200ms to reduce CPU usage.
+    watcher = chokidar.watch project.serverDir,
+      {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: true, interval: 200}
+    watcher.on 'add', (path) =>
+      logging.info "added #{path}"
       @restart()
-    watcher.on 'change', (source) ->
-      logging.info "changed #{source}"
+    watcher.on 'change', (path) =>
+      logging.info "changed #{path}"
       @restart()
-    watcher.on 'unlink', (source) ->
-      logging.info "removed #{source}"
+    watcher.on 'unlink', (path) =>
+      logging.info "removed #{path}"
       @restart()
     watcher.on 'error', (error) ->
       logging.error "Error occurred while watching files: #{error}"
