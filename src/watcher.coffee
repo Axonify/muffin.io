@@ -91,14 +91,14 @@ class Watcher
   # Find a compiler plugin that can handle this file extension
   compilerForExt: (ext) ->
     for compiler in project.plugins.compilers
-      if extension in compiler.extensions
+      if ext in compiler.extensions
         return compiler
     return null
 
   # The destDir for a file depends on where the file is located.
   destDirForFile: (path) ->
-    inAssetsDir = (source.indexOf(project.clientAssetsDir) > -1)
-    inComponentsDir = (source.indexOf(project.clientComponentsDir) > -1)
+    inAssetsDir = (path.indexOf(project.clientAssetsDir) > -1)
+    inComponentsDir = (path.indexOf(project.clientComponentsDir) > -1)
 
     if inAssetsDir
       # If the file is in the `assets` folder, copy it to the buildDir.
@@ -121,7 +121,7 @@ class Watcher
 
     # Find a compiler that can handle this file extension
     ext = sysPath.extname(path)
-    compiler = @compilerForExtension(ext)
+    compiler = @compilerForExt(ext)
 
     if compiler
       compiler.destForFile(path, destDir)

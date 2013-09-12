@@ -6,7 +6,7 @@ async = require 'async'
 logging = require './utils/logging'
 project = require './project'
 
-# Escape js content
+# Escape js content.
 # Borrowed from [r.js](http://requirejs.org/)
 jsEscape = (content) ->
   content.replace(/(['\\])/g, '\\$1')
@@ -22,7 +22,7 @@ class Optimizer
 
   # Optimize all the files in a directory and its subdirectories.
   optimizeDir: (fromDir, toDir, callback) ->
-    # Use a queue-based implementation to iterate over all files
+    # Use a queue-based implementation to iterate over all files.
     queue = []
     queue.push [fromDir, toDir]
 
@@ -65,7 +65,7 @@ class Optimizer
   # Find an optimizer plugin that can handle this file extension
   optimizerForExt: (ext) ->
     for optimizer in project.plugins.optimizers
-      if extension in optimizer.extensions
+      if ext in optimizer.extensions
         return optimizer
     return null
 
