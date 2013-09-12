@@ -3,6 +3,7 @@
 fs = require 'fs'
 sysPath = require 'path'
 _ = require './utils/_inflection'
+UglifyJS = require 'uglify-js'
 CoffeeScript = require 'coffee-script'
 Generator = require './PluginTypes/Generator'
 Compiler = require './PluginTypes/Compiler'
@@ -152,6 +153,11 @@ class Project
     liveReloadSrc = fs.readFileSync(sysPath.join(__dirname, 'client/live-reload.coffee')).toString()
     liveReloadSrc = _.template(liveReloadSrc, {port: @liveReloadPort})
     liveReloadSrc = CoffeeScript.compile(liveReloadSrc)
+
+    # For production build, minify `module-loader.js` and remove `live-reload.js`.
+    if @clientConfig.env is 'production'
+      moduleLoaderSrc = UglifyJS.minify(moduleLoaderSrc, {fromString: true}).code
+      liveReloadSrc = ''
 
     # Build require config for the module loader
     requireConfig = @buildRequireConfig()

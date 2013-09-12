@@ -133,6 +133,7 @@ startLiveReloadServer = ->
   liveReloadServer = new LiveReloadServer(project.liveReloadPort)
   liveReloadServer.start()
 
+# Test if the live reload port is in use, and increment it as needed.
 testPort = (callback) ->
   port = 9485
   portIsAvailable = false
