@@ -1,6 +1,4 @@
-#
-# optimizer.coffee
-#
+# Optimize client files for production.
 
 fs = require 'fs-extra'
 sysPath = require 'path'
@@ -9,6 +7,7 @@ logging = require './utils/logging'
 project = require './project'
 
 # Escape js content
+# Borrowed from [r.js](http://requirejs.org/)
 jsEscape = (content) ->
   content.replace(/(['\\])/g, '\\$1')
     .replace(/[\f]/g, "\\f")
@@ -21,8 +20,9 @@ jsEscape = (content) ->
 
 class Optimizer
 
-  # Recursively optimize all the files in a directory and its subdirectories
+  # Optimize all the files in a directory and its subdirectories.
   optimizeDir: (fromDir, toDir, callback) ->
+    # Use a queue-based implementation to iterate over all files
     queue = []
     queue.push [fromDir, toDir]
 
@@ -42,24 +42,32 @@ class Optimizer
     async.whilst test, fn, callback
 
   # Optimize a single file
-  optimizeFile: (source, dest, callback) ->
+  optimizeFile: (path, dest, callback) ->
     destDir = sysPath.dirname(dest)
+    # Create destDir if it doesn't exist
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
-    extension = sysPath.extname(source)
+    # Find an optimizer plugin that can handle this file extension
+    ext = sysPath.extname(path)
+    optimizer = @optimizerForExt(ext)
 
-    # Run through the optimizer plugins
+    if optimizer
+      # Let the optimizer plugin handle it.
+      optimizer.optimize path, dest, ->
+        logging.info "minified #{path}"
+        callback(null)
+    else
+      # No plugins can optimize this file. Simply copy it over.
+      fs.copy path, dest, ->
+        logging.info "copied #{path}"
+        callback(null)
+
+  # Find an optimizer plugin that can handle this file extension
+  optimizerForExt: (ext) ->
     for optimizer in project.plugins.optimizers
       if extension in optimizer.extensions
-        optimizer.optimize source, dest, ->
-          logging.info "minified #{source}"
-          callback(null)
-        return
-
-    # Othewise, copy to the destination
-    fs.copy source, dest, ->
-      logging.info "copied #{source}"
-      callback(null)
+        return optimizer
+    return null
 
   # Concatenate all the module dependencies
   concatDeps: (path) ->

@@ -21,7 +21,7 @@ class Watcher
   watchDir: (dir) ->
     # Use `chokidar` for more reliable cross-platform file watching.
     # Turn polling off to reduce CPU usage.
-    watcher = chokidar.watch dir, {ignored: ignored, persistent: true, usePolling: false}
+    watcher = chokidar.watch dir, {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: false}
     watcher.on 'add', @compileFile
     watcher.on 'change', @compileFile
     watcher.on 'unlink', @removeFile
@@ -59,12 +59,12 @@ class Watcher
     fs.mkdirSync(destDir) unless fs.existsSync(destDir)
 
     try
-      # Find a compiler that can handle this file extension
+      # Find a compiler plugin that can handle this file extension
       ext = sysPath.extname(path)
       compiler = @compilerForExt(ext)
 
       if compiler
-        # Let the compiler handle it.
+        # Let the compiler plugin handle it.
         compiler.compile path, destDir, ->
           logging.info "compiled #{path}"
           server.reloadBrowser(dest)
@@ -88,7 +88,7 @@ class Watcher
       fs.unlinkSync(dest)
       logging.info "removed #{path}"
 
-  # Find a compiler that can handle this file extension
+  # Find a compiler plugin that can handle this file extension
   compilerForExt: (ext) ->
     for compiler in project.plugins.compilers
       if extension in compiler.extensions

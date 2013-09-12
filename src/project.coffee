@@ -1,5 +1,4 @@
-# The `project` is a singleton that takes charge of project settings,
-# plugins and other global objects.
+# Load project settings, plugins and other global objects.
 
 fs = require 'fs'
 sysPath = require 'path'
@@ -14,7 +13,7 @@ class Project
   constructor: ->
     @clientConfig = {}
 
-    # These are used to facilitate module loading.
+    # These are used by the module loader.
     @requireConfig = {}
     @packageDeps = {}
 
@@ -38,8 +37,9 @@ class Project
   # `env` can be `development`, `production` or `test`.
   setEnv: (env) ->
     @clientConfig = {env}
-    config = {}
-    try config = require sysPath.join(@clientDir, 'config.json')
+
+    # Load client config
+    config = require sysPath.join(@clientDir, 'config.json')
     for key, value of config
       if key in ['development', 'production', 'test']
         if key is env
@@ -135,6 +135,7 @@ class Project
 
     @requireConfig = {aliases: _aliases, scripts: _scripts, exports: _exports}
 
+  # Load HTML helpers, including injecting module loader and live reload sources.
   loadHtmlHelpers: ->
     # Underscore template settings
     _.templateSettings =
@@ -151,7 +152,7 @@ class Project
     liveReloadSrc = _.template(liveReloadSrc, {settings: @clientConfig})
     liveReloadSrc = CoffeeScript.compile(liveReloadSrc)
 
-    # Build require config
+    # Build require config for the module loader
     requireConfig = @buildRequireConfig()
 
     # Retrieve the assetHost and cacheBuster settings from client config file.

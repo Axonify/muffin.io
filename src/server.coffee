@@ -1,8 +1,10 @@
-# Muffin can start up three servers:
+# Muffin may run three different servers:
 #
-# 1. A socket server that provides live reload support
-# 2. A dummy web server that serves client files in the build directory. This is useful when a server stack is not available or needed.
-# 3. A real application server. This can be either a Node.js server or a Google App Engine development server.
+# 1. A web socket server for live reload
+# 2. A dummy web server that serves client files from the build directory.
+# This is useful when using Muffin as a static site generator, or when a server
+# stack is not available.
+# 3. A real Node.js or Google App Engine app server.
 
 sysPath = require 'path'
 url = require 'url'
@@ -20,7 +22,6 @@ ignored = (file) ->
   filename = sysPath.basename(file)
   /^\.|~$/.test(filename) or /\.swp/.test(filename) or file.match(project.buildDir)
 
-
 # The `LiveReloadServer` sets up a web socket server to communicate with the browser.
 class LiveReloadServer
 
@@ -32,6 +33,7 @@ class LiveReloadServer
     server.on 'connection', (c) =>
       @connections.push c
       c.on 'close', =>
+        # Remove the connection on close.
         i = @connections.indexOf(c)
         @connections[i..i] = []
 
@@ -53,16 +55,18 @@ class LiveReloadServer
     _(connected).each (c) -> c.send(JSON.stringify(message))
 
 
-# The Node.js application server
+# The Node.js app server
 class NodeAppServer
 
   constructor: ->
     @restart = _.debounce(@start, 1000, true)
 
   startAndWatch: ->
-    # Watch .coffee and .js files and restart the server when they change
-    watcher = chokidar.watch project.serverDir, {ignored: ignored, persistent: true, ignoreInitial: true}
+    # Start the server
     @start()
+
+    # Watch server files and restart the server when they change
+    watcher = chokidar.watch project.serverDir, {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: false}
     watcher.on 'add', (source) ->
       logging.info "added #{source}"
       @restart()
