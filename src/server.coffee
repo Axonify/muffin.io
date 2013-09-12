@@ -22,7 +22,7 @@ project = require './project'
 # Files to ignore
 ignored = (file) ->
   filename = sysPath.basename(file)
-  /^\.|~$/.test(filename) or /\.swp/.test(filename) or file.match(project.buildDir)
+  /^\.|~$/.test(filename) or /\.swp/.test(filename) or file.match(project.buildDir) or file.match('node_modules')
 
 # The `LiveReloadServer` sets up a web socket server to communicate with the browser.
 class LiveReloadServer
@@ -81,7 +81,7 @@ class NodeAppServer
     watcher.on 'error', (error) ->
       logging.error "Error occurred while watching files: #{error}"
 
-  start: ->
+  start: =>
     child = exports.child
     if child
       child.shouldRestart = true
@@ -92,15 +92,15 @@ class NodeAppServer
       child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit', cwd: process.cwd()}
       child.shouldRestart = false
 
-      child.stdout.on 'data', (data) ->
-        console.log data.toString()
-        reloadBrowser() if /Quit the server with CONTROL-C/.test(data.toString())
+      # child.stdout.on 'data', (data) ->
+      #   console.log data.toString()
+      #   reloadBrowser() if /Quit the server with CONTROL-C/.test(data.toString())
 
-      child.stderr.on 'data', (data) ->
-        if data.toString().length > 1
-          logging.error data
+      # child.stderr.on 'data', (data) ->
+      #   if data.toString().length > 1
+      #     logging.error data
 
-      child.on 'exit', (code) ->
+      child.on 'exit', (code) =>
         exports.child = null
         if child.shouldRestart
           # Restart the server when files change
@@ -121,7 +121,7 @@ class GAEAppServer
 
   start: ->
     console.log 'Starting Google App Engine development server...'
-    spawn 'dev_appserver.py', ['server'], {stdio: 'inherit'}
+    spawn 'dev_appserver.py', ['--port=4000', project.serverDir], {stdio: 'inherit'}
 
 
 # Public interface
