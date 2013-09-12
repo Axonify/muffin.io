@@ -35,7 +35,7 @@ class LiveReloadServer
       c.on 'close', =>
         # Remove the connection on close.
         i = @connections.indexOf(c)
-        @connections[i..i] = []
+        @connections.splice(i, 1)
 
   reloadBrowser: (path) ->
     if path
