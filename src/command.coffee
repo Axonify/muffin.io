@@ -3,6 +3,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 async = require 'async'
+{spawn} = require 'child_process'
 logging = require './utils/logging'
 optparse = require './utils/optparse'
 project = require './project'
@@ -148,14 +149,10 @@ task 'new', 'create a new project', ->
         from = sysPath.join(__dirname, '../skeletons/_gitignore')
         to = sysPath.join(projectDir, '.gitignore')
         fs.copy from, to, done
-      when 'nodejs'
-        from = sysPath.join(__dirname, '../skeletons/nodejs/_gitignore')
+      when 'nodejs', 'gae'
+        from = sysPath.join(projectDir, 'server/_gitignore')
         to = sysPath.join(projectDir, 'server/.gitignore')
-        fs.copy from, to, done
-      when 'gae'
-        from = sysPath.join(__dirname, '../skeletons/gae/_gitignore')
-        to = sysPath.join(projectDir, 'server/.gitignore')
-        fs.copy from, to, done
+        fs.rename from, to, done
 
   # Print the completion message
   printMessage = (done) ->
@@ -260,6 +257,10 @@ task 'install', 'install packages', ->
     # install all dependencies listed in config.json
     for repo, version of project.clientConfig.dependencies
       pkgmgr.install repo, version
+
+    # Call `npm install` in the serverDir if using the Node.js stack
+    if project.config.serverType is 'nodejs'
+      spawn 'npm', ['install'], {cwd: project.serverDir, stdio: 'inherit'}
 
 # Task - update packages
 task 'update', 'update packages', ->
