@@ -60,9 +60,6 @@ class LiveReloadServer
 # The Node.js app server
 class NodeAppServer
 
-  constructor: ->
-    @restart = _.debounce(@start, 1000, true)
-
   startAndWatch: ->
     # Start the server
     @start()
@@ -74,13 +71,13 @@ class NodeAppServer
       {ignored: ignored, persistent: true, ignoreInitial: true, usePolling: true, interval: 200}
     watcher.on 'add', (path) =>
       logging.info "added #{path}"
-      @restart()
+      @start()
     watcher.on 'change', (path) =>
       logging.info "changed #{path}"
-      @restart()
+      @start()
     watcher.on 'unlink', (path) =>
       logging.info "removed #{path}"
-      @restart()
+      @start()
     watcher.on 'error', (error) ->
       logging.error "Error occurred while watching files: #{error}"
 
@@ -92,16 +89,17 @@ class NodeAppServer
       logging.info 'Restarting the application server...'
     else
       # Start the server in a child process
-      child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit', cwd: process.cwd()}
+      child = exports.child = spawn 'node', ['server/server.js'], {cwd: process.cwd()}
       child.shouldRestart = false
 
-      # child.stdout.on 'data', (data) ->
-      #   console.log data.toString()
-      #   reloadBrowser() if /Quit the server with CONTROL-C/.test(data.toString())
+      child.stdout.on 'data', (data) ->
+        console.log data.toString()
+        if /Quit the server with CONTROL-C/.test(data.toString())
+          reloadBrowser()
 
-      # child.stderr.on 'data', (data) ->
-      #   if data.toString().length > 1
-      #     logging.error data
+      child.stderr.on 'data', (data) ->
+        if data.toString().length > 1
+          logging.error data
 
       child.on 'exit', (code) =>
         exports.child = null
