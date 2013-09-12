@@ -1,9 +1,0 @@
-{
-  "name": "boilerplate-nodejs",
-  "version": "0.1.0",
-  "description": "A boilerplate project built on Node.js and MongoDB.",
-  "dependencies": {},
-  "development": {},
-  "keywords": [],
-  "license": "MIT"
-}

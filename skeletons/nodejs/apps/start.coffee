@@ -5,13 +5,13 @@ mongoose = require 'mongoose'
 http = require 'http'
 sysPath = require 'path'
 io = require 'socket.io'
-settings = require '../config/config'
+settings = require '../config'
 
 # Create express app
 app = express()
 
 # Configure the app
-app.set 'port', process.env.PORT ? 3000
+app.set 'port', process.env.PORT ? 4000
 
 app.configure 'development', ->
   app.set 'db uri', 'mongodb://localhost/muffin_development'
