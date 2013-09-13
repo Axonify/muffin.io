@@ -5,7 +5,7 @@ mongoose = require 'mongoose'
 http = require 'http'
 sysPath = require 'path'
 io = require 'socket.io'
-settings = require '../config'
+settings = require './config'
 
 # Create express app
 app = express()
@@ -27,7 +27,7 @@ app.configure ->
   app.use express.favicon()
   app.use express.logger('dev')
   app.use express.compress()
-  app.use express.static(sysPath.join(__dirname, '../public'))
+  app.use express.static(sysPath.join(__dirname, './public'))
   app.use express.methodOverride()
   app.use express.bodyParser()
   app.use express.cookieParser()
@@ -48,8 +48,7 @@ mongoose.connect app.get('db uri')
 
 # Create routers
 app.namespace '/api/v1', ->
-  # require('./auth/router')(app)
-  require('./main/router')(app)
+  require('./apps/main/router')(app)
 
 # Start HTTP server
 server = http.createServer(app)
