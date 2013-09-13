@@ -1,7 +1,6 @@
 Backbone = require 'Backbone'
-UIKit = require 'muffin/UIKit'
 
-class LayoutView extends UIKit.View
+class LayoutView extends Backbone.View
 
   template: _.tpl(require '../templates/LayoutView.html')
 

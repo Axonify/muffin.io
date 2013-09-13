@@ -1,7 +1,6 @@
 Backbone = require 'Backbone'
-UIKit = require 'UIKit'
 
-class <$- classified $> extends UIKit.View
+class <$- classified $> extends Backbone.View
 
   template: _.tpl(require '../templates/<$- classified $>.html')
 

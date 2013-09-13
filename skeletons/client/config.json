@@ -12,9 +12,7 @@
   "dependencies": {
     "muffin/I18n": "*",
     "muffin/Logger": "*",
-    "muffin/UIKit": "*",
-    "muffin/utils": "*",
-    "muffin/shims": "*",
+    "muffin/forms": "*",
     "components/jquery": {
       "version": "*",
       "type": "script",

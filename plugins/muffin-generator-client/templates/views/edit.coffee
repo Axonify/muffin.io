@@ -1,38 +1,38 @@
 Backbone = require 'Backbone'
-UIKit = require 'UIKit'
+Form = require 'muffin/forms'
 <$- classified $> = require '../models/<$- classified $>'
 
-class <$- classified $>EditView extends UIKit.View
-  
+class <$- classified $>EditView extends Backbone.View
+
   template: _.tpl(require '../templates/<$- classified $>EditView.html')
-  
+
   events:
     'click form .btn-primary': 'onSubmit'
     'click form .btn.cancel': 'onCancel'
-  
-  initialize: ->
+
+  initialize: (@options) ->
     @$el.html @template()
-    
+
     # Set up data structures backing the view
     @model = new <$- classified $>
     @model.id = @options.id
     @model.on 'change', @render
     @model.fetch()
-    
+
     # Set up form
-    @form = new UIKit.Form
+    @form = new Form
       el: @$('form')
       model: @model
-  
+
   render: =>
     @form.update(@model)
     @
-  
+
   onSubmit: (e) ->
     # Validate the fields and update the model
     errors = @form.commit()
     return false if errors
-    
+
     @model.save {},
       sender: @model
       success: (model, response) =>
@@ -41,7 +41,7 @@ class <$- classified $>EditView extends UIKit.View
       error: (model, response) =>
         logging.debug "Failed to update <$- classified $>."
     false
-  
+
   onCancel: (e) ->
     Backbone.history.navigate '#<$- underscored_plural $>', true
     false
