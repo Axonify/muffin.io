@@ -14,7 +14,7 @@ class <$- classified $>NewView extends Backbone.View
     @$el.html @template()
 
     # Set up data structures backing the view
-    @model = new <$- classified $>
+    @model = new <$- classified $>()
 
     # Set up form
     @form = new Form

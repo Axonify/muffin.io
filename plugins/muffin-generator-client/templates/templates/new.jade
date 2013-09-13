@@ -1,21 +1,21 @@
 h1 New <$- classified $>
-form.form-horizontal
-  legend <$- classified $>
+form.col-lg-6
   <$ _(attrs).each(function(value, key, list)  { if (value === 'String') { $>
-  .control-group
-    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
-    .controls
-      input(type='text', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  .form-group
+    label(for="input-<$- key $>") <$- _.humanize(key) $>
+    input.form-control(type='text', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
   <$ } else if (value === 'Number') { $>
-  .control-group
-    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
-    .controls
-      input(type='number', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  .form-group
+    label(for="input-<$- key $>") <$- _.humanize(key) $>
+    input.form-control(type='number', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
   <$ } else if (value === 'Boolean') { $>
-  .control-group
-    label.control-label(for="input-<$- key $>") <$- _.humanize(key) $>
-      input(type='checkbox', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  .form-group
+    label(for="input-<$- key $>") <$- _.humanize(key) $>
+    input.form-control(type='checkbox', id="input-<$- key $>", data-field="<$- key $>", placeholder="<$- _.humanize(key) $>")
+  <$ } else if (value === 'Date') { $>
+  .form-group
+    label(for="input-<$- key $>") <$- _.humanize(key) $>
+    input.form-control(type='text', id="input-<$- key $>", data-field="<$- key $>", data-editor="Date", placeholder="<$- _.humanize(key) $>")
   <$ }}); $>
-  .form-actions
-    button.btn.btn-primary(type='submit') Submit
-    button.btn.cancel Cancel
+  button.btn.btn-primary(type='submit') Submit
+  button.btn.btn-default.cancel Cancel

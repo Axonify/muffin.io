@@ -14,7 +14,7 @@ class <$- classified $>EditView extends Backbone.View
     @$el.html @template()
 
     # Set up data structures backing the view
-    @model = new <$- classified $>
+    @model = new <$- classified $>()
     @model.id = @options.id
     @model.on 'change', @render
     @model.fetch()

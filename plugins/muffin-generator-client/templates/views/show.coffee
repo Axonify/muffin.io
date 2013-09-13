@@ -9,7 +9,7 @@ class <$- classified $>ShowView extends Backbone.View
 
   initialize: (@options) ->
     # Set up data structures backing the view
-    @model = new <$- classified $>
+    @model = new <$- classified $>()
     @model.id = @options.id
     @model.on 'change', @render
     @model.fetch()

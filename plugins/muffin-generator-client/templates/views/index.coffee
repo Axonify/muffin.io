@@ -17,11 +17,11 @@ class <$- classified $>IndexView extends Backbone.View
     .get()
 
     # Set up data structures backing the view
-    @collection = new <$- classified $>List
+    @collection = new <$- classified $>List()
     @collection.on 'reset', @render
     @collection.on 'add', @render
     @collection.on 'remove', @render
-    @collection.fetch()
+    @collection.fetch {reset: true}
 
   render: =>
     $tbody = @$('table tbody').empty()

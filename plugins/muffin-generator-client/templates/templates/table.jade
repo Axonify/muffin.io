@@ -6,7 +6,7 @@ tr
   <% }); %>
   td
     .btn-group
-      a.btn(href!="#<$- underscored_plural $>/<%= model._id %>") Show
-      a.btn(href!="#<$- underscored_plural $>/<%= model._id %>/edit") Edit
-      a.btn.delete(href="#") Delete
+      a.btn.btn-default(href!="#<$- underscored_plural $>/<%= model._id %>") Show
+      a.btn.btn-default(href!="#<$- underscored_plural $>/<%= model._id %>/edit") Edit
+      a.btn.btn-default.delete(href="#") Delete
 <% }); %>
