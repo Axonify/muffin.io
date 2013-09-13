@@ -89,17 +89,8 @@ class NodeAppServer
       logging.info 'Restarting the application server...'
     else
       # Start the server in a child process
-      child = exports.child = spawn 'node', ['server/server.js'], {cwd: process.cwd()}
+      child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit'}
       child.shouldRestart = false
-
-      child.stdout.on 'data', (data) ->
-        console.log data.toString()
-        if /Quit the server with CONTROL-C/.test(data.toString())
-          reloadBrowser()
-
-      child.stderr.on 'data', (data) ->
-        if data.toString().length > 1
-          logging.error data
 
       child.on 'exit', (code) =>
         exports.child = null
