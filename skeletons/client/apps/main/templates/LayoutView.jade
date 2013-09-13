@@ -1,25 +1,25 @@
-#flash
-
-.navbar.navbar-fixed-top.navbar-inverse
-  .navbar-inner
-    .container
-      ul.nav
-        li.nav-item.active(data-tab='Home')
-          a.nav-item-link(href='#')
-            .nav-item-icon-container
-              span.nav-item-icon.homeIcon
-            span.nav-item-title Home
-        li.nav-item(data-tab='Me')
-          a.nav-item-link(href='#me')
-            .nav-item-icon-container
-              span.nav-item-icon.userIcon
-            span.nav-item-title Me
-      ul.nav.pull-right
-        li.nav-item(data-tab='Logout')
-          a.nav-item-link.logout-btn(href='#')
-            span.nav-item-title Logout
-
-.container.outer-container
-  #page-container.row
-    #sidebar-container.span4
-    #content-container.page.span7
+#page-container.container
+  .header
+    ul.nav.nav-pills.pull-right
+      li
+        a(href='http://muffin.io', target='_blank') Muffin Docs
+    img(src='images/muffin.png')
+  .jumbotron
+    h1 Welcome Aboard
+    p.lead
+      | Congratulations! You have just created your brand new Muffin app. From here you can create models and views, set up server APIs, and build your app into the ultimate awesomeness.
+    p
+      a.btn.btn-lg.btn-success.start-btn(href='#') Get Started
+  .row.getting-started
+    .col-lg-12
+      h1 Getting Started
+      h4 1. Use <em>muffin generate</em> to create your models, views and RESTful APIs
+      p
+        | $ muffin generate scaffold user name:string email:string age:number
+      h4 2. Go to <em>localhost:4000/#users</em> and see your views in action
+      p
+        | Try to add, remove, or edit a user.
+      h4 3. Read the generated code and start tweaking.
+      p All the generated code are located in <em>client/apps/main</em>.
+  .footer
+    p © Company 2013

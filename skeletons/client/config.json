@@ -4,9 +4,7 @@
     "en"
   ],
   "aliases": {
-    "apps": "javascripts/apps",
-    "lib": "javascripts/lib",
-    "vendor": "javascripts/vendor"
+    "apps": "javascripts/apps"
   },
   "concat": [
     "javascripts/apps/main/start"

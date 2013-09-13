@@ -5,14 +5,21 @@ class LayoutView extends UIKit.View
 
   template: _.tpl(require '../templates/LayoutView.html')
 
-  events: {}
+  events:
+    'click .start-btn': 'getStarted'
 
   initialize: ->
     @$el.html @template()
+    @$('.jumbotron').show()
+    @$('.getting-started').hide()
 
   render: => @
 
   setView: (v) ->
-    $('#content-container').html v.render().el
+    @$('#page-container').html v.render().el
+
+  getStarted: (e) ->
+    @$('.jumbotron').fadeOut 500, =>
+      @$('.getting-started').fadeIn()
 
 module.exports = LayoutView
