@@ -4,7 +4,4 @@
 
 handlers:
 - url: /api/v1/.*
-  script: apps.api.api_v1.app
-
-- url: /api
-  script: apps.api.app
+  script: apps.api_v1.app
