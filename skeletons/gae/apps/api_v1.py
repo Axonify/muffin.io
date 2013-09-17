@@ -7,8 +7,15 @@ from apps.models import *
 from apps import DEBUG
 import json, re, logging, datetime
 
+# GET /api
+class MainHandler(webapp.RequestHandler):
+    def get(self):
+        self.response.out.write('OK')
+
 #
 # Router
 #
-routes = []
+routes = [
+    (r'/api', MainHandler),
+]
 app = webapp.WSGIApplication(routes, debug=DEBUG)

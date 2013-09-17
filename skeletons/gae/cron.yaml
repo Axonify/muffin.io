@@ -1,6 +1,4 @@
 cron:
-# - description: daily job for scraping movies
-#   url: /scraper/scrape-movies
-#   schedule: every day 04:00
-#   timezone: Asia/Singapore
-#   target: scraper
+# - description: update feeds
+#   url: /aggregator/update-feeds
+#   schedule: every 30 minutes from 00:00 to 23:59

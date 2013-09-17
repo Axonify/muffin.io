@@ -16,7 +16,7 @@ inbound_services:
 - warmup
 
 includes:
-- apps/api
+- apps
 
 handlers:
 - url: /favicon\.ico
