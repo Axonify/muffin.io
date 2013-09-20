@@ -68,8 +68,6 @@ fetchJS = (path, callback) ->
   tag.src = (if /\.js$/.test(path) then path else path + '.js')
 <? if (settings.env === 'development') { ?>
   tag.src += "?_#{(new Date()).getTime()}" # Add cache buster
-<? } else if (settings.env === 'production') { ?>
-  tag.src = tag.src + "?_" + "<?- (new Date()).getTime() ?>"
 <? } ?>
 
   done = false

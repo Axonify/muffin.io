@@ -22,6 +22,10 @@ handlers:
 - url: /favicon\.ico
   static_files: public/images/favicon.ico
   upload: public/images/favicon\.ico
+- url: /(.*\.appcache)
+  static_files: public/\1
+  mime_type: text/cache-manifest
+  upload: public/(.*\.appcache)
 - url: (/?.*)/
   static_files: public\1/index.html
   upload: public(.*)/index.html
