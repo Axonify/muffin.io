@@ -1,8 +1,4 @@
 {
-  "defaultLocale": "en",
-  "supportedLocales": [
-    "en"
-  ],
   "aliases": {
     "apps": "javascripts/apps"
   },
@@ -40,20 +36,20 @@
       "version": "*",
       "files": [
         "dist/js/bootstrap.js",
-        "dist/css/bootstrap.css"
+        "dist/css/bootstrap.css",
+        "dist/fonts/glyphicons-halflings-regular.ttf",
+        "dist/fonts/glyphicons-halflings-regular.woff"
       ]
     }
   },
   "development": {
     "baseURL": "/api/v1",
     "assetHost": "/",
-    "logLevel": "DEBUG",
-    "cacheBuster": true
+    "logLevel": "DEBUG"
   },
   "production": {
     "baseURL": "/api/v1",
     "assetHost": "/",
-    "logLevel": "ERROR",
-    "cacheBuster": true
+    "logLevel": "ERROR"
   }
 }

@@ -15,7 +15,7 @@ class App
 
   initialize: ->
     # Create logger
-    window.logging = new Logger()
+    window.logging = new Logger(logLevel='<?- settings.logLevel ?>')
 
     # Alias "_id" to "id" globally to work with MongoDB
     Backbone.Model.prototype.idAttribute = "_id";
