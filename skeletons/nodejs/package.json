@@ -10,7 +10,7 @@
     "url": ""
   },
   "scripts": {
-    "start": "node server/server.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "coffee-script": "1.x",

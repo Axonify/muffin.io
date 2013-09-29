@@ -27,11 +27,15 @@ app.configure ->
   app.use express.favicon()
   app.use express.logger('dev')
   app.use express.compress()
+  express.static.mime.define({'text/cache-manifest': ['appcache']})
   app.use express.static(sysPath.join(__dirname, './public'))
   app.use express.methodOverride()
   app.use express.bodyParser()
   app.use express.cookieParser()
-  app.use express.session({secret: settings.cookie_secret, store: new MongoStore({url: app.get('db uri')})})
+  app.use express.session
+    secret: settings.cookie_secret
+    cookie: {expires: false}
+    store: new MongoStore({url: app.get('db uri')})
   app.use app.router
 
 app.configure 'development', ->

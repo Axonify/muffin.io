@@ -9,6 +9,9 @@ Router = require './router'
 class App
 
   initialize: ->
+    # Support Backbone events
+    _.extend(@, Backbone.Events)
+
     # Set title
     document.title = I18n.t('title')
 
