@@ -362,23 +362,39 @@ task 'test', 'run tests', ->
 task 'deploy', 'deploy the app', ->
   dest = opts.arguments[1]?.toLowerCase()
   platforms = ['heroku', 'jitsu', 'gae', 'gh-pages']
-  unless dest and dest in platforms
+  deployScriptExists = fs.existsSync('deploy.sh')
+
+  createDeployScript = ->
+    buildDir = sysPath.relative(process.cwd(), project.buildDir)
+    serverDir = sysPath.relative(process.cwd(), project.serverDir)
+
+    from = sysPath.join(__dirname, "deploy/#{dest}.sh")
+    to = sysPath.join(process.cwd(), 'deploy.sh')
+    deployScript = _.template(fs.readFileSync(from).toString(), {buildDir, serverDir})
+    fs.writeFileSync(to, deployScript)
+
+  invokeScript = ->
+    deploy = spawn 'sh', ['deploy.sh'], {stdio: 'inherit'}
+    deploy.on 'close', (code) ->
+      if code is 0
+        logging.info "The application has been successfully deployed."
+      else
+        logging.error "Failed to deploy the application."
+
+  fatal = ->
     logging.fatal "Must choose a platform from the following: heroku, jitsu, gae, gh-pages"
 
-  buildDir = sysPath.relative(process.cwd(), project.buildDir)
-  serverDir = sysPath.relative(process.cwd(), project.serverDir)
-
-  from = sysPath.join(__dirname, "deploy/#{dest}.sh")
-  to = sysPath.join(process.cwd(), 'deploy.sh')
-  deployScript = _.template(fs.readFileSync(from).toString(), {buildDir, serverDir})
-  fs.writeFileSync(to, deployScript)
-
-  deploy = spawn 'sh', ['deploy.sh'], {stdio: 'inherit'}
-  deploy.on 'close', (code) ->
-    if code is 0
-      logging.info "Deployment succeeded."
+  if dest
+    if dest in platforms
+      createDeployScript()
+      invokeScript()
     else
-      logging.error "Deployment failed."
+      fatal()
+  else
+    if deployScriptExists
+      invokeScript()
+    else
+      fatal()
 
 # Print the `--help` usage message and exit.
 usage = ->
