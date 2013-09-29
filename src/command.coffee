@@ -3,7 +3,7 @@
 fs = require 'fs-extra'
 sysPath = require 'path'
 async = require 'async'
-{spawn} = require 'child_process'
+{exec, spawn} = require 'child_process'
 logging = require './utils/logging'
 optparse = require './utils/optparse'
 project = require './project'
@@ -353,10 +353,31 @@ task 'test', 'run tests', ->
 
 # Task - deploy the app
 task 'deploy', 'deploy the app', ->
-  dest = opts.arguments[1]
+  dest = opts.arguments[1]?.toLowerCase()
   platforms = ['heroku', 'jitsu', 'gae', 'gh-pages']
-  unless dest and dest.toLowerCase() in platforms
+  unless dest and dest in platforms
     logging.fatal "Must choose a platform from the following: heroku, jitsu, gae, gh-pages"
+
+  buildDir = sysPath.relative(process.cwd(), project.buildDir)
+  switch dest
+    when 'gh-pages'
+      script =
+      """
+        git checkout gh-pages
+        git merge master -m"Merge master"
+        muffin minify
+        git add -f #{buildDir}
+        git add -u #{buildDir}
+        git commit -m"Commit for deployment"
+        git subtree push --prefix #{buildDir} origin gh-pages
+        git checkout master
+      """
+
+  script = script.replace /\n/g, ';'
+  exec script, (err, stdout, stderr) ->
+    console.log stdout
+    console.log stderr
+    logging.info 'The application has been successfully deployed.' unless err
 
 # Print the `--help` usage message and exit.
 usage = ->
