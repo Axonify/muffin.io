@@ -2,8 +2,9 @@
 
 fs = require 'fs-extra'
 sysPath = require 'path'
+_ = require 'underscore'
 async = require 'async'
-{exec, spawn} = require 'child_process'
+{spawn} = require 'child_process'
 logging = require './utils/logging'
 optparse = require './utils/optparse'
 project = require './project'
@@ -11,6 +12,12 @@ watcher = require './watcher'
 server = require './server'
 pkgmgr = require './pkgmgr'
 optimizer = require './optimizer'
+
+# Underscore template settings
+_.templateSettings =
+  evaluate    : /<\?([\s\S]+?)\?>/g,
+  interpolate : /<\?=([\s\S]+?)\?>/g,
+  escape      : /<\?-([\s\S]+?)\?>/g
 
 # The help banner
 BANNER = '''
@@ -361,57 +368,17 @@ task 'deploy', 'deploy the app', ->
   buildDir = sysPath.relative(process.cwd(), project.buildDir)
   serverDir = sysPath.relative(process.cwd(), project.serverDir)
 
-  switch dest
-    when 'heroku'
-      script =
-      """
-        git checkout deployment
-        git merge master -m"Merge master"
-        muffin minify
-        git add -f #{buildDir}
-        git add -u #{buildDir}
-        git commit -m"Commit for deployment"
-        git subtree push --prefix #{serverDir} heroku master
-        git checkout master
-      """
-    when 'jitsu'
-      script =
-      """
-        muffin minify
-        cd #{serverDir}
-        jitsu deploy
-        cd ..
-      """
-    when 'gae'
-      script =
-      """
-        git checkout deployment
-        git merge master -m"Merge master"
-        muffin minify
-        git add -f #{buildDir}
-        git add -u #{buildDir}
-        git commit -m"Commit for deployment"
-        git subtree push --prefix #{serverDir} appengine master
-        git checkout master
-      """
-    when 'gh-pages'
-      script =
-      """
-        git checkout gh-pages
-        git merge master -m"Merge master"
-        muffin minify
-        git add -f #{buildDir}
-        git add -u #{buildDir}
-        git commit -m"Commit for deployment"
-        git subtree push --prefix #{buildDir} origin gh-pages
-        git checkout master
-      """
+  from = sysPath.join(__dirname, "deploy/#{dest}.sh")
+  to = sysPath.join(process.cwd(), 'deploy.sh')
+  deployScript = _.template(fs.readFileSync(from).toString(), {buildDir, serverDir})
+  fs.writeFileSync(to, deployScript)
 
-  script = script.replace /\n/g, ';'
-  exec script, (err, stdout, stderr) ->
-    console.log stdout
-    console.log stderr
-    logging.info 'The application has been successfully deployed.' unless err
+  deploy = spawn 'sh', ['deploy.sh'], {stdio: 'inherit'}
+  deploy.on 'close', (code) ->
+    if code is 0
+      logging.info "Deployment succeeded."
+    else
+      logging.error "Deployment failed."
 
 # Print the `--help` usage message and exit.
 usage = ->
