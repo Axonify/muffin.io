@@ -5,9 +5,9 @@ sysPath = require 'path'
 _ = require './utils/_inflection'
 UglifyJS = require 'uglify-js'
 CoffeeScript = require 'coffee-script'
-Generator = require './PluginTypes/Generator'
-Compiler = require './PluginTypes/Compiler'
-Optimizer = require './PluginTypes/Optimizer'
+Generator = require './plugins/Generator'
+Compiler = require './plugins/Compiler'
+Optimizer = require './plugins/Optimizer'
 
 class Project
 
