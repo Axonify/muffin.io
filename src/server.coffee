@@ -60,6 +60,9 @@ class LiveReloadServer
 # The Node.js app server
 class NodeAppServer
 
+  constructor: (options) ->
+    @port = options.port ? 4000
+
   startAndWatch: ->
     # Start the server
     @start()
@@ -89,7 +92,8 @@ class NodeAppServer
       logging.info 'Restarting the application server...'
     else
       # Start the server in a child process
-      child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit'}
+      env = _.extend(process.env, {PORT: @port})
+      child = exports.child = spawn 'node', ['server/server.js'], {stdio: 'inherit', env}
       child.shouldRestart = false
 
       child.on 'exit', (code) =>
@@ -111,9 +115,12 @@ class NodeAppServer
 # The Google App Engine development server
 class GAEAppServer
 
+  constructor: (options) ->
+    @port = options.port ? 4000
+
   start: ->
     console.log 'Starting Google App Engine development server...'
-    spawn 'dev_appserver.py', ['--port=4000', project.serverDir], {stdio: 'inherit'}
+    spawn 'dev_appserver.py', ["--port=#{@port}", project.serverDir], {stdio: 'inherit'}
 
 
 # Public interface
@@ -126,7 +133,7 @@ startLiveReloadServer = ->
   liveReloadServer.start()
 
 # Test if the live reload port is in use, and increment it as needed.
-testPort = (callback) ->
+testLiveReloadPort = (callback) ->
   port = 9485
   portIsAvailable = false
 
@@ -150,24 +157,24 @@ testPort = (callback) ->
 reloadBrowser = (path) ->
   liveReloadServer?.reloadBrowser(path)
 
-startDummyWebServer = ->
+startDummyWebServer = (options) ->
   console.log 'Starting a dummy web server for the static files...'
   app = http.createServer (req, res) ->
     send(req, url.parse(req.url).pathname)
     .root(project.buildDir)
     .pipe(res)
-  port = 4000
+  port = options.port ? 4000
   app.listen port, ->
     console.log "Server is running at http://localhost:#{port}."
     console.log "Quit the server with CONTROL-C."
 
-startAppServer = ->
+startAppServer = (options) ->
   switch project.config.serverType
     when 'nodejs'
-      server = new NodeAppServer()
+      server = new NodeAppServer(options)
       server.startAndWatch()
     when 'gae'
-      server = new GAEAppServer()
+      server = new GAEAppServer(options)
       server.start()
 
-module.exports = {startLiveReloadServer, testPort, reloadBrowser, startDummyWebServer, startAppServer}
+module.exports = {startLiveReloadServer, testLiveReloadPort, reloadBrowser, startDummyWebServer, startAppServer}

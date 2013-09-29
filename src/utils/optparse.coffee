@@ -12,16 +12,24 @@ class OptParser
       arg = args[i]
       # If the argument starts with a hyphen, it might be an option.
       if /^-/.test(arg)
+        step = 2
         for tuple in switches
           [shortFlag, longFlag, description] = tuple
           if arg is shortFlag or arg is longFlag
-            # remove the leading hyphens `--`
+            # Remove the leading hyphens `--`
             name = longFlag.substr(2)
-            # we assume the next argument is the value of the option
+            # We assume the next argument is the value of the option.
             value = args[i+1]
+            # If the next argument is another option, set the value to `true`.
+            if /^-/.test(value)
+              value = true
+              step = 1
             # If there is no subsequent argument, set the value to `true`.
-            options[name] = value ? true
-        i += 2
+            value ?= true
+            # Store in the options hash
+            options[name] = value
+            break
+        i += step
       else
         # The argument is not an option, so we just copy it into the `arguments` list.
         options.arguments.push arg

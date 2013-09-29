@@ -47,11 +47,12 @@ BANNER = '''
     Watch mode:
       * muffin watch (watch the client files and recompile as needed)
       * muffin watch -s (watch the client files and start a web server/app server)
+      * muffin watch -s -p 4001 (use --port or -p to specify the server port)
 
     Build:
       * muffin build (env is set to 'development', files are compiled but not minified)
       * muffin minify (env is set to 'production', files are minified and concatenated)
-      * muffin server (run the server without watching client files, useful for testing the production build)
+      * muffin server (run the server without watching client files, useful for testing the production build, use --port or -p to specify the server port)
       * muffin clean (remove the build directory)
 
     Run tests:
@@ -70,6 +71,7 @@ SWITCHES = [
   ['-h', '--help',            'display this help message']
   ['-v', '--version',         'display the version number']
   ['-s', '--server',          'choose the server stack or start the server']
+  ['-p', '--port',            'specify the server port']
   ['-a', '--app',             'set the app (default to main)']
 ]
 
@@ -281,18 +283,14 @@ build = (done) ->
 # Common subtask: startServer
 startServer = (done) ->
   if project.config.serverType in ['nodejs', 'gae'] and fs.existsSync(project.serverDir)
-    server.startAppServer()
+    server.startAppServer {port: opts.port}
   else
-    server.startDummyWebServer()
+    server.startDummyWebServer {port: opts.port}
 
 # Task - watch files and compile as needed
 task 'watch', 'watch files and compile as needed', ->
   logging.info 'Watching project...'
   project.setEnv 'development'
-
-  # Test if the live reload port is in use, and increment it as needed.
-  testPort = (done) ->
-    server.testPort done
 
   # Watch the client directory
   watch = (done) ->
@@ -301,9 +299,9 @@ task 'watch', 'watch files and compile as needed', ->
     done(null)
 
   if opts.server
-    async.series [testPort, build, watch, startServer]
+    async.series [server.testLiveReloadPort, build, watch, startServer]
   else
-    async.series [testPort, build, watch]
+    async.series [server.testLiveReloadPort, build, watch]
 
 # Task - compile coffeescripts and copy assets into `public/` directory
 task 'build', 'compile coffeescripts and copy assets into public/ directory', ->
