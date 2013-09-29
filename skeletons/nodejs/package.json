@@ -25,5 +25,9 @@
     "mocha": "~1.1.0",
     "chai": "~1.2.0",
     "docco": "~0.3.0"
+  },
+  "subdomain": "app-name",
+  "engines": {
+    "node": "0.10.x"
   }
 }
