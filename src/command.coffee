@@ -359,7 +359,41 @@ task 'deploy', 'deploy the app', ->
     logging.fatal "Must choose a platform from the following: heroku, jitsu, gae, gh-pages"
 
   buildDir = sysPath.relative(process.cwd(), project.buildDir)
+  serverDir = sysPath.relative(process.cwd(), project.serverDir)
+
   switch dest
+    when 'heroku'
+      script =
+      """
+        git checkout deployment
+        git merge master -m"Merge master"
+        muffin minify
+        git add -f #{buildDir}
+        git add -u #{buildDir}
+        git commit -m"Commit for deployment"
+        git subtree push --prefix #{serverDir} heroku master
+        git checkout master
+      """
+    when 'jitsu'
+      script =
+      """
+        muffin minify
+        cd #{serverDir}
+        jitsu deploy
+        cd ..
+      """
+    when 'gae'
+      script =
+      """
+        git checkout deployment
+        git merge master -m"Merge master"
+        muffin minify
+        git add -f #{buildDir}
+        git add -u #{buildDir}
+        git commit -m"Commit for deployment"
+        git subtree push --prefix #{serverDir} appengine master
+        git checkout master
+      """
     when 'gh-pages'
       script =
       """
