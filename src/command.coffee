@@ -73,6 +73,7 @@ SWITCHES = [
   ['-s', '--server',          'choose the server stack or start the server']
   ['-p', '--port',            'specify the server port']
   ['-a', '--app',             'set the app (default to main)']
+  ['-m', '--map',             'generate source maps']
 ]
 
 # Top-level objects shared by all the functions.
