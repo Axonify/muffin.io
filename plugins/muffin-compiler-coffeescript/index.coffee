@@ -20,12 +20,39 @@ module.exports = (env, callback) ->
 
     compile: (path, destDir, callback) ->
       _ = env._
+      settings = @project.clientConfig
+
+      # Generate source map in development mode
+      generateSourceMap = (settings.env is 'development')
+
+      # Filenames
+      srcFilename = sysPath.basename(path)
+      destFilename = sysPath.basename(path, sysPath.extname(path)) + '.js'
 
       # Run the file through the template engine
-      data = _.template(fs.readFileSync(path).toString(), {settings: @project.clientConfig})
+      data = _.template(fs.readFileSync(path).toString(), {settings})
+
+      # CoffeeScript compile options
+      coffeeOpts =
+        bare: true
+        sourceMap: generateSourceMap
+        filename: srcFilename
+
+      # Copy the CoffeeScript file to the build directory so it's accessible
+      if generateSourceMap
+        to = sysPath.join(destDir, srcFilename)
+        fs.writeFileSync to, data
+
+        coffeeOpts = _.extend coffeeOpts,
+          generatedFile: destFilename
+          sourceFiles: [srcFilename]
 
       # Compile the file
-      js = CoffeeScript.compile(data, {bare: true})
+      compiled = CoffeeScript.compile(data, coffeeOpts)
+      if generateSourceMap
+        js = compiled.js
+      else
+        js = compiled
 
       # Strip the `.js` suffix from the module path
       dest = @destForFile(path, destDir)
@@ -43,6 +70,12 @@ module.exports = (env, callback) ->
 
       # Wrap the file into an AMD module
       js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
+
+      # Add souce map URL
+      if generateSourceMap
+        js = "#{js}\n//# sourceMappingURL=#{srcFilename}.map\n"
+        fs.writeFileSync sysPath.join(destDir, "#{srcFilename}.map"), compiled.v3SourceMap
+
       fs.writeFileSync dest, js
       callback(null, js)
 
