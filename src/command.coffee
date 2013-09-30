@@ -65,6 +65,7 @@ SWITCHES = [
   ['-v', '--version',         'display the version number']
   ['-e', '--env',             'set environment (development|production)']
   ['-a', '--app',             'set the app (default to main)']
+  ['-m', '--map',             'generate source maps']
   ['--cdn',                   'set CDN prefix']
   ['--hash',                  'set a hash as the client version']
 ]
@@ -103,7 +104,12 @@ exports.run = ->
   
   return usage() if process.argv.length <= 2 or opts.help
   return version() if opts.version
-  
+
+  if '-m' in opts.arguments or '--map' in opts.arguments
+    opts.map = true
+  else
+    opts.map = false
+
   if '-e' in opts.arguments or '--env' in opts.arguments
     index = opts.arguments.indexOf('-e')
     index = opts.arguments.indexOf('--env') if index is -1
@@ -147,7 +153,7 @@ task 'new', 'create a new project', ->
     (done) ->
       logging.info "The application '#{projectName}' has been created."
       logging.info "You need to run `npm install` inside the project directory to install dependencies."
-  ] 
+  ]
 
 # Task - create a new model
 task 'generate model', 'create a new model', ->
@@ -311,7 +317,15 @@ task 'watch', 'watch files and compile as needed', ->
   async.series [
     # Build
     (done) ->
-      p = spawn "#{__dirname}/../bin/muffin", ['build']
+      args = ['build']
+      if opts.map
+        args = args.concat ['--map']
+      if opts.hash
+        args = args.concat ['--hash', opts.hash]
+      if opts.cdn
+        args = args.concat ['--cdn', opts.cdn]
+      
+      p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
       p.on 'exit', done
