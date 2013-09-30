@@ -11,7 +11,7 @@ module.exports = (env, callback) ->
 
     optimize: (path, dest, callback) ->
       # Use uglifyjs to minify the js file
-      result = UglifyJS.minify([path], {compress: {comparisons: false}})
+      result = UglifyJS.minify([path], {compress: {comparisons: false, sequences: false}})
 
       # Write to dest
       fs.writeFileSync dest, result.code
