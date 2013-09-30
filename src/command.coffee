@@ -55,9 +55,6 @@ BANNER = '''
       * muffin server (run the server without watching client files, useful for testing the production build, use --port or -p to specify the server port)
       * muffin clean (remove the build directory)
 
-    Run tests:
-      * muffin test (tests are written in Mocha)
-
     Deploy:
       * muffin deploy [heroku|jitsu|gae|gh-pages]
 
@@ -344,18 +341,6 @@ task 'clean', 'remove the build directory', ->
   fs.removeSync(project.buildDir)
   relativePath = sysPath.relative(process.cwd(), project.buildDir)
   logging.warn "Removed the build directory at #{relativePath}."
-
-# Task - run tests
-task 'test', 'run tests', ->
-  project.setEnv 'test'
-  mocha = new Mocha
-  mocha
-    .reporter('spec')
-    .ui('bdd')
-    .growl()
-  mocha.addFile './test/spec'
-  mocha.run (failures) ->
-    process.exit (if failures > 0 then 1 else 0)
 
 # Task - deploy the app
 task 'deploy', 'deploy the app', ->
