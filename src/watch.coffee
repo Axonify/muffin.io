@@ -54,6 +54,7 @@ setEnv = (env, opts) ->
       settings[key] = value
   settings.assetHost = opts.cdn ? ''
   settings.version = opts.hash ? '1.0.0'
+  settings.map = opts.map
 
 # Helpers
 cacheBuster = (force) ->
@@ -190,23 +191,55 @@ compileFile = (source, abortOnError=no) ->
     try
       switch sysPath.extname(source)
         when '.coffee'
+          if settings.map
+            # Copy of CoffeeScript file to the public directory so it's accessible
+            filename = sysPath.basename(source)
+            path = sysPath.join destDir, filename
+            fs.copy source, path, (err) ->
+              logging.info "copied #{source}"
+          
           # Run the source file through template engine
           sourceData = _.template(fs.readFileSync(source).toString(), {settings})
           filename = sysPath.basename(source, sysPath.extname(source)) + '.js'
           path = sysPath.join destDir, filename
+          coffeeOpts =
+            filename: filename
+            sourceMap: settings.map
+          
+          if settings.map
+            sourceFilename = sysPath.basename(source)
+            _.extend coffeeOpts, coffeeOpts, {
+              generatedFile: filename
+              sourceFiles: [sourceFilename]
+            }
           
           if sourceData.split('\n')[0].match('NO_AMD_PREFIX')
-            js = CoffeeScript.compile(sourceData)
-            fs.writeFileSync path, js
+            compiled = CoffeeScript.compile(sourceData, coffeeOpts)
+            if settings.map
+              js = "/*\n//@ sourceMappingURL=#{ filename }.map\n*/\n#{compiled.js}\n"
+              fs.writeFileSync path, js
+              fs.writeFileSync sysPath.join(destDir, filename + '.map'), compiled.v3SourceMap
+            else
+              fs.writeFileSync path, compiled
+            
             logging.info "compiled #{source}"
             reload(path)
           else
             # Wrap the file into AMD module format
-            js = CoffeeScript.compile(sourceData, {bare: true})
+            _.extend coffeeOpts, coffeeOpts, {bare: true}
+            compiled = CoffeeScript.compile(sourceData, coffeeOpts)
             modulePath = sysPath.relative(publicDir, path)[...-3]
-            deps = parseDeps(js)
-            js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
-            fs.writeFileSync path, js
+            if settings.map
+              deps = parseDeps(compiled.js)
+              js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{compiled.js}});"
+              js = "/*\n//@ sourceMappingURL=#{ filename }.map\n*/\n#{js}\n"
+              fs.writeFileSync path, js
+              fs.writeFileSync sysPath.join(destDir, "#{filename}.map"), compiled.v3SourceMap
+            else
+              deps = parseDeps(compiled)
+              js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{compiled}});"
+              fs.writeFileSync path, js
+            
             logging.info "compiled #{source}"
             reload(path)
         
@@ -275,7 +308,7 @@ compileFile = (source, abortOnError=no) ->
             reload(path)
     catch err
       if abortOnError
-        fatalError err.message
+        fatalError "#{err.message} (#{source})"
       else
         logging.error "#{err.message} (#{source})"
 

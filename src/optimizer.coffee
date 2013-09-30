@@ -32,7 +32,7 @@ optimizeFile = (source, dest) ->
     switch sysPath.extname(source)
       when '.js'
         # Use uglifyjs to minify the js file
-        result = uglify.minify([source], {compress: {comparisons: false}})
+        result = uglify.minify([source], {compress: {comparisons: false, sequences: false}})
         fs.writeFileSync dest, result.code
         logging.info "minified #{source}"
       else
