@@ -322,6 +322,8 @@ task 'watch', 'watch files and compile as needed', ->
         args = args.concat ['--map']
       if opts.hash
         args = args.concat ['--hash', opts.hash]
+      if opts.cdn
+        args = args.concat ['--cdn', opts.cdn]
       
       p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
