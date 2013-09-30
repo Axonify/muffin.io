@@ -98,6 +98,9 @@ class Optimizer
       else if config.aliases[parts[0]]
         alias = config.aliases[parts[0]]
         path = [alias].concat(parts[1..]).join('/')
+
+      # Strip the .js suffix
+      path = path.replace(/\.js$/, '')
       return path
 
     define = (path, deps, factory) ->
