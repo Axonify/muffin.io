@@ -6,7 +6,7 @@ http = require 'http'
 https = require 'https'
 zlib = require 'zlib'
 {parse} = require 'url'
-#netrc = require 'netrc'
+netrc = require 'netrc'
 
 class Request
 
@@ -42,10 +42,9 @@ class Request
       req = http.request options, onEnd
 
     # authorize call
-    # @netrc = netrc(options.netrc)
-    # netrc = @netrc[parse(url).hostname]
-    # if netrc
-    #   req.auth(netrc.login, netrc.password)
+    account = netrc()[hostname]
+    if account
+      req.auth(account.login, account.password)
 
     req.on 'error', done
     req.end()
