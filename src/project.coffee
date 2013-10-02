@@ -102,7 +102,7 @@ class Project
       stats = fs.statSync(path)
       stats.isDirectory()
 
-    # iterate over the components dir and get module deps
+    # Iterate over the components dir and get module deps
     users = fs.readdirSync(@clientComponentsDir)
     for user in users
       userDir = sysPath.join(@clientComponentsDir, user)
@@ -111,7 +111,7 @@ class Project
         for p in projects
           projectDir = sysPath.join(userDir, p)
           if isDirectory(projectDir)
-            # parse component.json
+            # Parse component.json
             json = fs.readFileSync(sysPath.join(projectDir, 'component.json'))
             json = JSON.parse(json)
             repo = "#{user}/#{p}"

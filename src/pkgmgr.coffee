@@ -29,8 +29,8 @@ class Package extends Emitter
     @remote = 'https://raw.github.com'
     logging.info "Installing #{@repo}@#{@version}..."
 
-    # De-duplicate in-flight requests.
-    if inFlight[@repo]
+    # De-duplicate in-flight requests. Also skip local dependencies.
+    if inFlight[@repo] or @pkgInfo?.local
       @install = @emit.bind(@, 'end')
     inFlight[@repo] = true
 
@@ -126,6 +126,8 @@ class Package extends Emitter
   getDependencies: (deps, callback) ->
     pkgs = []
     for repo, version of deps
+      # Top-level repo settings take precedence.
+      version = project.clientConfig.dependencies[repo] ? version
       pkg = new Package(repo, version)
       pkgs.push pkg
 
