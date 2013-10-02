@@ -36,15 +36,17 @@ class Request
           else
             done(null, chunk)
 
+    # Set authorization field value
+    account = netrc()[hostname]
+    if account
+      str = new Buffer(account.login + ':' + account.password).toString('base64')
+      options.headers['Authorization'] = 'Basic ' + str
+
+    # Make the request
     if /https:/.test(url)
       req = https.request options, onEnd
     else
       req = http.request options, onEnd
-
-    # authorize call
-    account = netrc()[hostname]
-    if account
-      req.auth(account.login, account.password)
 
     req.on 'error', done
     req.end()
