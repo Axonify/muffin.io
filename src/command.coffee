@@ -41,8 +41,6 @@ BANNER = '''
     Package management:
       * muffin install <package-name> (install a Muffin package and save in config.json)
       * muffin install (install all packages listed in config.json)
-      * muffin update <package-name> (update a Muffin package and save in config.json)
-      * muffin update  (update all packages listed in config.json)
 
     Watch mode:
       * muffin watch (watch the client files and recompile as needed)
@@ -247,29 +245,27 @@ task 'install', 'install packages', ->
 
   pkgs = opts.arguments[1..]
   if pkgs.length > 0
-    # install the packages
+    # Install the packages
     for pkg in pkgs
       [repo, version] = pkg.split('@')
       pkgmgr.install repo, version
 
-    # save to config.json
-    config = project.clientConfig
+    # Save to `client/config.json`
+    path = sysPath.join(project.clientDir, 'config.json')
+    config = JSON.parse(fs.readFileSync(path))
     config.dependencies ?= {}
     for pkg in pkgs
       [repo, version] = pkg.split('@')
       config.dependencies[repo] = version ? '*'
-    fs.writeFileSync(sysPath.join(project.clientDir, 'config.json'), JSON.stringify(config, null, 2))
+    fs.writeFileSync(path, JSON.stringify(config, null, 2))
   else
-    # install all dependencies listed in config.json
+    # Install all dependencies listed in `client/config.json`
     for repo, version of project.clientConfig.dependencies
       pkgmgr.install repo, version
 
     # Call `npm install` in the serverDir if using the Node.js stack
     if project.config.serverType is 'nodejs'
       spawn 'npm', ['install'], {cwd: project.serverDir, stdio: 'inherit'}
-
-# Task - update packages
-task 'update', 'update packages', ->
 
 # Common subtask: build
 build = (done) ->
