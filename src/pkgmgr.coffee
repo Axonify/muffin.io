@@ -26,15 +26,13 @@ class Package extends Emitter
 
     # The default version is `master`.
     @version = 'master' if not @version or @version is '*'
+    @remote = 'https://raw.github.com'
     logging.info "Installing #{@repo}@#{@version}..."
 
-    @remote = 'https://raw.github.com'
-    @slug = "#{@repo}@#{@version}"
-
-    # Use `repo@version` to de-duplicate in-flight requests.
-    if inFlight[@slug]
+    # De-duplicate in-flight requests.
+    if inFlight[@repo]
       @install = @emit.bind(@, 'end')
-    inFlight[@slug] = true
+    inFlight[@repo] = true
 
   dirname: ->
     sysPath.join(project.clientComponentsDir, @repo)
@@ -51,39 +49,28 @@ class Package extends Emitter
     if @repo.indexOf('/') < 0
       logging.fatal "Invalid repo: #{@repo}"
 
-    # If pkgInfo is given, use it to create a local
-    # `component.json` file, then fetch the required files.
+    # If `pkgInfo` is given, use it as `component.json`.
     # Otherwise, fetch `component.json` from the remote repo.
     if @pkgInfo
-      @writeJSON @processJSON
+      @processJSON(@pkgInfo)
     else
-      @getJSON @processJSON
-
-  # Create a local `component.json` from pkgInfo.
-  writeJSON: (callback) ->
-    json = @pkgInfo
-    callback(null, json)
+      @fetchJSON @processJSON
 
   # Fetch `component.json` from the remote repo.
-  getJSON: (done) ->
+  fetchJSON: (done) ->
     url = @url('component.json')
+    logging.info "Fetching #{url}"
 
-    logging.info "fetching #{url}"
     request.get url, null, (err, content) ->
-      if err
-        done(err)
-      else
-        try
-          json = JSON.parse(content)
-          done(null, json)
-        catch e
-          logging.fatal "Failed to fetch #{url}"
-          done(e)
+      if err then logging.fatal err
+      try
+        json = JSON.parse(content)
+        done(json)
+      catch e
+        logging.fatal "Failed to fetch #{url}.\n#{e}"
 
-  processJSON: (err, json) =>
-    if err
-      return @emit('error', err)
-
+  processJSON: (json) =>
+    # Gather all the required files
     files = []
     if json.main then files.push(json.main)
     if json.scripts then files = files.concat(json.scripts)
@@ -97,53 +84,49 @@ class Package extends Emitter
     files = _.uniq(files)
 
     async.parallel [
-      # get dependencies
+      # Get dependencies
       (done) =>
         if json.dependencies
           @getDependencies json.dependencies, done
         else
           done(null)
 
-      # download the files
+      # Download the files
       (done) =>
         async.each files, @getFile, done
 
-      # save component.json
+      # Save component.json
       (done) =>
         fs.mkdirSync @dirname()
-        json = JSON.stringify(json, null, 2)
-        @writeFile 'component.json', json, done
+        @writeFile 'component.json', JSON.stringify(json, null, 2), done
 
     ], (err, results) =>
-      if err
-        @emit 'error', err
-      else
-        @emit 'end'
+      if err then logging.fatal err
+      @emit 'end'
 
   # Fetch a single file and write it to disk.
   getFile: (file, done) =>
     url = @url(file)
-    logging.info "fetching #{url}"
+    logging.info "Fetching #{url}"
 
-    @emit 'file', file, url
-    dst = @join(file)
-    fs.mkdirSync sysPath.dirname(dst)
+    # Create the dir
+    dest = @join(file)
+    fs.mkdirSync sysPath.dirname(dest)
 
-    # download file and save to disk
-    request.get url, dst, (err, res) ->
-      if err then console.log "Problem with request #{err.message}"
+    # Download the file and save it to disk.
+    request.get url, dest, done
 
   # Write a file to disk.
   writeFile: (file, str, callback) ->
     file = @join(file)
-    logging.info "writing file #{file}"
+    logging.info "Writing file #{file}"
     fs.writeFile file, str, callback
 
   # Install dependencies,
   getDependencies: (deps, callback) ->
     pkgs = []
-    for name, version of deps
-      pkg = new Package(name, version)
+    for repo, version of deps
+      pkg = new Package(repo, version)
       pkgs.push pkg
 
     getPkg = (pkg, done) =>
