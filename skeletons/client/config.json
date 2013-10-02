@@ -10,30 +10,30 @@
     "muffin/Logger": "*",
     "muffin/forms": "*",
     "components/jquery": {
-      "version": "*",
+      "version": "2.0.3",
       "type": "script",
       "main": "jquery.js",
       "exports": "$"
     },
     "jashkenas/underscore": {
-      "version": "*",
+      "version": "1.5.2",
       "type": "script",
       "main": "underscore.js",
       "exports": "_"
     },
     "jashkenas/backbone": {
       "name": "Backbone",
-      "version": "*",
+      "version": "1.0.0",
       "type": "script",
       "main": "backbone.js",
       "dependencies": {
-        "jashkenas/underscore": "*",
-        "components/jquery": "*"
+        "jashkenas/underscore": "1.5.2",
+        "components/jquery": "2.0.3"
       },
       "exports": "Backbone"
     },
     "twbs/bootstrap": {
-      "version": "*",
+      "version": "v3.0.0",
       "files": [
         "dist/js/bootstrap.js",
         "dist/css/bootstrap.css",
