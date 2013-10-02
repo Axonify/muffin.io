@@ -1,22 +1,22 @@
-#
-# pkgmgr.coffee
-#
+# Install packages from GitHub repos.
 
 fs = require 'fs-extra'
 sysPath = require 'path'
-logging = require './utils/logging'
-project = require './project'
 Emitter = require('events').EventEmitter
 async = require 'async'
 _ = require 'underscore'
+project = require './project'
+logging = require './utils/logging'
 request = require './utils/request'
 
 # In-flight requests
 inFlight = {}
 
-# Package class
+# Package
 class Package extends Emitter
-  constructor: (@repo, version, options) ->
+
+  constructor: (@repo, version) ->
+    # The second argument could be a version number or an pkgInfo hash.
     if _.isObject(version)
       @pkgInfo = version
       @version = @pkgInfo.version
@@ -24,14 +24,14 @@ class Package extends Emitter
     else
       @version = version
 
-    options ?= {}
-    @version = 'master' if @version is '*'
+    # The default version is `master`.
+    @version = 'master' if not @version or @version is '*'
     logging.info "Installing #{@repo}@#{@version}..."
 
+    @remote = 'https://raw.github.com'
     @slug = "#{@repo}@#{@version}"
-    @remote = options.remote ? 'https://raw.github.com'
-    @auth = options.auth
 
+    # Use `repo@version` to de-duplicate in-flight requests.
     if inFlight[@slug]
       @install = @emit.bind(@, 'end')
     inFlight[@slug] = true
@@ -45,20 +45,26 @@ class Package extends Emitter
   url: (file) ->
     "#{@remote}/#{@repo}/#{@version}/#{file}"
 
-  # Get local json if the component is installed
-  getLocalJSON: (callback) ->
-    path = @join('component.json')
-    fs.readFile path, 'utf8', (err, json) ->
-      if err
-        return callback(err)
-      try
-        json = JSON.parse(json)
-      catch err
-        err.message += " in #{path}"
-        return callback(err)
-      callback(null, json)
+  # Install the package
+  install: ->
+    # Sanity check on the repo name
+    if @repo.indexOf('/') < 0
+      logging.fatal "Invalid repo: #{@repo}"
 
-  # Get component.json
+    # If pkgInfo is given, use it to create a local
+    # `component.json` file, then fetch the required files.
+    # Otherwise, fetch `component.json` from the remote repo.
+    if @pkgInfo
+      @writeJSON @processJSON
+    else
+      @getJSON @processJSON
+
+  # Create a local `component.json` from pkgInfo.
+  writeJSON: (callback) ->
+    json = @pkgInfo
+    callback(null, json)
+
+  # Fetch `component.json` from the remote repo.
   getJSON: (done) ->
     url = @url('component.json')
 
@@ -67,65 +73,12 @@ class Package extends Emitter
       if err
         done(err)
       else
-        done(null, JSON.parse(content))
-
-  # Create a local component.json from pkgInfo
-  writeJSON: (callback) ->
-    json = @pkgInfo
-    callback(null, json)
-
-  # Fetch a single file, write to disk then call the callback.
-  getFile: (file, done) =>
-    url = @url(file)
-    logging.info "fetching #{url}"
-
-    @emit 'file', file, url
-    dst = @join(file)
-    fs.mkdirSync sysPath.dirname(dst)
-
-    # download file and save to disk
-    request.get url, dst, (err, res) ->
-      if err then console.log "Problem with request #{err.message}"
-
-  writeFile: (file, str, callback) ->
-    file = @join(file)
-    logging.info "writing file #{file}"
-    fs.writeFile file, str, callback
-
-  # Install dependencies
-  getDependencies: (deps, callback) ->
-    pkgs = []
-    for name, version of deps
-      pkg = new Package(name, version)
-      pkgs.push pkg
-
-    getPkg = (pkg, done) =>
-      @emit 'dep', pkg
-      pkg.on 'end', done
-      pkg.on 'exists', done
-      pkg.install()
-
-    async.each pkgs, getPkg, callback
-
-  # Check if the component exists already,
-  # othewise install it for real.
-  install: ->
-    if @repo.indexOf('/') < 0
-      @emit 'error', new Error("invalid component repo '#{@repo}'")
-
-    @getLocalJSON (err, json) =>
-      if err?.code is 'ENOENT'
-        @reallyInstall()
-      else if err
-        @emit 'error', err
-      else
-        @reallyInstall()
-
-  reallyInstall: ->
-    if @pkgInfo
-      @writeJSON @processJSON
-    else
-      @getJSON @processJSON
+        try
+          json = JSON.parse(content)
+          done(null, json)
+        catch e
+          logging.fatal "Failed to fetch #{url}"
+          done(e)
 
   processJSON: (err, json) =>
     if err
@@ -167,9 +120,44 @@ class Package extends Emitter
       else
         @emit 'end'
 
+  # Fetch a single file and write it to disk.
+  getFile: (file, done) =>
+    url = @url(file)
+    logging.info "fetching #{url}"
 
-install = (repo, version='master') ->
-  pkg = new Package(repo, version)
-  pkg.install()
+    @emit 'file', file, url
+    dst = @join(file)
+    fs.mkdirSync sysPath.dirname(dst)
 
-module.exports = {install}
+    # download file and save to disk
+    request.get url, dst, (err, res) ->
+      if err then console.log "Problem with request #{err.message}"
+
+  # Write a file to disk.
+  writeFile: (file, str, callback) ->
+    file = @join(file)
+    logging.info "writing file #{file}"
+    fs.writeFile file, str, callback
+
+  # Install dependencies,
+  getDependencies: (deps, callback) ->
+    pkgs = []
+    for name, version of deps
+      pkg = new Package(name, version)
+      pkgs.push pkg
+
+    getPkg = (pkg, done) =>
+      pkg.on 'end', done
+      pkg.install()
+
+    async.each pkgs, getPkg, callback
+
+# Package Manager
+class PackageManager
+
+  install: (repo, version) ->
+    pkg = new Package(repo, version)
+    pkg.install()
+
+# Freeze the object so it can't be modified later.
+module.exports = Object.freeze(new PackageManager())
