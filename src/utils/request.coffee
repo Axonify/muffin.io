@@ -1,5 +1,5 @@
-# A simple utility to download files via HTTP.
-# Supports gzip and HTTPS.
+# A simple utility to download files from HTTP or HTTPS.
+# Supports transparent gzip decompression.
 
 fs = require 'fs-extra'
 http = require 'http'
@@ -8,15 +8,16 @@ zlib = require 'zlib'
 {parse} = require 'url'
 #netrc = require 'netrc'
 
-request =
-  get: (url, dst, done) ->
+class Request
+
+  get: (url, dest, done) ->
     {hostname, path} = parse(url)
     options = {hostname, path, headers: {'Accept-Encoding': 'gzip'}}
 
-    if dst
+    if dest
       # Save file to disk
       onEnd = (res) ->
-        stream = fs.createWriteStream(dst)
+        stream = fs.createWriteStream(dest)
         if res.headers['content-encoding'] in ['gzip', 'deflate']
           unzip = zlib.createUnzip()
           res.pipe(unzip).pipe(stream)
@@ -46,9 +47,8 @@ request =
     # if netrc
     #   req.auth(netrc.login, netrc.password)
 
-    req.on 'error', (err) ->
-      return done(err)
-
+    req.on 'error', done
     req.end()
 
-module.exports = request
+# Freeze the object so it can't be modified later.
+module.exports = Object.freeze(new Request())
