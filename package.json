@@ -1,6 +1,6 @@
 {
   "name": "muffin.io",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "A full stack development tool for creating modern webapps",
   "keywords": [
     "backbone",
