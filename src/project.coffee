@@ -13,10 +13,9 @@ class Project
 
   constructor: ->
     @clientConfig = {}
-
-    # These are used by the module loader.
     @requireConfig = {}
     @packageDeps = {}
+    @localDeps = {}
 
     # Load configuration file
     try @parseConfig()
@@ -133,6 +132,21 @@ class Project
 
             if json.dependencies
               @packageDeps[repo] = Object.keys(json.dependencies)
+
+    # Parse local dependencies from @clientConfig
+    for repo, v of @clientConfig.dependencies
+      if _.isObject(v) and v.local
+        path = repo.replace(/\.js$/, '')
+        parts = path.split('/')
+
+        # Apply aliases to the path
+        if @clientConfig.aliases[path]
+          path = @clientConfig.aliases[path]
+        else if @clientConfig.aliases[parts[0]]
+          alias = @clientConfig.aliases[parts[0]]
+          path = [alias].concat(parts[1..]).join('/')
+
+        @localDeps[path] = Object.keys(v.dependencies)
 
     @requireConfig = {aliases: _aliases, scripts: _scripts, exports: _exports}
 

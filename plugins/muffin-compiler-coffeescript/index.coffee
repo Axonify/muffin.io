@@ -68,6 +68,12 @@ module.exports = (env, callback) ->
         if extraDeps?.length > 0
           deps = deps.concat(extraDeps)
 
+      # Concat local deps
+      if @project.localDeps[modulePath]
+        extraDeps = @project.localDeps[modulePath]
+        if extraDeps.length > 0
+          deps = deps.concat(extraDeps)
+
       # Wrap the file into an AMD module
       js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
 
