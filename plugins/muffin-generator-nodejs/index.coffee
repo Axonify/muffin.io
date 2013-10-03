@@ -25,8 +25,8 @@ module.exports = (env, callback) ->
 
       # Mapping from template files to project files
       mapping =
-        'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        'model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
 
       # Copy template files
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
@@ -52,8 +52,8 @@ module.exports = (env, callback) ->
 
       # Mapping from template files to project files
       mapping =
-        'models/model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
-        'controllers/controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
+        'model.coffee': "#{@serverDir}/apps/#{app}/models/#{classified}.coffee"
+        'controller.coffee': "#{@serverDir}/apps/#{app}/controllers/#{classified}Controller.coffee"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
       # Inject routes into server router

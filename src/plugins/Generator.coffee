@@ -47,7 +47,7 @@ class Generator
   # Retrieve the model attributes
   parseAttrs: (args) ->
     attrs = {}
-    validTypes = ['String', 'Number', 'Date', 'Buffer', 'Boolean', 'Mixed', 'ObjectId', 'Array']
+    validTypes = ['String', 'Number', 'Date', 'Boolean']
     for attr in args
       [key, value] = attr.split(':')
       if value then value = _(validTypes).find (type) -> type.toLowerCase() is value.toLowerCase()
