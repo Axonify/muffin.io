@@ -2,7 +2,7 @@ Backbone = require 'Backbone'
 
 class LayoutView extends Backbone.View
 
-  template: _.tpl(require '../templates/LayoutView.html')
+  template: _.template(require '../templates/LayoutView.html')
 
   events:
     'click .start-btn': 'getStarted'

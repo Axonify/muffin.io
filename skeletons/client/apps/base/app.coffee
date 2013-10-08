@@ -3,13 +3,7 @@
 #
 
 Backbone = require 'Backbone'
-ViewHelpers = require './ViewHelpers'
 Logger = require 'muffin/Logger'
-
-# Add ViewHelpers to underscore template function
-_.mixin
-  tpl: (templateString) ->
-    (data={}) -> _.template(templateString)(_.extend(data, ViewHelpers))
 
 class App
 
