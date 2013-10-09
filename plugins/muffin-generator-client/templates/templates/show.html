@@ -1,0 +1,7 @@
+<h1>Show <$- classified $></h1>
+<dl class="dl-horizontal">
+  <% _(model).each(function(value, key, list) { %>
+  <dt><%= key %></dt>
+  <dd><%= value %></dd>
+  <% }); %>
+</dl>

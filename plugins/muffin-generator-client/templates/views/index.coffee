@@ -3,8 +3,8 @@ Backbone = require 'Backbone'
 
 class <$- classified $>IndexView extends Backbone.View
 
-  template: _.tpl(require '../templates/<$- classified $>IndexView.html')
-  tbodyTemplate: _.tpl(require '../templates/<$- classified $>ListTable.html')
+  template: _.template(require '../templates/<$- classified $>IndexView.html')
+  tbodyTemplate: _.template(require '../templates/<$- classified $>ListTable.html')
 
   events:
     'click a.delete': 'onDelete'

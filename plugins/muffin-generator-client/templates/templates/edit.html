@@ -1,0 +1,27 @@
+<h1>Edit <$- classified $></h1>
+<form class="col-lg-6">
+  <$ _(attrs).each(function(value, key, list) { $>
+  <$ if (value === 'String') { $>
+  <div class="form-group">
+    <label for="input-<$- key $>"><$- _.humanize(key) $></label>
+    <input type="text" id="input-<$- key $>" data-field="<$- key $>" placeholder="<$- _.humanize(key) $>" class="form-control"/>
+  </div>
+  <$ } else if (value === 'Number') { $>
+  <div class="form-group">
+    <label for="input-<$- key $>"><$- _.humanize(key) $></label>
+    <input type="number" id="input-<$- key $>" data-field="<$- key $>" placeholder="<$- _.humanize(key) $>" class="form-control"/>
+  </div>
+  <$ } else if (value === 'Boolean') { $>
+  <div class="form-group">
+    <label for="input-<$- key $>"><$- _.humanize(key) $></label>
+    <input type="checkbox" id="input-<$- key $>" data-field="<$- key $>" placeholder="<$- _.humanize(key) $>" class="form-control"/>
+  </div>
+  <$ } else if (value === 'Date') { $>
+  <div class="form-group">
+    <label for="input-<$- key $>"><$- _.humanize(key) $></label>
+    <input type="text" id="input-<$- key $>" data-field="<$- key $>" data-editor="Date" placeholder="<$- _.humanize(key) $>" class="form-control"/>
+  </div>
+  <$ }}); $>
+  <button type="submit" class="btn btn-primary">Submit</button>
+  <button class="btn btn-default cancel">Cancel</button>
+</form>

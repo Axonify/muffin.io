@@ -1,0 +1,15 @@
+<% _(<$- underscored_plural $>).each(function(model, index) { %>
+<tr>
+  <td><%= index+1 %></td>
+  <% _(fields).each(function(field) { %>
+  <td><%= model[field] %></td>
+  <% }); %>
+  <td>
+    <div class="btn-group">
+      <a href="#<$- underscored_plural $>/<%= model._id %>" class="btn btn-default">Show</a>
+      <a href="#<$- underscored_plural $>/<%= model._id %>/edit" class="btn btn-default">Edit</a>
+      <a href="#" class="btn btn-default delete">Delete</a>
+    </div>
+  </td>
+</tr>
+<% }); %>

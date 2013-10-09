@@ -4,7 +4,7 @@ Form = require 'muffin/forms'
 
 class <$- classified $>NewView extends Backbone.View
 
-  template: _.tpl(require '../templates/<$- classified $>NewView.html')
+  template: _.template(require '../templates/<$- classified $>NewView.html')
 
   events:
     'click form .btn-primary': 'onSubmit'

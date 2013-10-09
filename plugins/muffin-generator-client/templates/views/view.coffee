@@ -2,7 +2,7 @@ Backbone = require 'Backbone'
 
 class <$- classified $> extends Backbone.View
 
-  template: _.tpl(require '../templates/<$- classified $>.html')
+  template: _.template(require '../templates/<$- classified $>.html')
 
   events: {}
 

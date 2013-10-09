@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <!-- Title-->
+    <title>Webapp</title>
+    <!-- Mobile viewport optimization (http://mobileboilerplate.com)-->
+    <meta name="description" content="An awesome web app">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- width=device-width causes the iPhone 5 to letterbox the app, so we want to exclude it for iPhone 5 to allow full screen apps-->
+    <meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" media="(device-height: 568px)">
+    <meta http-equiv="cleartype" content="on">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="msapplication-tap-highlight" content="no">
+    <!-- The fav and touch icons-->
+    <link href="images/favicon.ico" rel="shortcut icon">
+    <link href="images/apple-touch-icon.png" rel="apple-touch-icon">
+    <link href="images/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72">
+    <link href="images/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114">
+    <link href="images/apple-touch-icon-144x144.png" rel="apple-touch-icon" sizes="144x144">
+    <!-- Stylesheets-->
+    <link href="components/twbs/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+    <link href="stylesheets/main.css" rel="stylesheet">
+  </head>
+  <body>
+    <?= include_module_loader() ?>
+    <?= include_live_reload() ?>
+    <script>
+      require(['javascripts/apps/main/start'], function(start) {
+        $(start);
+      });
+    </script>
+  </body>
+</html>

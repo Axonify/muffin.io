@@ -45,7 +45,7 @@ module.exports = (env, callback) ->
       classified = _.classify(view)
       mapping =
         'views/view.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}.coffee"
-        'templates/view.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}.jade"
+        'templates/view.html': "#{@clientDir}/apps/#{app}/templates/#{classified}.html"
       @copyTemplate {view, classified, _}, mapping
 
     destroyView: (view, app) ->
@@ -53,7 +53,7 @@ module.exports = (env, callback) ->
       classified = _.classify(view)
       files = [
         "#{@clientDir}/apps/#{app}/views/#{classified}.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}.html"
       ]
       @removeFiles(files)
 
@@ -72,14 +72,14 @@ module.exports = (env, callback) ->
         'models/model.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
         'models/collection.coffee': "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
         'views/index.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}IndexView.coffee"
-        'templates/index.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.jade"
-        'templates/table.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.jade"
+        'templates/index.html': "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.html"
+        'templates/table.html': "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.html"
         'views/show.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}ShowView.coffee"
-        'templates/show.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.jade"
+        'templates/show.html': "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.html"
         'views/new.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}NewView.coffee"
-        'templates/new.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.jade"
+        'templates/new.html': "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.html"
         'views/edit.coffee': "#{@clientDir}/apps/#{app}/views/#{classified}EditView.coffee"
-        'templates/edit.jade': "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.jade"
+        'templates/edit.html': "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.html"
       @copyTemplate {model, classified, underscored, underscored_plural, attrs, _}, mapping
 
       # Inject routes into client router
@@ -100,14 +100,14 @@ module.exports = (env, callback) ->
         "#{@clientDir}/apps/#{app}/models/#{classified}.coffee"
         "#{@clientDir}/apps/#{app}/models/#{classified}List.coffee"
         "#{@clientDir}/apps/#{app}/views/#{classified}IndexView.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.jade"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}IndexView.html"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}ListTable.html"
         "#{@clientDir}/apps/#{app}/views/#{classified}ShowView.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}ShowView.html"
         "#{@clientDir}/apps/#{app}/views/#{classified}NewView.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}NewView.html"
         "#{@clientDir}/apps/#{app}/views/#{classified}EditView.coffee"
-        "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.jade"
+        "#{@clientDir}/apps/#{app}/templates/#{classified}EditView.html"
       ]
       @removeFiles(files)
 

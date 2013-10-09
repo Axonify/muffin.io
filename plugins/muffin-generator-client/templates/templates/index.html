@@ -1,0 +1,13 @@
+<h1>Listing <$- _.humanize(_.pluralize(model)) $></h1>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <$ _(attrs).each(function(value, key, list) { $>
+      <th data-field="<$- key $>"><$- _.humanize(key) $></th>
+      <$ }); $>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<p><a href="#<$- underscored_plural $>/new" class="btn btn-primary">Add New <$- _.humanize(model) $></a></p>
