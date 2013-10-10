@@ -41,8 +41,8 @@ class Generator
   # Remove files
   removeFiles: (files) ->
     for file in files
-      fs.unlink file, (err) ->
-        logging.info " * Removed #{sysPath.relative(process.cwd(), file)}" unless err
+      fs.unlinkSync file
+      logging.info " * Removed #{sysPath.relative(process.cwd(), file)}"
 
   # Retrieve the model attributes
   parseAttrs: (args) ->
