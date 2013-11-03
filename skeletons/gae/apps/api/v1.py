@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import fix_path
 import webapp2 as webapp
 from apps.decorators import *

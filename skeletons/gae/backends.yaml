@@ -1,4 +1,0 @@
-# backends:
-# - name: scraper
-#   instances: 5
-#   options: dynamic

@@ -1,7 +1,0 @@
-#
-# apps/include.yaml
-#
-
-handlers:
-- url: /api/v1/.*
-  script: apps.api_v1.app
