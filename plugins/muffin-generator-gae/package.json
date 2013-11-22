@@ -1,0 +1,11 @@
+{
+  "name": "muffin-generator-gae",
+  "version": "0.1.0",
+  "description": "A Muffin generator for Google App Engine backend",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}
