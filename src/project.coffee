@@ -3,6 +3,7 @@
 fs = require 'fs'
 sysPath = require 'path'
 _ = require './utils/_inflection'
+logging = require './utils/logging'
 UglifyJS = require 'uglify-js'
 CoffeeScript = require 'coffee-script'
 Generator = require './plugins/Generator'
@@ -83,13 +84,18 @@ class Project
     # `env` gives the plugin access to superclasses and project settings.
     pluginEnv = {Generator, Compiler, Optimizer, project: @, _}
 
-    # First search in Muffin's built-in plugins folder
-    pluginPath = sysPath.join(__dirname, "../plugins/#{name}")
-    try return require(pluginPath)(pluginEnv, done)
-
-    # Then search in the global `node_modules` folder
-    pluginPath = sysPath.join(__dirname, "../../#{name}")
-    try return require(pluginPath)(pluginEnv, done)
+    # Load the plugin
+    try
+      # First search in Muffin's built-in plugins folder
+      pluginPath = sysPath.join(__dirname, "../plugins/#{name}")
+      require(pluginPath)(pluginEnv, done)
+    catch e
+      try
+        # Then search in the global `node_modules` folder
+        pluginPath = sysPath.join(__dirname, "../../#{name}")
+        require(pluginPath)(pluginEnv, done)
+      catch e
+        logging.fatal "Failed to load plugin #{name}."
 
   # Build the require config from packages
   buildRequireConfig: ->
