@@ -5,6 +5,7 @@
     "muffin-compiler-less",
     "muffin-generator-client",
     "muffin-optimizer-uglifyjs",
-    "muffin-optimizer-cleancss"
+    "muffin-optimizer-cleancss",
+    "muffin-optimizer-html"
   ]
 }

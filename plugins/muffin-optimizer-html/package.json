@@ -1,0 +1,11 @@
+{
+  "name": "muffin-optimizer-html",
+  "version": "0.1.0",
+  "description": "A Muffin plugin that minifies HTML files",
+  "main": "index.coffee",
+  "keywords": [
+    "muffin"
+  ],
+  "author": "Yaogang Lian",
+  "license": "MIT"
+}
