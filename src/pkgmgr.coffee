@@ -26,7 +26,7 @@ class Package extends Emitter
 
     # The default version is `master`.
     @version = 'master' if not @version or @version is '*'
-    @remote = 'https://raw.github.com'
+    @remote = 'https://raw.githubusercontent.com'
     logging.info "Installing #{@repo}@#{@version}..."
 
     # De-duplicate in-flight requests. Also skip local dependencies.
