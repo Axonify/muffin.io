@@ -15,48 +15,48 @@ try buildConfig = require sysPath.join(process.cwd(), 'client/config/config')
 # The help banner that is printed when `muffin` is called without arguments.
 BANNER = '''
   Usage:
-    
+
     muffin new PROJECT_NAME
       - create a new project
-    
+
     Code generators:
       * muffin generate model user
       * muffin generate view UserListView
       * muffin generate scaffold user name:string email:string age:number --app auth
-    
+
     Remove generated code:
       * muffin destroy model user
       * muffin destroy view UserListView
       * muffin destroy scaffold user --app auth
-    
+
     Install reusable apps or widgets:
       * muffin install app auth
       * muffin install widget ProgressBar
-    
+
     muffin watch
       - watch the current project and recompile as needed
-    
+
     muffin build
       - compile coffeescripts into javascripts and copy assets to `public/` directory
-    
+
     muffin minify
       - minify and concatenate js/css files, optimize png/jpeg images, build for production
-    
+
     muffin clean
       - remove all files inside `public/` directory
-    
+
     muffin test
       - run tests written in Mocha or Zombie.js
-    
+
     muffin doc
       - generate documentation via docco
-    
+
     muffin server
       - serve the app on port 3000 while watching static files
-    
+
     muffin deploy [heroku | amazon | nodejitsu]
       - deploy to Heroku, Amazon or Nodejitsu
-    
+
 '''
 
 # The list of all the valid option flags that `muffin` supports.
@@ -68,6 +68,7 @@ SWITCHES = [
   ['-m', '--map',             'generate source maps']
   ['--cdn',                   'set CDN prefix']
   ['--hash',                  'set a hash as the client version']
+  ['-o', '--output',          'set output directory']
 ]
 
 # Top-level objects shared by all the functions.
@@ -80,9 +81,8 @@ templatesDir = sysPath.join(muffinDir, 'framework/templates')
 cwd = process.cwd()
 clientDir = sysPath.join(cwd, 'client')
 serverDir = sysPath.join(cwd, 'server')
-publicDir = sysPath.join(cwd, 'public')
+global.publicDir = sysPath.join(cwd, 'public')
 buildDir = sysPath.join(cwd, 'build')
-jsDir = sysPath.join(cwd, 'public/javascripts')
 
 # Define a task with a short name, an optional description, and the function to run.
 task = (name, description, action) ->
@@ -101,7 +101,7 @@ exports.run = ->
     opts = optionParser.parse process.argv[2..]
   catch e
     fatalError e
-  
+
   return usage() if process.argv.length <= 2 or opts.help
   return version() if opts.version
 
@@ -115,19 +115,26 @@ exports.run = ->
     index = opts.arguments.indexOf('--env') if index is -1
     opts.env = opts.arguments[index+1]
     opts.arguments.splice(index, 2)
-  
+
   if '-a' in opts.arguments or '--app' in opts.arguments
     index = opts.arguments.indexOf('-a')
     index = opts.arguments.indexOf('--app') if index is -1
     opts.app = opts.arguments[index+1]
     opts.arguments.splice(index, 2)
-  
+
   if '--cdn' in opts.arguments
     opts.cdn = opts.arguments[opts.arguments.indexOf('--cdn') + 1]
-  
+
   if '--hash' in opts.arguments
     opts.hash = opts.arguments[opts.arguments.indexOf('--hash') + 1]
-  
+
+  if '-o' in opts.arguments or '--output' in opts.arguments
+    index = opts.arguments.indexOf('-o')
+    index = opts.arguments.indexOf('--output') if index is -1
+    opts.output = opts.arguments[index+1]
+    global.publicDir = sysPath.join(cwd, opts.arguments[index+1])
+    opts.arguments.splice(index, 2)
+
   for len in [1..2]
     name = opts.arguments[0...len].join(' ')
     return invoke name if tasks[name]
@@ -138,17 +145,17 @@ task 'new', 'create a new project', ->
   fatalError "Must supply a name for the new project" unless projectName
   projectDir = sysPath.join cwd, projectName
   fatalError "The application #{projectName} already exists." if fs.existsSync(projectDir)
-  
+
   async.series [
     # Copy skeleton files
     (done) ->
       skeletonPath = sysPath.join muffinDir, 'framework/skeleton'
       fs.copy skeletonPath, projectDir, done
-    
+
     # Set up .gitignore
     (done) ->
       fs.copy sysPath.join(projectDir, '.npmignore'), sysPath.join(projectDir, '.gitignore'), done
-    
+
     # Print logs
     (done) ->
       logging.info "The application '#{projectName}' has been created."
@@ -159,13 +166,13 @@ task 'new', 'create a new project', ->
 task 'generate model', 'create a new model', ->
   model = opts.arguments[2]
   fatalError "Must supply a name for the model" unless model
-  
+
   app = opts.app ? 'main'
   classified = _.classify(model)
   underscored = _.underscored(model)
   underscored_plural = _.underscored(_.pluralize(model))
   attrs = parseAttrs(opts.arguments[3..])
-  
+
   copyTemplate {model, classified, underscored, underscored_plural, attrs, _},
     'client/models/model.coffee': "client/apps/#{app}/models/#{classified}.coffee"
     'client/models/collection.coffee': "client/apps/#{app}/models/#{classified}List.coffee"
@@ -176,7 +183,7 @@ task 'generate model', 'create a new model', ->
 task 'destroy model', 'remove a generated model', ->
   model = opts.arguments[2]
   fatalError "Must supply a name for the model" unless model
-  
+
   app = opts.app ? 'main'
   classified = _.classify(model)
   files = [
@@ -191,7 +198,7 @@ task 'destroy model', 'remove a generated model', ->
 task 'generate view', 'create a new view', ->
   view = opts.arguments[2]
   fatalError "Must supply a name for the view" unless view
-  
+
   app = opts.app ? 'main'
   copyTemplate {view, _},
     'client/views/view.coffee': "client/apps/#{app}/views/#{_.classify(view)}.coffee"
@@ -201,7 +208,7 @@ task 'generate view', 'create a new view', ->
 task 'destroy view', 'remove a generated view', ->
   view = opts.arguments[2]
   fatalError "Must supply a name for the view" unless view
-  
+
   app = opts.app ? 'main'
   files = [
     "client/apps/#{app}/views/#{_.classify(view)}.coffee"
@@ -213,13 +220,13 @@ task 'destroy view', 'remove a generated view', ->
 task 'generate scaffold', 'create scaffold for a resource', ->
   model = opts.arguments[2]
   fatalError "Must supply a name for the model" unless model
-  
+
   app = opts.app ? 'main'
   classified = _.classify(model)
   underscored = _.underscored(model)
   underscored_plural = _.underscored(_.pluralize(model))
   attrs = parseAttrs(opts.arguments[3..])
-  
+
   copyTemplate {model, classified, underscored, underscored_plural, attrs, _},
     'client/models/model.coffee': "client/apps/#{app}/models/#{classified}.coffee"
     'client/models/collection.coffee': "client/apps/#{app}/models/#{classified}List.coffee"
@@ -234,18 +241,18 @@ task 'generate scaffold', 'create scaffold for a resource', ->
     'client/templates/edit.jade': "client/apps/#{app}/templates/#{classified}EditView.jade"
     'server/models/model.coffee': "server/apps/#{app}/models/#{classified}.coffee"
     'server/controllers/controller.coffee': "server/apps/#{app}/controllers/#{classified}Controller.coffee"
-  
+
   # Inject routes into client router
   _.templateSettings =
     evaluate    : /<\$([\s\S]+?)\$>/g,
     interpolate : /<\$=([\s\S]+?)\$>/g,
     escape      : /<\$-([\s\S]+?)\$>/g
-  
+
   routes = fs.readFileSync(sysPath.join(templatesDir, 'client/router.coffee')).toString()
   lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
   injectIntoFile "client/apps/#{app}/router.coffee", '\n' + lines[0..4].join('\n') + '\n', null, "routes:"
   injectIntoFile "client/apps/#{app}/router.coffee", lines[6..24].join('\n') + '\n\n', "module.exports", null
-  
+
   # Inject routes into server router
   routes = fs.readFileSync(sysPath.join(templatesDir, 'server/router.coffee')).toString()
   lines = _.template(routes, {model, classified, underscored, underscored_plural, _}).split('\n')
@@ -256,7 +263,7 @@ task 'generate scaffold', 'create scaffold for a resource', ->
 task 'destroy scaffold', 'remove generated scaffold for a resource', ->
   model = opts.arguments[2]
   fatalError "Must supply a name for the model" unless model
-  
+
   app = opts.app ? 'main'
   classified = _.classify(model)
   files = [
@@ -284,13 +291,13 @@ task 'install', 'install reusable apps or widgets', ->
     readme = sysPath.join(muffinDir, "framework/apps/#{app}/README.md")
     if fs.existsSync(readme)
       logging.info '\n' + fs.readFileSync(readme).toString()
-  
+
   installWidget = (widget) ->
     fs.copy sysPath.join(muffinDir, "framework/widgets/#{widget}"), sysPath.join(clientDir, "widgets/#{widget}"), -> {}
     readme = sysPath.join(muffinDir, "framework/widgets/#{widget}/README.md")
     if fs.existsSync(readme)
       logging.info '\n' + fs.readFileSync(readme).toString()
-  
+
   if opts.arguments.length is 1
     # Install all the apps and widgets specified in config.coffee
     installApp(app) for app in config.installed_apps
@@ -313,7 +320,7 @@ task 'watch', 'watch files and compile as needed', ->
   logging.info "Watching project..."
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
-  
+
   async.series [
     # Build
     (done) ->
@@ -324,12 +331,14 @@ task 'watch', 'watch files and compile as needed', ->
         args = args.concat ['--hash', opts.hash]
       if opts.cdn
         args = args.concat ['--cdn', opts.cdn]
-      
+      if opts.output
+        args = args.concat ['--output', opts.output]
+
       p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
       p.on 'exit', done
-    
+
     # Watch client dir
     (done) ->
       watch.watchDir clientDir
@@ -360,7 +369,9 @@ task 'minify', 'minify and concatenate js/css files for production', ->
         args = args.concat ['--cdn', opts.cdn]
       if opts.hash
         args = args.concat ['--hash', opts.hash]
-      
+      if opts.output
+        args = args.concat ['--output', opts.output]
+
       p = spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
@@ -369,10 +380,14 @@ task 'minify', 'minify and concatenate js/css files for production', ->
           process.exit(code)
         else
           done(null)
-    
+
     # Minify
     (done) ->
-      p =  spawn "#{__dirname}/../bin/muffin", ['optimize', '-e', 'production']
+      args = ['optimize', '-e', 'production']
+      if opts.output
+        args = args.concat ['--output', opts.output]
+
+      p =  spawn "#{__dirname}/../bin/muffin", args
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
       p.on 'exit', (code) ->
@@ -380,20 +395,20 @@ task 'minify', 'minify and concatenate js/css files for production', ->
           process.exit(code)
         else
           done(null)
-    
+
     # Remove temp directories
     (done) ->
       fs.removeSync publicDir
       fs.renameSync 'build', publicDir
       done(null)
-    
+
     # Concatenate modules
     (done) ->
       for path in buildConfig.build
         logging.info "Concatenating module dependencies: #{path}"
         optimizer.concatDeps(path, buildConfig.paths)
       done(null)
-    
+
     # Inline scripts
     (done) ->
       watch.inlineScriptsInDir publicDir
@@ -426,7 +441,7 @@ task 'doc', 'generate documentation', ->
 task 'server', 'start a webserver', ->
   watch.setEnv (opts.env ? 'development'), opts
   fs.removeSync publicDir
-  
+
   async.series [
     # Build
     (done) ->
@@ -434,11 +449,11 @@ task 'server', 'start a webserver', ->
       p.stdout.on 'data', (data) -> logging.info data
       p.stderr.on 'data', (data) -> logging.error data
       p.on 'exit', done
-    
+
     # Dump versions.json, watch client dir, start server.
     (done) ->
       watch.watchDir clientDir
-      
+
       if fs.existsSync(serverDir)
         watch.startAndWatchServer()
       else
@@ -451,7 +466,7 @@ task 'deploy', 'deploy the app', ->
   platforms = ['heroku', 'amazon', 'nodejitsu']
   unless dest and dest.toLowerCase() in platforms
     fatalError "Must choose a platform from the following: heroku, amazon, nodejitsu"
-  
+
   switch dest.toLowerCase()
     when 'heroku'
       script =
@@ -490,12 +505,12 @@ copyTemplate = (data, mapping) ->
     ejs = fs.readFileSync(sysPath.join(templatesDir, from)).toString()
     destDir = sysPath.dirname(to)
     fs.mkdirSync destDir
-    
+
     _.templateSettings =
       evaluate    : /<\$([\s\S]+?)\$>/g,
       interpolate : /<\$=([\s\S]+?)\$>/g,
       escape      : /<\$-([\s\S]+?)\$>/g
-    
+
     fs.writeFileSync to, _.template(ejs, data)
     logging.info " * Create #{to}"
 

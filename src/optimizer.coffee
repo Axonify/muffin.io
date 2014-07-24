@@ -4,9 +4,6 @@ sysPath = require 'path'
 logging = require './logging'
 uglify = require 'uglify-js'
 
-cwd = process.cwd()
-publicDir = sysPath.join(cwd, 'public')
-
 # Recursively optimize all the files in a directory and its subdirectories
 optimizeDir = (fromDir, toDir) ->
   # Minify the js files
@@ -27,7 +24,7 @@ optimizeFile = (source, dest) ->
   fs.exists destDir, (exists) ->
     fs.mkdirSync destDir unless exists
     _optimize()
-  
+
   _optimize = ->
     switch sysPath.extname(source)
       when '.js'
@@ -43,20 +40,20 @@ optimizeFile = (source, dest) ->
 concatDeps = (path, mapping) ->
   content = ''
   modules = {}
-  
+
   baseOfPath = (path) ->
     path.split('/')[0...-1].join('/')
-  
+
   filePathOf = (path) ->
     fp = sysPath.join(publicDir, path)
     fp += '.js' if sysPath.extname(path) not in ['.js', '.css', '.html', '.htm', '.json']
     fp
-  
+
   # Convert relative path to full path
   normalize = (path, base=null) ->
     parts = path.split('/')
     alias = mapping[parts[0]]
-    
+
     if path[0] is '.' and base
       baseParts = base.split('/')
       switch parts[0]
@@ -67,20 +64,20 @@ concatDeps = (path, mapping) ->
     else if alias
       path = [alias].concat(parts[1..]).join('/')
     return path
-  
+
   define = (path, deps, factory) ->
     # Load module dependencies
     base = baseOfPath(path)
     deps = (normalize(p, base) for p in deps)
     concat(path) for path in deps
-  
+
   concat = (path) ->
     # Skip the module if already included
     return if modules[path]
-    
+
     console.log path
     text = fs.readFileSync(filePathOf(path)).toString()
-    
+
     # Otherwise, concat the module.
     if /\.(html|htm|json|css)$/.test(path)
       # Wrap the text file into a js module.
@@ -97,7 +94,7 @@ concatDeps = (path, mapping) ->
         js = "define('#{path}', [], function() {#{text}});"
         content += js
         modules[path] = {path}
-  
+
   # Concatenate all module dependencies
   concat(path)
   fs.writeFileSync filePathOf(path), content
