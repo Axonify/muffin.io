@@ -65,11 +65,10 @@ class Watcher
       ext = sysPath.extname(path)
       compiler = @compilerForExt(ext)
 
-      # Don't wrap JavaScript files inside the assets dir
-      if ext is '.js' and (path.indexOf(project.clientAssetsDir) > -1)
-        compiler = null
-
       if compiler
+        # Don't wrap JavaScript files inside the assets dir
+        compiler.nowrap = (path.indexOf(project.clientAssetsDir) > -1)
+
         # Let the compiler plugin handle it.
         compiler.compile path, destDir, ->
           logging.info "compiled #{path}"

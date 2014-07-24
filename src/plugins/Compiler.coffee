@@ -3,6 +3,7 @@
 class Compiler
 
   type: 'compiler'
+  nowrap: false
 
   # Inspect JavaScript content to infer dependencies.
   # Borrowed from [require.js](http://requirejs.org/).

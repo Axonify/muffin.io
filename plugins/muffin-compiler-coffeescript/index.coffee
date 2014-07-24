@@ -75,7 +75,8 @@ module.exports = (env, callback) ->
           deps = deps.concat(extraDeps)
 
       # Wrap the file into an AMD module
-      js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
+      unless @nowrap
+        js = "define('#{modulePath}', #{JSON.stringify(deps)}, function(require, exports, module) {#{js}});"
 
       # Add souce map URL
       if generateSourceMap
