@@ -132,7 +132,13 @@ exports.run = ->
     index = opts.arguments.indexOf('-o')
     index = opts.arguments.indexOf('--output') if index is -1
     opts.output = opts.arguments[index+1]
-    global.publicDir = sysPath.join(cwd, opts.arguments[index+1])
+
+    # Support both absolute and relative path
+    if sysPath.resolve(opts.output) is sysPath.normalize(opts.output)
+      global.publicDir = sysPath.resolve(opts.output)
+    else
+      global.publicDir = sysPath.join(cwd, opts.output)
+
     opts.arguments.splice(index, 2)
 
   for len in [1..2]
