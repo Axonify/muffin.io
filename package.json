@@ -1,7 +1,7 @@
 {
   "name": "muffin.io",
   "description": "A lightweight web framework based on Backbone.js and Express",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "keywords": [
     "backbone",
     "coffeescript",
