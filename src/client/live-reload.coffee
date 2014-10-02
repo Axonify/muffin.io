@@ -3,6 +3,7 @@ return unless WebSocket
 
 window.onload = ->
   host = window.location.hostname
+  if host is '' then host = 'localhost'
   port = <?= port || 9485 ?>
   connection = new WebSocket("ws://#{host}:#{port}")
   connection.onmessage = onMessage
