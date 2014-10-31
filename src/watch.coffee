@@ -262,6 +262,7 @@ compileFile = (source, abortOnError=no) ->
           path = sysPath.join destDir, filename
 
           less.render sourceData, (err, data) ->
+            logging.error JSON.stringify(err) if err
             fs.writeFileSync path, data
             logging.info "compiled #{source}"
             reload(path)
